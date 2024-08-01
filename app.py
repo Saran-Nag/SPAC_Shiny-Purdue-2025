@@ -134,9 +134,10 @@ app_ui = ui.page_fluid(
             ui.card(
                 ui.row(
                     ui.column(2,
-                        #ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
+                        ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
                         ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
-                        ui.input_select("umap_feat", "Select Features", choices=[])
+                        ui.div(id="main-ump_rb_dropdown_anno"),
+                        ui.div(id="main-ump_rb_dropdown_feat")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_UMAP")
@@ -168,12 +169,17 @@ def server(input, output, session):
 
 
 
-    # Update the reactive variable when a new file is uploaded
+    # Define a reactive variable to track if data is loaded
+    data_loaded = reactive.Value(False)
+
     @reactive.Effect
     def adata_filter():
         print("Calling Data")
         file_info = input.input_file()
-        if file_info:
+        if not file_info:
+            data_loaded.set(False)  # Set to False if no file is uploaded
+            return
+        else:
             file_path = file_info[0]['datapath']
             with open(file_path, 'rb') as file:
                 if file_path.endswith('.pickle'):
@@ -182,6 +188,10 @@ def server(input, output, session):
                     adata_main.set(ad.read_h5ad(file_path))
                 else:
                     adata_main.set(ad.read(file_path))
+            data_loaded.set(True)  # Set to True if a file is successfully uploaded
+
+
+        
 
 
     # Create a reactive variable for the main data
@@ -351,6 +361,7 @@ def server(input, output, session):
         ui.update_select("bp1_features", choices=choices)
         ui.update_select("bp2_features", choices=choices)
 
+
     @reactive.Effect
     def update_select_input_anno():
         choices = obs_names.get()
@@ -363,6 +374,7 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
+        
         return
 
     @reactive.Effect
@@ -388,12 +400,15 @@ def server(input, output, session):
         ui.update_select("scatter_x", choices=choices)
         ui.update_select("scatter_y", choices=choices)
         return
+
+    
     @reactive.Effect
     def update_boxplot_selectize():
         selected_names=var_names.get()
-        ui.update_selectize("bp1_features", selected=selected_names)
-        ui.update_selectize("bp2_features", selected=selected_names)
-        return
+        if selected_names is not None:
+            ui.update_selectize("bp1_features", selected=selected_names[:2])
+            ui.update_selectize("bp2_features", selected=selected_names[:2])
+            return
     @reactive.Effect
     def update_relational_select():
         selected_names=obs_names.get()
@@ -523,10 +538,14 @@ def server(input, output, session):
     @output
     @render.plot
     def spac_UMAP():
-        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get())
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
         if adata is not None:
-            out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_feat())
-            return out
+            if input.umap_rb() == "Feature":
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat())
+                return out
+            elif input.umap_rb() == "Annotation":
+                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno())
+                return out1
         return None
     
 
@@ -646,6 +665,34 @@ def server(input, output, session):
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             return ax1
+        
+    @reactive.effect
+    def umap_reactivity():
+        flipper=data_loaded.get()
+        if flipper is not False:
+            btn = input.umap_rb()
+            if btn == "Annotation":
+                dropdown = ui.input_select("umap_rb_anno", "Select an Annotation", choices=obs_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
+                    selector="#main-ump_rb_dropdown_anno",
+                    where="beforeEnd",
+                )
+
+                ui.remove_ui("#inserted-rbdropdown_feat")
+
+            elif btn == "Feature":
+                dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
+                    selector="#main-ump_rb_dropdown_feat",
+                    where="beforeEnd",
+                )
+                ui.remove_ui("#inserted-rbdropdown_anno")
+                
+            elif btn == "None":
+                ui.remove_ui("#inserted-rbdropdown_anno")
+                ui.remove_ui("#inserted-rbdropdown_feat")
 
     
 
