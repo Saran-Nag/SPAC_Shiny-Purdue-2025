@@ -46,7 +46,8 @@ app_ui = ui.page_fluid(
                         
                     )
                 ),
-            ),
+            )),
+            ui.nav("Boxplots",
             ui.row(
                 ui.column(6,
                     ui.card(
