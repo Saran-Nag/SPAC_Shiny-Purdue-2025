@@ -39,7 +39,8 @@ app_ui = ui.page_fluid(
                         ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
                         ui.input_checkbox("h1_group_by_check", "Group By", value=False),
                         ui.div(id="main-h1_dropdown"),
-                        ui.div(id="main-h1_check")
+                        ui.div(id="main-h1_check"),
+                        ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Histogram_1")
@@ -55,6 +56,7 @@ app_ui = ui.page_fluid(
                             ui.input_select("bp1_anno", "Select an Annotation", choices=[]),
                             ui.input_select("bp1_layer", "Select a Table", choices=[], selected="Original"),
                             ui.input_selectize("bp1_features", "Select Features", multiple=True, choices=[], selected=[]),
+                            ui.input_action_button("go_bp1", "Render Plot", class_="btn-success"),
                             ui.output_plot("spac_Boxplot_1")
                         )
                     ),
@@ -65,6 +67,7 @@ app_ui = ui.page_fluid(
                             ui.input_select("bp2_anno", "Select an Annotation", choices=[]),
                             ui.input_select("bp2_layer", "Select a Table", choices=[], selected="Original"),
                             ui.input_selectize("bp2_features", "Select Features", multiple=True, choices=[], selected=[]),
+                            ui.input_action_button("go_bp2", "Render Plot", class_="btn-success"),
                             ui.output_plot("spac_Boxplot_2")
                         )
                     ),
@@ -75,7 +78,8 @@ app_ui = ui.page_fluid(
             ui.card(
                 ui.row(
                     ui.column(2,
-                        ui.input_select("h2_anno", "Select an Annotation", choices=[])
+                        ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                        ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Histogram_2")
@@ -88,7 +92,9 @@ app_ui = ui.page_fluid(
                 ui.row(
                     ui.column(2,
                         ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
-                        ui.input_select("hm1_layer", "Select a Table", choices=[])
+                        ui.input_select("hm1_layer", "Select a Table", choices=[]),
+                        ui.input_checkbox("dendogram", "Include Dendogram", False),
+                        ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Heatmap")
@@ -101,7 +107,8 @@ app_ui = ui.page_fluid(
                 ui.row(
                     ui.column(2,
                         ui.input_select("sk1_anno1", "Select Source Annotation", choices=[]),
-                        ui.input_select("sk1_anno2", "Select Target Annotation", choices=[])
+                        ui.input_select("sk1_anno2", "Select Target Annotation", choices=[]),
+                        ui.input_action_button("go_sk1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         output_widget("spac_Sankey")
@@ -112,7 +119,8 @@ app_ui = ui.page_fluid(
                 ui.row(
                     ui.column(2,
                         ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
-                        ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[])
+                        ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
+                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         output_widget("spac_Relational")
@@ -120,25 +128,28 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
-        ui.nav("Spatial + UMAP",
+        ui.nav("Spatial",
             ui.card(
                 ui.row(
                     ui.column(2,
                         ui.input_select("spatial_anno", "Select an Object", choices=[]),
-                        ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3)
+                        ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
+                        ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         output_widget("spac_Spatial")
                     )
                 )
-            ),
+            )),
+        ui.nav("UMAP",    
             ui.card(
                 ui.row(
                     ui.column(2,
                         ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
                         ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
                         ui.div(id="main-ump_rb_dropdown_anno"),
-                        ui.div(id="main-ump_rb_dropdown_feat")
+                        ui.div(id="main-ump_rb_dropdown_feat"),
+                        ui.input_action_button("go_umap1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_UMAP")
@@ -154,7 +165,8 @@ app_ui = ui.page_fluid(
                         ui.input_select("scatter_x", "Select X Axis", choices=[]),
                         ui.input_select("scatter_y", "Select Y Axis", choices=[]),
                         ui.input_checkbox("scatter_color_check", "Color by Feature", value=False),
-                        ui.div(id="main-scatter_dropdown")
+                        ui.div(id="main-scatter_dropdown"),
+                        ui.input_action_button("go_scatter", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Scatter")
@@ -420,6 +432,7 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_h1, ignore_none=True)
     def spac_Histogram_1():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
         if adata is not None:
@@ -458,6 +471,7 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_bp1, ignore_none=True)
     def spac_Boxplot_1():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
         if adata is not None and adata.var is not None:
@@ -477,6 +491,7 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_bp2, ignore_none=True)
     def spac_Boxplot_2():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
         if adata is not None and adata.var is not None:
@@ -498,6 +513,7 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_h2, ignore_none=True)
     def spac_Histogram_2():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
         if adata is not None:
@@ -507,19 +523,30 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_hm1, ignore_none=True)
     def spac_Heatmap():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
         if adata is not None:
-            if input.hm1_layer() != "Original":
-                df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer())
-                return fig
-            else:
-                df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno())
-                return fig
+            if input.dendogram() is not True:
+                if input.hm1_layer() != "Original":
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None)
+                    return fig
+                else:
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
+                    return fig
+            elif input.dendogram() is not False:
+                if input.hm1_layer() != "Original":
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=True)
+                    return fig
+                else:
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=True)
+                    return fig
+
         return None
 
     @output
     @render_widget
+    @reactive.event(input.go_sk1, ignore_none=True)
     def spac_Sankey():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), layers=layers_data.get())
         if adata is not None:
@@ -529,6 +556,7 @@ def server(input, output, session):
 
     @output
     @render_widget
+    @reactive.event(input.go_rhm1, ignore_none=True)
     def spac_Relational():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
         if adata is not None:
@@ -538,20 +566,52 @@ def server(input, output, session):
 
     @output
     @render.plot
+    @reactive.event(input.go_umap1, ignore_none=True)
     def spac_UMAP():
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
         if adata is not None:
             if input.umap_rb() == "Feature":
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat())
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), point_size=100)
                 return out
             elif input.umap_rb() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno())
+                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=100)
                 return out1
         return None
+    
+    @reactive.effect
+    def umap_reactivity():
+        flipper=data_loaded.get()
+        if flipper is not False:
+            btn = input.umap_rb()
+            if btn == "Annotation":
+                dropdown = ui.input_select("umap_rb_anno", "Select an Annotation", choices=obs_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
+                    selector="#main-ump_rb_dropdown_anno",
+                    where="beforeEnd",
+                )
+
+                ui.remove_ui("#inserted-rbdropdown_feat")
+
+            elif btn == "Feature":
+                dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
+                    selector="#main-ump_rb_dropdown_feat",
+                    where="beforeEnd",
+                )
+                ui.remove_ui("#inserted-rbdropdown_anno")
+                
+            elif btn == "None":
+                ui.remove_ui("#inserted-rbdropdown_anno")
+                ui.remove_ui("#inserted-rbdropdown_feat")
+
+                
     
 
     @output
     @render_widget
+    @reactive.event(input.go_sp1, ignore_none=True)
     def spac_Spatial():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), obsm=obsm_data.get())
         if adata is not None:
@@ -656,6 +716,7 @@ def server(input, output, session):
     
     @output
     @render.plot
+    @reactive.event(input.go_scatter, ignore_none=True)
     def spac_Scatter():
         x_points = get_scatterplot_coordinates_x()
         y_points = get_scatterplot_coordinates_y()
@@ -667,33 +728,6 @@ def server(input, output, session):
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             return ax1
         
-    @reactive.effect
-    def umap_reactivity():
-        flipper=data_loaded.get()
-        if flipper is not False:
-            btn = input.umap_rb()
-            if btn == "Annotation":
-                dropdown = ui.input_select("umap_rb_anno", "Select an Annotation", choices=obs_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
-                    selector="#main-ump_rb_dropdown_anno",
-                    where="beforeEnd",
-                )
-
-                ui.remove_ui("#inserted-rbdropdown_feat")
-
-            elif btn == "Feature":
-                dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
-                    selector="#main-ump_rb_dropdown_feat",
-                    where="beforeEnd",
-                )
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                
-            elif btn == "None":
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                ui.remove_ui("#inserted-rbdropdown_feat")
 
     
 
