@@ -22,7 +22,7 @@ app_ui = ui.page_fluid(
         ui.nav_panel("Data Input",
                 ui.div(
                 {"style": "font-weight: bold; font-size: 30px;"},
-                ui.p("SPAC Interactive Dashboard *Development*")),
+                ui.p("SPAC Interactive Dashboard")),
                 ui.input_file("input_file", "Choose a file to upload:", multiple=False),
                 ui.output_text("print_rows"),
                 ui.output_text("print_columns"),
