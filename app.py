@@ -20,6 +20,9 @@ app_ui = ui.page_fluid(
 
     
         ui.nav_panel("Data Input",
+                ui.div(
+                {"style": "font-weight: bold; font-size: 30px;"},
+                ui.p("SPAC Interactive Dashboard *Development*")),
                 ui.input_file("input_file", "Choose a file to upload:", multiple=False),
                 ui.output_text("print_rows"),
                 ui.output_text("print_columns"),
@@ -144,17 +147,28 @@ app_ui = ui.page_fluid(
         ui.nav("UMAP",    
             ui.card(
                 ui.row(
-                    ui.column(2,
+                    ui.column(6,
                         ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
                         ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
                         ui.div(id="main-ump_rb_dropdown_anno"),
                         ui.div(id="main-ump_rb_dropdown_feat"),
-                        ui.input_action_button("go_umap1", "Render Plot", class_="btn-success")
-                    ),
-                    ui.column(10,
+                        ui.input_action_button("go_umap1", "Render Plot", class_="btn-success"),
                         ui.output_plot("spac_UMAP")
-                    )
+                    ),
+                    ui.column(6,
+                        ui.input_radio_buttons("umap_rb2", "Choose one:", ["Annotation", "Feature"]),
+                        ui.input_select("plottype2", "Select a plot type", choices=["umap", "pca", "tsne"]),
+                        ui.div(id="main-ump_rb_dropdown_anno2"),
+                        ui.div(id="main-ump_rb_dropdown_feat2"),
+                        ui.input_action_button("go_umap2", "Render Plot", class_="btn-success"),
+                        ui.output_plot("spac_UMAP2")
+
+
+
                 )
+                
+            )
+
             )
         ),
         ui.nav("Scatterplot",
@@ -571,7 +585,7 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
         if adata is not None:
             if input.umap_rb() == "Feature":
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), point_size=100)
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), point_size=50)
                 return out
             elif input.umap_rb() == "Annotation":
                 out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=100)
@@ -605,6 +619,50 @@ def server(input, output, session):
             elif btn == "None":
                 ui.remove_ui("#inserted-rbdropdown_anno")
                 ui.remove_ui("#inserted-rbdropdown_feat")
+
+
+
+    @output
+    @render.plot
+    @reactive.event(input.go_umap2, ignore_none=True)
+    def spac_UMAP2():
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        if adata is not None:
+            if input.umap_rb2() == "Feature":
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), point_size=50)
+                return out
+            elif input.umap_rb2() == "Annotation":
+                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=100)
+                return out1
+        return None
+    
+    @reactive.effect
+    def umap_reactivity2():
+        flipper=data_loaded.get()
+        if flipper is not False:
+            btn = input.umap_rb2()
+            if btn == "Annotation":
+                dropdown = ui.input_select("umap_rb_anno2", "Select an Annotation", choices=obs_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_anno2"}, dropdown),
+                    selector="#main-ump_rb_dropdown_anno2",
+                    where="beforeEnd",
+                )
+
+                ui.remove_ui("#inserted-rbdropdown_feat2")
+
+            elif btn == "Feature":
+                dropdown1 = ui.input_select("umap_rb_feat2", "Select a Feature", choices=var_names.get())
+                ui.insert_ui(
+                    ui.div({"id": "inserted-rbdropdown_feat2"}, dropdown1),
+                    selector="#main-ump_rb_dropdown_feat2",
+                    where="beforeEnd",
+                )
+                ui.remove_ui("#inserted-rbdropdown_anno2")
+                
+            elif btn == "None":
+                ui.remove_ui("#inserted-rbdropdown_anno2")
+                ui.remove_ui("#inserted-rbdropdown_feat2")
 
                 
     
