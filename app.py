@@ -41,6 +41,8 @@ app_ui = ui.page_fluid(
                         ui.input_select("h1_feat", "Select a Feature", choices=[]),
                         ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
                         ui.input_checkbox("h1_group_by_check", "Group By", value=False),
+                        ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
+                        ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
                         ui.div(id="main-h1_dropdown"),
                         ui.div(id="main-h1_check"),
                         ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
@@ -82,6 +84,9 @@ app_ui = ui.page_fluid(
                 ui.row(
                     ui.column(2,
                         ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                        ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                        ui.div(id="main-h2_dropdown"),
+                        ui.div(id="main-h2_check"),
                         ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
                     ),
                     ui.column(10,
@@ -96,7 +101,9 @@ app_ui = ui.page_fluid(
                     ui.column(2,
                         ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
                         ui.input_select("hm1_layer", "Select a Table", choices=[]),
-                        ui.input_checkbox("dendogram", "Include Dendogram", False),
+                        ui.input_checkbox("dendogram", "Include Dendrogram", False),
+                        ui.div(id="main-hm1_check"),
+                        ui.div(id="main-hm2_check"),
                         ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -152,6 +159,8 @@ app_ui = ui.page_fluid(
                         ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
                         ui.div(id="main-ump_rb_dropdown_anno"),
                         ui.div(id="main-ump_rb_dropdown_feat"),
+                        ui.div(id="main-ump_table_dropdown_feat"),
+                        ui.input_slider("umap_slider_1", "Point Size", min=.5, max=10, value=3),
                         ui.input_action_button("go_umap1", "Render Plot", class_="btn-success"),
                         ui.output_plot("spac_UMAP")
                     ),
@@ -160,6 +169,8 @@ app_ui = ui.page_fluid(
                         ui.input_select("plottype2", "Select a plot type", choices=["umap", "pca", "tsne"]),
                         ui.div(id="main-ump_rb_dropdown_anno2"),
                         ui.div(id="main-ump_rb_dropdown_feat2"),
+                        ui.div(id="main-ump_table_dropdown_feat2"),
+                        ui.input_slider("umap_slider_2", "Point Size", min=.5, max=10, value=3),
                         ui.input_action_button("go_umap2", "Render Plot", class_="btn-success"),
                         ui.output_plot("spac_UMAP2")
 
@@ -448,21 +459,27 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_h1, ignore_none=True)
     def spac_Histogram_1():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
+        btn_log_x = input.h1_log_x()
+        btn_log_y = input.h1_log_y()
         if adata is not None:
             if input.h1_group_by_check() is not True:
                 if input.h1_layer() != "Original":
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer())
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), log_scale=(btn_log_x, btn_log_y))
                     return fig1
                 else:
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat())
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), log_scale=(btn_log_x, btn_log_y))
                     return fig1
 
             if input.h1_group_by_check() is not False:
-                    fig = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check())
-                    return fig
+                if input.h1_layer() != "Original":
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    return fig1
+                else:
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    return fig1
         return None
-    
+
     @reactive.effect
     def histogram_reactivity():
         btn = input.h1_group_by_check()
@@ -487,7 +504,7 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_bp1, ignore_none=True)
     def spac_Boxplot_1():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None and adata.var is not None:
             if input.bp1_layer() != "Original" and input.bp1_anno() != "No Annotation":
                 fig,ax = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), layer=input.bp1_layer(), features=list(input.bp1_features()))
@@ -507,7 +524,7 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_bp2, ignore_none=True)
     def spac_Boxplot_2():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None and adata.var is not None:
             if input.bp2_layer() != "Original" and input.bp2_anno() != "No Annotation":
                 fig,ax = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), layer=input.bp2_layer(), features=list(input.bp2_features()))
@@ -529,17 +546,41 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
     def spac_Histogram_2():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
-            fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
-            return fig
+            if input.h2_group_by_check() is not False:
+                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check())
+                return fig1
+            else:
+                fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
+                return fig
         return None    
+    
+    @reactive.effect
+    def histogram_reactivity_2():
+        btn = input.h2_group_by_check()
+        if btn is not False:
+            dropdown = ui.input_select("h2_anno_1", "Select an Annotation", choices=obs_names.get())
+            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown-1"}, dropdown),
+                selector="#main-h2_dropdown",
+                where="beforeEnd",
+            )
+            ui.insert_ui(
+                ui.div({"id": "inserted-check-1"}, together_check),
+                selector="#main-h2_check",
+                where="beforeEnd",
+            )
+        elif btn is not True:
+            ui.remove_ui("#inserted-dropdown-1")
+            ui.remove_ui("#inserted-check-1")
 
     @output
     @render.plot
     @reactive.event(input.go_hm1, ignore_none=True)
     def spac_Heatmap():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
@@ -549,20 +590,42 @@ def server(input, output, session):
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
                     return fig
             elif input.dendogram() is not False:
+                cluster_annotations = input.h2_anno_dendro()  
+                cluster_features = input.h2_feat_dendro()  
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=True)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=True)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
                     return fig
 
         return None
+
+    @reactive.effect
+    def heatmap_reactivity():
+        btn = input.dendogram()
+        if btn is not False:
+            annotation_check = ui.input_checkbox("h2_anno_dendro", "Annotation Cluster", value=False)
+            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
+            ui.insert_ui(
+                ui.div({"id": "inserted-check"}, annotation_check),
+                selector="#main-hm1_check",
+                where="beforeEnd",
+            )
+            ui.insert_ui(
+                ui.div({"id": "inserted-check1"}, feat_check),
+                selector="#main-hm2_check",
+                where="beforeEnd",
+            )
+        elif btn is not True:
+            ui.remove_ui("#inserted-check")
+            ui.remove_ui("#inserted-check1")
 
     @output
     @render_widget
     @reactive.event(input.go_sk1, ignore_none=True)
     def spac_Sankey():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), layers=layers_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
             fig = spac.visualization.sankey_plot(adata, source_annotation=input.sk1_anno1(), target_annotation=input.sk1_anno2())
             return fig
@@ -582,13 +645,18 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_umap1, ignore_none=True)
     def spac_UMAP():
-        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get(), dtype=X_data.get().dtype, layers=layers_data.get())
+        point_size=input.umap_slider_1()
         if adata is not None:
             if input.umap_rb() == "Feature":
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), point_size=50)
+                if input.umap_layer() == "Original":
+                    layer = None
+                else:
+                    layer = input.umap_layer()
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
                 return out
             elif input.umap_rb() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=100)
+                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
                 return out1
         return None
     
@@ -614,11 +682,19 @@ def server(input, output, session):
                     selector="#main-ump_rb_dropdown_feat",
                     where="beforeEnd",
                 )
+                new_choices = layers_names.get() + ["Original"]
+                table_umap = ui.input_select("umap_layer", "Select a Table", choices=new_choices, selected=["Original"])
+                ui.insert_ui(
+                    ui.div({"id": "inserted-umap_table"}, table_umap),
+                    selector="#main-ump_table_dropdown_feat",
+                    where="beforeEnd",
+                )
                 ui.remove_ui("#inserted-rbdropdown_anno")
                 
             elif btn == "None":
                 ui.remove_ui("#inserted-rbdropdown_anno")
                 ui.remove_ui("#inserted-rbdropdown_feat")
+                ui.remove_ui("#inserted-umap_table")
 
 
 
@@ -626,13 +702,18 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_umap2, ignore_none=True)
     def spac_UMAP2():
-        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get(), dtype=X_data.get().dtype, layers=layers_data.get())
+        point_size_2=input.umap_slider_2()
         if adata is not None:
             if input.umap_rb2() == "Feature":
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), point_size=50)
+                if input.umap_layer2() == "Original":
+                    layer2 = None
+                else:
+                    layer2 = input.umap_layer2()
+                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
                 return out
             elif input.umap_rb2() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=100)
+                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
                 return out1
         return None
     
@@ -650,6 +731,7 @@ def server(input, output, session):
                 )
 
                 ui.remove_ui("#inserted-rbdropdown_feat2")
+                ui.remove_ui("#inserted-umap_table2")
 
             elif btn == "Feature":
                 dropdown1 = ui.input_select("umap_rb_feat2", "Select a Feature", choices=var_names.get())
@@ -658,11 +740,19 @@ def server(input, output, session):
                     selector="#main-ump_rb_dropdown_feat2",
                     where="beforeEnd",
                 )
+                new_choices = layers_names.get() + ["Original"]
+                table_umap_1 = ui.input_select("umap_layer2", "Select a Table", choices=new_choices, selected=["Original"])
+                ui.insert_ui(
+                    ui.div({"id": "inserted-umap_table2"}, table_umap_1),
+                    selector="#main-ump_table_dropdown_feat2",
+                    where="beforeEnd",
+                )
                 ui.remove_ui("#inserted-rbdropdown_anno2")
                 
             elif btn == "None":
                 ui.remove_ui("#inserted-rbdropdown_anno2")
                 ui.remove_ui("#inserted-rbdropdown_feat2")
+                ui.remove_ui("#inserted-umap_table2")
 
                 
     
@@ -671,9 +761,11 @@ def server(input, output, session):
     @render_widget
     @reactive.event(input.go_sp1, ignore_none=True)
     def spac_Spatial():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), obsm=obsm_data.get())
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), obsm=obsm_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
             out = spac.visualization.interative_spatial_plot(adata, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
+            out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+            out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
             return out
         return None
     
