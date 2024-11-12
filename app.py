@@ -144,7 +144,14 @@ app_ui = ui.page_fluid(
                     ui.column(2,
                         ui.input_select("spatial_anno", "Select an Object", choices=[]),
                         ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
+                        ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
+                        ui.div(id="main-slide_dropdown"),
+                        ui.div(id="main-label_dropdown"),
+                        ui.input_checkbox("region_select_check", "Stratify by Region", False),
+                        ui.div(id="main-region_dropdown"),
+                        ui.div(id="main-region_label_select_dropdown"),
                         ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
+                        
                     ),
                     ui.column(10,
                         output_widget("spac_Spatial")
@@ -236,6 +243,7 @@ def server(input, output, session):
     adata_main = reactive.Value(None)
 
     # Create reactive variables for parts of the anndata object
+    slide_annotation = reactive.Value(None)
     X_data = reactive.Value(None)
     obs_data = reactive.Value(None) #AKA Annotations
     obsm_data = reactive.Value(None)
@@ -754,7 +762,70 @@ def server(input, output, session):
                 ui.remove_ui("#inserted-rbdropdown_feat2")
                 ui.remove_ui("#inserted-umap_table2")
 
-                
+
+    @reactive.effect
+    def slide_reactivity():
+        # Get input values
+        adata = ad.AnnData(obs=obs_data.get())
+        annotations = obs_names.get()
+        btn = input.slide_select_check()
+        if btn is not False:
+            dropdown_slide = ui.input_select("slide_select_drop","Select the Slide Annotation",choices=annotations)
+            ui.insert_ui(
+                ui.div({"id": "inserted-slide_dropdown"}, dropdown_slide),
+                selector="#main-slide_dropdown",
+                where="beforeEnd",
+            )
+            dropdown_label = ui.input_select("slide_select_label","Select a Slide",choices=[])
+            ui.insert_ui(
+                    ui.div({"id": "inserted-label_dropdown"}, dropdown_label),
+                    selector="#main-label_dropdown",
+                    where="beforeEnd",
+                )
+        elif btn is not True:
+            ui.remove_ui("#inserted-slide_dropdown")
+            ui.remove_ui("#inserted-label_dropdown")
+
+    @reactive.effect
+    def update_slide_select_drop():
+        adata = ad.AnnData(obs=obs_data.get())
+        if input.slide_select_drop():
+            selected_anno = input.slide_select_drop()
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_select("slide_select_label", choices=labels)
+
+    @reactive.effect
+    def region_reactivity():
+        # Get input values
+        adata = ad.AnnData(obs=obs_data.get())
+        annotations = obs_names.get()
+        btn = input.region_select_check()
+        if btn is not False:
+            dropdown_region = ui.input_select("region_select_drop","Select the Region Annotation",choices=annotations)
+            ui.insert_ui(
+                ui.div({"id": "inserted-region_dropdown"}, dropdown_region),
+                selector="#main-region_dropdown",
+                where="beforeEnd",
+            )
+            dropdown_label = ui.input_select("region_label_select","Select a Region",choices=[])
+            ui.insert_ui(
+                    ui.div({"id": "inserted-region_label_select_dropdown"}, dropdown_label),
+                    selector="#main-region_label_select_dropdown",
+                    where="beforeEnd",
+                )
+        elif btn is not True:
+            ui.remove_ui("#region_select_drop")
+            ui.remove_ui("#inserted-region_label_select_dropdown")
+
+    @reactive.effect
+    def update_region_select_drop():
+        adata = ad.AnnData(obs=obs_data.get())
+        if input.region_select_drop():
+            selected_anno = input.region_select_drop()
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_select("region_label_select", choices=labels)
+
+          
     
 
     @output
@@ -762,11 +833,36 @@ def server(input, output, session):
     @reactive.event(input.go_sp1, ignore_none=True)
     def spac_Spatial():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), obsm=obsm_data.get(), dtype=X_data.get().dtype)
+        slide_check = input.slide_select_check()
+        region_check = input.region_select_check()
         if adata is not None:
-            out = spac.visualization.interative_spatial_plot(adata, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-            out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-            out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-            return out
+            if slide_check is False and region_check is False:
+                out = spac.visualization.interative_spatial_plot(adata, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
+                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out
+            if slide_check is True and region_check is False:
+                slide_anno = input.slide_select
+                adata_subset = adata[adata.obs[input.slide_select_drop()] == input.slide_select_label()].copy()
+                out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
+                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out
+            if slide_check is True and region_check is True:
+                slide_anno = input.slide_select
+                adata_subset = adata[(adata.obs[input.slide_select_drop()] == input.slide_select_label()) & (adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
+                out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
+                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out
+            if slide_check is False and region_check is True:
+                slide_anno = input.slide_select
+                adata_subset = adata[(adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
+                out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
+                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out
+
         return None
     
     #@output
