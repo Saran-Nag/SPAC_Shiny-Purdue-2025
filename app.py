@@ -814,7 +814,7 @@ def server(input, output, session):
                     where="beforeEnd",
                 )
         elif btn is not True:
-            ui.remove_ui("#region_select_drop")
+            ui.remove_ui("#inserted-region_dropdown")
             ui.remove_ui("#inserted-region_label_select_dropdown")
 
     @reactive.effect
@@ -842,21 +842,21 @@ def server(input, output, session):
                 out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
                 return out
             if slide_check is True and region_check is False:
-                slide_anno = input.slide_select
+
                 adata_subset = adata[adata.obs[input.slide_select_drop()] == input.slide_select_label()].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
                 out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
                 out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
                 return out
             if slide_check is True and region_check is True:
-                slide_anno = input.slide_select
+
                 adata_subset = adata[(adata.obs[input.slide_select_drop()] == input.slide_select_label()) & (adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
                 out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
                 out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
                 return out
             if slide_check is False and region_check is True:
-                slide_anno = input.slide_select
+
                 adata_subset = adata[(adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
                 out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
