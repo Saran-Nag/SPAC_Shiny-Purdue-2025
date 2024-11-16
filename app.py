@@ -15,7 +15,7 @@ import logging
 app_ui = ui.page_fluid(
 
 
-    ui.navset_tab_card(
+    ui.navset_card_tab(
         
 
     
@@ -33,7 +33,7 @@ app_ui = ui.page_fluid(
             
             
         ), 
-        ui.nav("Features",
+        ui.nav_panel("Features",
     
             ui.card(
                 ui.row(
@@ -53,7 +53,7 @@ app_ui = ui.page_fluid(
                     )
                 ),
             )),
-            ui.nav("Boxplots",
+            ui.nav_panel("Boxplots",
             ui.row(
                 ui.column(6,
                     ui.card(
@@ -79,7 +79,7 @@ app_ui = ui.page_fluid(
                 ),
             )
         ),
-        ui.nav("Annotations",
+        ui.nav_panel("Annotations",
             ui.card(
                 ui.row(
                     ui.column(2,
@@ -95,7 +95,7 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
-        ui.nav("Feat. Vs Anno.",
+        ui.nav_panel("Feat. Vs Anno.",
             ui.card(
                 ui.row(
                     ui.column(2,
@@ -112,7 +112,7 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
-        ui.nav("Anno. Vs Anno.",
+        ui.nav_panel("Anno. Vs Anno.",
             ui.card(
                 ui.row(
                     ui.column(2,
@@ -138,7 +138,7 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
-        ui.nav("Spatial",
+        ui.nav_panel("Spatial",
             ui.card(
                 ui.row(
                     ui.column(2,
@@ -158,7 +158,7 @@ app_ui = ui.page_fluid(
                     )
                 )
             )),
-        ui.nav("UMAP",    
+        ui.nav_panel("UMAP",    
             ui.card(
                 ui.row(
                     ui.column(6,
@@ -189,7 +189,7 @@ app_ui = ui.page_fluid(
 
             )
         ),
-        ui.nav("Scatterplot",
+        ui.nav_panel("Scatterplot",
             ui.card(
                 ui.row(
                     ui.column(2,
