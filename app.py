@@ -104,6 +104,8 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("dendogram", "Include Dendrogram", False),
                         ui.div(id="main-hm1_check"),
                         ui.div(id="main-hm2_check"),
+                        ui.input_numeric("heat_min", "Minimum Input", 1, min=0, max=100000),
+                        ui.input_numeric("heat_max", "Maximum Input", 1, min=0, max=100000),
                         ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -592,19 +594,19 @@ def server(input, output, session):
         if adata is not None:
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), vmin=int(input.heat_min), vmax=int(input.heat_max), z_score=None)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None,vmin=int(input.heat_min), vmax=int(input.heat_max), z_score=None)
                     return fig
             elif input.dendogram() is not False:
                 cluster_annotations = input.h2_anno_dendro()  
                 cluster_features = input.h2_feat_dendro()  
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), vmin=int(input.heat_min), vmax=int(input.heat_max), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, vmin=int(input.heat_min), vmax=int(input.heat_max), cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
                     return fig
 
         return None
