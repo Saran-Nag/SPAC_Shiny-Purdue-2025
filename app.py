@@ -23,14 +23,23 @@ app_ui = ui.page_fluid(
                 ui.div(
                 {"style": "font-weight: bold; font-size: 30px;"},
                 ui.p("SPAC Interactive Dashboard")),
-                ui.input_file("input_file", "Choose a file to upload:", multiple=False),
-                ui.output_text("print_rows"),
-                ui.output_text("print_columns"),
-                ui.output_text("print_obs_names"),
-                ui.output_text("print_obsm_names"),
-                ui.output_text("print_layers_names"),
-                ui.output_text("print_uns_names")
-            
+                ui.row(
+                ui.column(6,
+                    ui.input_file("input_file", "Choose a file to upload:", multiple=False),
+                    ui.output_text("print_rows"),
+                    ui.output_text("print_columns"),
+                    ui.output_text("print_obs_names"),
+                    ui.output_text("print_obsm_names"),
+                    ui.output_text("print_layers_names"),
+                    ui.output_text("print_uns_names")
+                ),
+                ui.column(6,
+                    ui.input_checkbox("subset_select_check", "Subset Annotation", False),
+                    ui.div(id="main-subset_anno_dropdown"),
+                    ui.div(id="main-subset_label_dropdown"),
+                    ui.input_action_button("go_subset", "Subset Data", class_="btn-success")
+                )
+                )
             
         ), 
         ui.nav_panel("Features",
@@ -463,6 +472,92 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
+    
+
+    # Initialize a flag to track dropdown creation
+    subset_ui_initialized = reactive.Value(False)
+
+    @reactive.effect
+    def subset_reactivity():
+        # Get input values
+        adata = ad.AnnData(obs=obs_data.get())
+        annotations = obs_names.get()
+        btn = input.subset_select_check()
+
+        # Access the flag value
+        ui_initialized = subset_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            # Insert annotation dropdown
+            anno_dropdown = ui.input_select(
+                "subset_anno_select", "Select Annotation to subset", choices=annotations
+            )
+            ui.insert_ui(
+                ui.div({"id": "inserted-subset_anno_dropdown"}, anno_dropdown),
+                selector="#main-subset_anno_dropdown",
+                where="beforeEnd",
+            )
+
+            # Insert label dropdown
+            label_dropdown = ui.input_selectize(
+                "subset_label_select", "Select a Label", choices=[], selected=[], multiple=True
+            )
+            ui.insert_ui(
+                ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
+                selector="#main-subset_label_dropdown",
+                where="beforeEnd",
+            )
+
+            # Mark the dropdowns as initialized
+            subset_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
+            # Remove dropdowns if the checkbox is unchecked
+            ui.remove_ui("#inserted-subset_anno_dropdown")
+            ui.remove_ui("#inserted-subset_label_dropdown")
+
+            # Reset the flag
+            subset_ui_initialized.set(False)
+
+    # Create a reactive trigger for label updates
+    label_update_trigger = reactive.Value(0)
+
+    @reactive.effect
+    def update_subset_labels():
+        # This effect depends on both the selected annotation and the trigger
+        trigger = label_update_trigger.get()  # Add trigger dependency
+        adata = adata_main.get()
+        selected_anno = input.subset_anno_select()
+
+        if adata is not None and selected_anno:
+            labels = adata.obs[selected_anno].unique().tolist()
+            print(f"Updating labels for {selected_anno}: {labels}")
+            ui.update_selectize("subset_label_select", choices=labels)
+
+    @reactive.effect
+    @reactive.event(input.go_subset, ignore_none=True)
+    def subset_stratification():
+        adata = adata_main.get()
+        if adata is not None:
+            annotation = input.subset_anno_select()
+            labels = input.subset_label_select()
+
+            # Perform the subsetting
+            adata_subset = adata[adata.obs[annotation].isin(labels)].copy()
+
+            # Update the main data
+            adata_main.set(adata_subset)
+
+            # Increment the label update trigger to force update
+            label_update_trigger.set(label_update_trigger.get() + 1)
+
+
+
+
+
+
+
+
     @output
     @render.plot
     @reactive.event(input.go_h1, ignore_none=True)
@@ -488,25 +583,33 @@ def server(input, output, session):
                     return fig1
         return None
 
+    histogram_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def histogram_reactivity():
         btn = input.h1_group_by_check()
-        if btn is True:
+        ui_initialized = histogram_ui_initialized.get()
+
+        if btn and not ui_initialized:
             dropdown = ui.input_select("h1_anno", "Select an Annotation", choices=obs_names.get())
-            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-dropdown"}, dropdown),
                 selector="#main-h1_dropdown",
                 where="beforeEnd",
             )
+
+            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check"}, together_check),
                 selector="#main-h1_check",
                 where="beforeEnd",
             )
-        elif btn is False:
+            histogram_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown")
             ui.remove_ui("#inserted-check")
+            histogram_ui_initialized.set(False)
 
     @output
     @render.plot
@@ -554,7 +657,7 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
     def spac_Histogram_2():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
+        adata = adata_main.get()
         if adata is not None:
             if input.h2_group_by_check() is not False:
                 fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check())
@@ -564,25 +667,33 @@ def server(input, output, session):
                 return fig
         return None    
     
+    histogram2_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def histogram_reactivity_2():
         btn = input.h2_group_by_check()
-        if btn is not False:
+        ui_initialized = histogram2_ui_initialized.get()
+
+        if btn and not ui_initialized:
             dropdown = ui.input_select("h2_anno_1", "Select an Annotation", choices=obs_names.get())
-            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-dropdown-1"}, dropdown),
                 selector="#main-h2_dropdown",
                 where="beforeEnd",
             )
+
+            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check-1"}, together_check),
                 selector="#main-h2_check",
                 where="beforeEnd",
             )
-        elif btn is not True:
+            histogram2_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown-1")
             ui.remove_ui("#inserted-check-1")
+            histogram2_ui_initialized.set(False)
 
     @output
     @render.plot
@@ -609,25 +720,33 @@ def server(input, output, session):
 
         return None
 
+    heatmap_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def heatmap_reactivity():
         btn = input.dendogram()
-        if btn is not False:
+        ui_initialized = heatmap_ui_initialized.get()
+
+        if btn and not ui_initialized:
             annotation_check = ui.input_checkbox("h2_anno_dendro", "Annotation Cluster", value=False)
-            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check"}, annotation_check),
                 selector="#main-hm1_check",
                 where="beforeEnd",
             )
+
+            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check1"}, feat_check),
                 selector="#main-hm2_check",
                 where="beforeEnd",
             )
-        elif btn is not True:
+            heatmap_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
+            heatmap_ui_initialized.set(False)
 
     @output
     @render_widget
@@ -668,41 +787,73 @@ def server(input, output, session):
                 return out1
         return None
     
+    # Track the UI state
+    umap_annotation_initialized = reactive.Value(False)
+    umap_feature_initialized = reactive.Value(False)
+
     @reactive.effect
     def umap_reactivity():
-        flipper=data_loaded.get()
+        flipper = data_loaded.get()
         if flipper is not False:
             btn = input.umap_rb()
-            if btn == "Annotation":
-                dropdown = ui.input_select("umap_rb_anno", "Select an Annotation", choices=obs_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
-                    selector="#main-ump_rb_dropdown_anno",
-                    where="beforeEnd",
-                )
 
-                ui.remove_ui("#inserted-rbdropdown_feat")
+            if btn == "Annotation":
+                if not umap_annotation_initialized.get():
+                    # Create the Annotation dropdown
+                    dropdown = ui.input_select(
+                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
+                        selector="#main-ump_rb_dropdown_anno",
+                        where="beforeEnd",
+                    )
+                    # Update the state
+                    umap_annotation_initialized.set(True)
+                # Remove the Feature dropdown and table
+                if umap_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat")
+                    ui.remove_ui("#inserted-umap_table")
+                    umap_feature_initialized.set(False)
 
             elif btn == "Feature":
-                dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
-                    selector="#main-ump_rb_dropdown_feat",
-                    where="beforeEnd",
-                )
-                new_choices = layers_names.get() + ["Original"]
-                table_umap = ui.input_select("umap_layer", "Select a Table", choices=new_choices, selected=["Original"])
-                ui.insert_ui(
-                    ui.div({"id": "inserted-umap_table"}, table_umap),
-                    selector="#main-ump_table_dropdown_feat",
-                    where="beforeEnd",
-                )
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                
+                if not umap_feature_initialized.get():
+                    # Create the Feature dropdown
+                    dropdown1 = ui.input_select(
+                        "umap_rb_feat", "Select a Feature", choices=var_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
+                        selector="#main-ump_rb_dropdown_feat",
+                        where="beforeEnd",
+                    )
+
+                    # Create the Table dropdown
+                    new_choices = layers_names.get() + ["Original"]
+                    table_umap = ui.input_select(
+                        "umap_layer", "Select a Table", choices=new_choices, selected=["Original"]
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-umap_table"}, table_umap),
+                        selector="#main-ump_table_dropdown_feat",
+                        where="beforeEnd",
+                    )
+                    # Update the state
+                    umap_feature_initialized.set(True)
+                # Remove the Annotation dropdown
+                if umap_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno")
+                    umap_annotation_initialized.set(False)
+
             elif btn == "None":
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                ui.remove_ui("#inserted-rbdropdown_feat")
-                ui.remove_ui("#inserted-umap_table")
+                # Remove all dropdowns and reset states
+                if umap_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno")
+                    umap_annotation_initialized.set(False)
+                if umap_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat")
+                    ui.remove_ui("#inserted-umap_table")
+                    umap_feature_initialized.set(False)
 
 
 
@@ -725,66 +876,94 @@ def server(input, output, session):
                 return out1
         return None
     
+    # Track the UI state
+    umap2_annotation_initialized = reactive.Value(False)
+    umap2_feature_initialized = reactive.Value(False)
+
     @reactive.effect
     def umap_reactivity2():
-        flipper=data_loaded.get()
+        flipper = data_loaded.get()
         if flipper is not False:
             btn = input.umap_rb2()
-            if btn == "Annotation":
-                dropdown = ui.input_select("umap_rb_anno2", "Select an Annotation", choices=obs_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_anno2"}, dropdown),
-                    selector="#main-ump_rb_dropdown_anno2",
-                    where="beforeEnd",
-                )
 
-                ui.remove_ui("#inserted-rbdropdown_feat2")
-                ui.remove_ui("#inserted-umap_table2")
+            if btn == "Annotation":
+                if not umap2_annotation_initialized.get():
+                    dropdown = ui.input_select(
+                        "umap_rb_anno2", "Select an Annotation", choices=obs_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_anno2"}, dropdown),
+                        selector="#main-ump_rb_dropdown_anno2",
+                        where="beforeEnd",
+                    )
+                    umap2_annotation_initialized.set(True)
+                if umap2_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat2")
+                    ui.remove_ui("#inserted-umap_table2")
+                    umap2_feature_initialized.set(False)
 
             elif btn == "Feature":
-                dropdown1 = ui.input_select("umap_rb_feat2", "Select a Feature", choices=var_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_feat2"}, dropdown1),
-                    selector="#main-ump_rb_dropdown_feat2",
-                    where="beforeEnd",
-                )
-                new_choices = layers_names.get() + ["Original"]
-                table_umap_1 = ui.input_select("umap_layer2", "Select a Table", choices=new_choices, selected=["Original"])
-                ui.insert_ui(
-                    ui.div({"id": "inserted-umap_table2"}, table_umap_1),
-                    selector="#main-ump_table_dropdown_feat2",
-                    where="beforeEnd",
-                )
-                ui.remove_ui("#inserted-rbdropdown_anno2")
-                
-            elif btn == "None":
-                ui.remove_ui("#inserted-rbdropdown_anno2")
-                ui.remove_ui("#inserted-rbdropdown_feat2")
-                ui.remove_ui("#inserted-umap_table2")
+                if not umap2_feature_initialized.get():
+                    dropdown1 = ui.input_select(
+                        "umap_rb_feat2", "Select a Feature", choices=var_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_feat2"}, dropdown1),
+                        selector="#main-ump_rb_dropdown_feat2",
+                        where="beforeEnd",
+                    )
 
+                    new_choices = layers_names.get() + ["Original"]
+                    table_umap_1 = ui.input_select(
+                        "umap_layer2", "Select a Table", choices=new_choices, selected=["Original"]
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-umap_table2"}, table_umap_1),
+                        selector="#main-ump_table_dropdown_feat2",
+                        where="beforeEnd",
+                    )
+                    umap2_feature_initialized.set(True)
+                if umap2_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno2")
+                    umap2_annotation_initialized.set(False)
+
+            elif btn == "None":
+                if umap2_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno2")
+                    umap2_annotation_initialized.set(False)
+                if umap2_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat2")
+                    ui.remove_ui("#inserted-umap_table2")
+                    umap2_feature_initialized.set(False)
+
+
+    slide_ui_initialized = reactive.Value(False)
 
     @reactive.effect
     def slide_reactivity():
-        # Get input values
-        adata = ad.AnnData(obs=obs_data.get())
-        annotations = obs_names.get()
         btn = input.slide_select_check()
-        if btn is not False:
-            dropdown_slide = ui.input_select("slide_select_drop","Select the Slide Annotation",choices=annotations)
+        ui_initialized = slide_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            dropdown_slide = ui.input_select("slide_select_drop", "Select the Slide Annotation", choices=obs_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-slide_dropdown"}, dropdown_slide),
                 selector="#main-slide_dropdown",
                 where="beforeEnd",
             )
-            dropdown_label = ui.input_select("slide_select_label","Select a Slide",choices=[])
+
+            dropdown_label = ui.input_select("slide_select_label", "Select a Slide", choices=[])
             ui.insert_ui(
-                    ui.div({"id": "inserted-label_dropdown"}, dropdown_label),
-                    selector="#main-label_dropdown",
-                    where="beforeEnd",
-                )
-        elif btn is not True:
+                ui.div({"id": "inserted-label_dropdown"}, dropdown_label),
+                selector="#main-label_dropdown",
+                where="beforeEnd",
+            )
+            slide_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-slide_dropdown")
             ui.remove_ui("#inserted-label_dropdown")
+            slide_ui_initialized.set(False)
 
     @reactive.effect
     def update_slide_select_drop():
@@ -794,28 +973,33 @@ def server(input, output, session):
             labels = adata.obs[selected_anno].unique().tolist()
             ui.update_select("slide_select_label", choices=labels)
 
+    region_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def region_reactivity():
-        # Get input values
-        adata = ad.AnnData(obs=obs_data.get())
-        annotations = obs_names.get()
         btn = input.region_select_check()
-        if btn is not False:
-            dropdown_region = ui.input_select("region_select_drop","Select the Region Annotation",choices=annotations)
+        ui_initialized = region_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            dropdown_region = ui.input_select("region_select_drop", "Select the Region Annotation", choices=obs_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-region_dropdown"}, dropdown_region),
                 selector="#main-region_dropdown",
                 where="beforeEnd",
             )
-            dropdown_label = ui.input_select("region_label_select","Select a Region",choices=[])
+
+            dropdown_label = ui.input_select("region_label_select", "Select a Region", choices=[])
             ui.insert_ui(
-                    ui.div({"id": "inserted-region_label_select_dropdown"}, dropdown_label),
-                    selector="#main-region_label_select_dropdown",
-                    where="beforeEnd",
-                )
-        elif btn is not True:
+                ui.div({"id": "inserted-region_label_select_dropdown"}, dropdown_label),
+                selector="#main-region_label_select_dropdown",
+                where="beforeEnd",
+            )
+            region_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-region_dropdown")
             ui.remove_ui("#inserted-region_label_select_dropdown")
+            region_ui_initialized.set(False)
 
     @reactive.effect
     def update_region_select_drop():
@@ -937,19 +1121,25 @@ def server(input, output, session):
         return None
     
 
+    # Track the UI state for scatterplot dropdowns
+    scatter_ui_initialized = reactive.Value(False)
+
     @reactive.effect
-    def _():
+    def scatter_reactivity():
         btn = input.scatter_color_check()
-        if btn is True:
+        if btn and not scatter_ui_initialized.get():
+            # Insert the color selection dropdown if not already initialized
             dropdown = ui.input_select("scatter_color", "Select Feature", choices=var_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-scatter_dropdown"}, dropdown),
                 selector="#main-scatter_dropdown",
                 where="beforeEnd",
             )
-
-        elif btn is False:
+            scatter_ui_initialized.set(True)
+        elif not btn and scatter_ui_initialized.get():
+            # Remove the color selection dropdown if it exists
             ui.remove_ui("#inserted-scatter_dropdown")
+            scatter_ui_initialized.set(False)
 
     @reactive.Calc
     def get_color_values():
