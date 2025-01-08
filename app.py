@@ -476,28 +476,50 @@ def server(input, output, session):
 
     
 
+    # Initialize a flag to track dropdown creation
+    subset_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def subset_reactivity():
         # Get input values
         adata = ad.AnnData(obs=obs_data.get())
         annotations = obs_names.get()
         btn = input.subset_select_check()
-        if btn is not False:
-            anno_dropdown = ui.input_select("subset_anno_select","Select Annotation to subset",choices=annotations)
+
+        # Access the flag value
+        ui_initialized = subset_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            # Insert annotation dropdown
+            anno_dropdown = ui.input_select(
+                "subset_anno_select", "Select Annotation to subset", choices=annotations
+            )
             ui.insert_ui(
                 ui.div({"id": "inserted-subset_anno_dropdown"}, anno_dropdown),
                 selector="#main-subset_anno_dropdown",
                 where="beforeEnd",
             )
-            label_dropdown = ui.input_selectize("subset_label_select","Select a Label", choices=[], selected=[], multiple=True)
+
+            # Insert label dropdown
+            label_dropdown = ui.input_selectize(
+                "subset_label_select", "Select a Label", choices=[], selected=[], multiple=True
+            )
             ui.insert_ui(
-                    ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
-                    selector="#main-subset_label_dropdown",
-                    where="beforeEnd",
-                )
-        elif btn is not True:
+                ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
+                selector="#main-subset_label_dropdown",
+                where="beforeEnd",
+            )
+
+            # Mark the dropdowns as initialized
+            subset_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
+            # Remove dropdowns if the checkbox is unchecked
             ui.remove_ui("#inserted-subset_anno_dropdown")
             ui.remove_ui("#inserted-subset_label_dropdown")
+
+            # Reset the flag
+            subset_ui_initialized.set(False)
 
     # Create a reactive trigger for label updates
     label_update_trigger = reactive.Value(0)
