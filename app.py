@@ -499,29 +499,37 @@ def server(input, output, session):
             ui.remove_ui("#inserted-subset_anno_dropdown")
             ui.remove_ui("#inserted-subset_label_dropdown")
 
+    # Create a reactive trigger for label updates
+    label_update_trigger = reactive.Value(0)
+
     @reactive.effect
     def update_subset_labels():
-        adata = ad.AnnData(obs=obs_data.get())
-        if input.subset_anno_select():
-            selected_anno = input.subset_anno_select()
+        # This effect depends on both the selected annotation and the trigger
+        trigger = label_update_trigger.get()  # Add trigger dependency
+        adata = adata_main.get()
+        selected_anno = input.subset_anno_select()
+
+        if adata is not None and selected_anno:
             labels = adata.obs[selected_anno].unique().tolist()
+            print(f"Updating labels for {selected_anno}: {labels}")
             ui.update_selectize("subset_label_select", choices=labels)
 
-
+    @reactive.effect
     @reactive.event(input.go_subset, ignore_none=True)
     def subset_stratification():
-
-        # Get the current adata
         adata = adata_main.get()
+        if adata is not None:
+            annotation = input.subset_anno_select()
+            labels = input.subset_label_select()
 
-        annotation = input.subset_anno_select()
-        labels = input.subset_label_select()
+            # Perform the subsetting
+            adata_subset = adata[adata.obs[annotation].isin(labels)].copy()
 
-        # Perform the subsetting
-        adata_subset = adata[adata.obs[annotation].isin(labels)].copy()
+            # Update the main data
+            adata_main.set(adata_subset)
 
-        # Overwrite the main data so all references update
-        adata_main.set(adata_subset)
+            # Increment the label update trigger to force update
+            label_update_trigger.set(label_update_trigger.get() + 1)
 
 
 
