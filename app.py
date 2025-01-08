@@ -585,25 +585,33 @@ def server(input, output, session):
                     return fig1
         return None
 
+    histogram_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def histogram_reactivity():
         btn = input.h1_group_by_check()
-        if btn is True:
+        ui_initialized = histogram_ui_initialized.get()
+
+        if btn and not ui_initialized:
             dropdown = ui.input_select("h1_anno", "Select an Annotation", choices=obs_names.get())
-            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-dropdown"}, dropdown),
                 selector="#main-h1_dropdown",
                 where="beforeEnd",
             )
+
+            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check"}, together_check),
                 selector="#main-h1_check",
                 where="beforeEnd",
             )
-        elif btn is False:
+            histogram_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown")
             ui.remove_ui("#inserted-check")
+            histogram_ui_initialized.set(False)
 
     @output
     @render.plot
@@ -661,25 +669,33 @@ def server(input, output, session):
                 return fig
         return None    
     
+    histogram2_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def histogram_reactivity_2():
         btn = input.h2_group_by_check()
-        if btn is not False:
+        ui_initialized = histogram2_ui_initialized.get()
+
+        if btn and not ui_initialized:
             dropdown = ui.input_select("h2_anno_1", "Select an Annotation", choices=obs_names.get())
-            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-dropdown-1"}, dropdown),
                 selector="#main-h2_dropdown",
                 where="beforeEnd",
             )
+
+            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check-1"}, together_check),
                 selector="#main-h2_check",
                 where="beforeEnd",
             )
-        elif btn is not True:
+            histogram2_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown-1")
             ui.remove_ui("#inserted-check-1")
+            histogram2_ui_initialized.set(False)
 
     @output
     @render.plot
@@ -706,25 +722,33 @@ def server(input, output, session):
 
         return None
 
+    heatmap_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def heatmap_reactivity():
         btn = input.dendogram()
-        if btn is not False:
+        ui_initialized = heatmap_ui_initialized.get()
+
+        if btn and not ui_initialized:
             annotation_check = ui.input_checkbox("h2_anno_dendro", "Annotation Cluster", value=False)
-            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check"}, annotation_check),
                 selector="#main-hm1_check",
                 where="beforeEnd",
             )
+
+            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
             ui.insert_ui(
                 ui.div({"id": "inserted-check1"}, feat_check),
                 selector="#main-hm2_check",
                 where="beforeEnd",
             )
-        elif btn is not True:
+            heatmap_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
+            heatmap_ui_initialized.set(False)
 
     @output
     @render_widget
@@ -915,28 +939,33 @@ def server(input, output, session):
                     umap2_feature_initialized.set(False)
 
 
+    slide_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def slide_reactivity():
-        # Get input values
-        adata = ad.AnnData(obs=obs_data.get())
-        annotations = obs_names.get()
         btn = input.slide_select_check()
-        if btn is not False:
-            dropdown_slide = ui.input_select("slide_select_drop","Select the Slide Annotation",choices=annotations)
+        ui_initialized = slide_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            dropdown_slide = ui.input_select("slide_select_drop", "Select the Slide Annotation", choices=obs_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-slide_dropdown"}, dropdown_slide),
                 selector="#main-slide_dropdown",
                 where="beforeEnd",
             )
-            dropdown_label = ui.input_select("slide_select_label","Select a Slide",choices=[])
+
+            dropdown_label = ui.input_select("slide_select_label", "Select a Slide", choices=[])
             ui.insert_ui(
-                    ui.div({"id": "inserted-label_dropdown"}, dropdown_label),
-                    selector="#main-label_dropdown",
-                    where="beforeEnd",
-                )
-        elif btn is not True:
+                ui.div({"id": "inserted-label_dropdown"}, dropdown_label),
+                selector="#main-label_dropdown",
+                where="beforeEnd",
+            )
+            slide_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-slide_dropdown")
             ui.remove_ui("#inserted-label_dropdown")
+            slide_ui_initialized.set(False)
 
     @reactive.effect
     def update_slide_select_drop():
@@ -946,28 +975,33 @@ def server(input, output, session):
             labels = adata.obs[selected_anno].unique().tolist()
             ui.update_select("slide_select_label", choices=labels)
 
+    region_ui_initialized = reactive.Value(False)
+
     @reactive.effect
     def region_reactivity():
-        # Get input values
-        adata = ad.AnnData(obs=obs_data.get())
-        annotations = obs_names.get()
         btn = input.region_select_check()
-        if btn is not False:
-            dropdown_region = ui.input_select("region_select_drop","Select the Region Annotation",choices=annotations)
+        ui_initialized = region_ui_initialized.get()
+
+        if btn and not ui_initialized:
+            dropdown_region = ui.input_select("region_select_drop", "Select the Region Annotation", choices=obs_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-region_dropdown"}, dropdown_region),
                 selector="#main-region_dropdown",
                 where="beforeEnd",
             )
-            dropdown_label = ui.input_select("region_label_select","Select a Region",choices=[])
+
+            dropdown_label = ui.input_select("region_label_select", "Select a Region", choices=[])
             ui.insert_ui(
-                    ui.div({"id": "inserted-region_label_select_dropdown"}, dropdown_label),
-                    selector="#main-region_label_select_dropdown",
-                    where="beforeEnd",
-                )
-        elif btn is not True:
+                ui.div({"id": "inserted-region_label_select_dropdown"}, dropdown_label),
+                selector="#main-region_label_select_dropdown",
+                where="beforeEnd",
+            )
+            region_ui_initialized.set(True)
+
+        elif not btn and ui_initialized:
             ui.remove_ui("#inserted-region_dropdown")
             ui.remove_ui("#inserted-region_label_select_dropdown")
+            region_ui_initialized.set(False)
 
     @reactive.effect
     def update_region_select_drop():
@@ -1089,19 +1123,25 @@ def server(input, output, session):
         return None
     
 
+    # Track the UI state for scatterplot dropdowns
+    scatter_ui_initialized = reactive.Value(False)
+
     @reactive.effect
-    def _():
+    def scatter_reactivity():
         btn = input.scatter_color_check()
-        if btn is True:
+        if btn and not scatter_ui_initialized.get():
+            # Insert the color selection dropdown if not already initialized
             dropdown = ui.input_select("scatter_color", "Select Feature", choices=var_names.get())
             ui.insert_ui(
                 ui.div({"id": "inserted-scatter_dropdown"}, dropdown),
                 selector="#main-scatter_dropdown",
                 where="beforeEnd",
             )
-
-        elif btn is False:
+            scatter_ui_initialized.set(True)
+        elif not btn and scatter_ui_initialized.get():
+            # Remove the color selection dropdown if it exists
             ui.remove_ui("#inserted-scatter_dropdown")
+            scatter_ui_initialized.set(False)
 
     @reactive.Calc
     def get_color_values():
