@@ -23,14 +23,23 @@ app_ui = ui.page_fluid(
                 ui.div(
                 {"style": "font-weight: bold; font-size: 30px;"},
                 ui.p("SPAC Interactive Dashboard")),
-                ui.input_file("input_file", "Choose a file to upload:", multiple=False),
-                ui.output_text("print_rows"),
-                ui.output_text("print_columns"),
-                ui.output_text("print_obs_names"),
-                ui.output_text("print_obsm_names"),
-                ui.output_text("print_layers_names"),
-                ui.output_text("print_uns_names")
-            
+                ui.row(
+                ui.column(6,
+                    ui.input_file("input_file", "Choose a file to upload:", multiple=False),
+                    ui.output_text("print_rows"),
+                    ui.output_text("print_columns"),
+                    ui.output_text("print_obs_names"),
+                    ui.output_text("print_obsm_names"),
+                    ui.output_text("print_layers_names"),
+                    ui.output_text("print_uns_names")
+                ),
+                ui.column(6,
+                    ui.input_checkbox("subset_select_check", "Subset Annotation", False),
+                    ui.div(id="main-subset_anno_dropdown"),
+                    ui.div(id="main-subset_label_dropdown"),
+                    ui.input_action_button("go_subset", "Subset Data", class_="btn-success")
+                )
+                )
             
         ), 
         ui.nav_panel("Features",
@@ -465,6 +474,62 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
+    
+
+    @reactive.effect
+    def subset_reactivity():
+        # Get input values
+        adata = ad.AnnData(obs=obs_data.get())
+        annotations = obs_names.get()
+        btn = input.subset_select_check()
+        if btn is not False:
+            anno_dropdown = ui.input_select("subset_anno_select","Select Annotation to subset",choices=annotations)
+            ui.insert_ui(
+                ui.div({"id": "inserted-subset_anno_dropdown"}, anno_dropdown),
+                selector="#main-subset_anno_dropdown",
+                where="beforeEnd",
+            )
+            label_dropdown = ui.input_selectize("subset_label_select","Select a Label", choices=[], selected=[], multiple=True)
+            ui.insert_ui(
+                    ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
+                    selector="#main-subset_label_dropdown",
+                    where="beforeEnd",
+                )
+        elif btn is not True:
+            ui.remove_ui("#inserted-subset_anno_dropdown")
+            ui.remove_ui("#inserted-subset_label_dropdown")
+
+    @reactive.effect
+    def update_subset_labels():
+        adata = ad.AnnData(obs=obs_data.get())
+        if input.subset_anno_select():
+            selected_anno = input.subset_anno_select()
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_selectize("subset_label_select", choices=labels)
+
+
+    @reactive.event(input.go_subset, ignore_none=True)
+    def subset_stratification():
+
+        # Get the current adata
+        adata = adata_main.get()
+
+        annotation = input.subset_anno_select()
+        labels = input.subset_label_select()
+
+        # Perform the subsetting
+        adata_subset = adata[adata.obs[annotation].isin(labels)].copy()
+
+        # Overwrite the main data so all references update
+        adata_main.set(adata_subset)
+
+
+
+
+
+
+
+
     @output
     @render.plot
     @reactive.event(input.go_h1, ignore_none=True)
@@ -556,7 +621,7 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
     def spac_Histogram_2():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
+        adata = adata_main.get()
         if adata is not None:
             if input.h2_group_by_check() is not False:
                 fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check())
@@ -684,6 +749,8 @@ def server(input, output, session):
                 )
 
                 ui.remove_ui("#inserted-rbdropdown_feat")
+                ui.remove_ui("#inserted-umap_table")
+                
 
             elif btn == "Feature":
                 dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
@@ -700,6 +767,7 @@ def server(input, output, session):
                     where="beforeEnd",
                 )
                 ui.remove_ui("#inserted-rbdropdown_anno")
+                
                 
             elif btn == "None":
                 ui.remove_ui("#inserted-rbdropdown_anno")
