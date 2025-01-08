@@ -765,44 +765,73 @@ def server(input, output, session):
                 return out1
         return None
     
+    # Track the UI state
+    umap_annotation_initialized = reactive.Value(False)
+    umap_feature_initialized = reactive.Value(False)
+
     @reactive.effect
     def umap_reactivity():
-        flipper=data_loaded.get()
+        flipper = data_loaded.get()
         if flipper is not False:
             btn = input.umap_rb()
-            if btn == "Annotation":
-                dropdown = ui.input_select("umap_rb_anno", "Select an Annotation", choices=obs_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
-                    selector="#main-ump_rb_dropdown_anno",
-                    where="beforeEnd",
-                )
 
-                ui.remove_ui("#inserted-rbdropdown_feat")
-                ui.remove_ui("#inserted-umap_table")
-                
+            if btn == "Annotation":
+                if not umap_annotation_initialized.get():
+                    # Create the Annotation dropdown
+                    dropdown = ui.input_select(
+                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
+                        selector="#main-ump_rb_dropdown_anno",
+                        where="beforeEnd",
+                    )
+                    # Update the state
+                    umap_annotation_initialized.set(True)
+                # Remove the Feature dropdown and table
+                if umap_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat")
+                    ui.remove_ui("#inserted-umap_table")
+                    umap_feature_initialized.set(False)
 
             elif btn == "Feature":
-                dropdown1 = ui.input_select("umap_rb_feat", "Select a Feature", choices=var_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
-                    selector="#main-ump_rb_dropdown_feat",
-                    where="beforeEnd",
-                )
-                new_choices = layers_names.get() + ["Original"]
-                table_umap = ui.input_select("umap_layer", "Select a Table", choices=new_choices, selected=["Original"])
-                ui.insert_ui(
-                    ui.div({"id": "inserted-umap_table"}, table_umap),
-                    selector="#main-ump_table_dropdown_feat",
-                    where="beforeEnd",
-                )
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                
-                
+                if not umap_feature_initialized.get():
+                    # Create the Feature dropdown
+                    dropdown1 = ui.input_select(
+                        "umap_rb_feat", "Select a Feature", choices=var_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_feat"}, dropdown1),
+                        selector="#main-ump_rb_dropdown_feat",
+                        where="beforeEnd",
+                    )
+
+                    # Create the Table dropdown
+                    new_choices = layers_names.get() + ["Original"]
+                    table_umap = ui.input_select(
+                        "umap_layer", "Select a Table", choices=new_choices, selected=["Original"]
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-umap_table"}, table_umap),
+                        selector="#main-ump_table_dropdown_feat",
+                        where="beforeEnd",
+                    )
+                    # Update the state
+                    umap_feature_initialized.set(True)
+                # Remove the Annotation dropdown
+                if umap_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno")
+                    umap_annotation_initialized.set(False)
+
             elif btn == "None":
-                ui.remove_ui("#inserted-rbdropdown_anno")
-                ui.remove_ui("#inserted-rbdropdown_feat")
-                ui.remove_ui("#inserted-umap_table")
+                # Remove all dropdowns and reset states
+                if umap_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno")
+                    umap_annotation_initialized.set(False)
+                if umap_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat")
+                    ui.remove_ui("#inserted-umap_table")
+                    umap_feature_initialized.set(False)
 
 
 
@@ -825,42 +854,65 @@ def server(input, output, session):
                 return out1
         return None
     
+    # Track the UI state
+    umap2_annotation_initialized = reactive.Value(False)
+    umap2_feature_initialized = reactive.Value(False)
+
     @reactive.effect
     def umap_reactivity2():
-        flipper=data_loaded.get()
+        flipper = data_loaded.get()
         if flipper is not False:
             btn = input.umap_rb2()
-            if btn == "Annotation":
-                dropdown = ui.input_select("umap_rb_anno2", "Select an Annotation", choices=obs_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_anno2"}, dropdown),
-                    selector="#main-ump_rb_dropdown_anno2",
-                    where="beforeEnd",
-                )
 
-                ui.remove_ui("#inserted-rbdropdown_feat2")
-                ui.remove_ui("#inserted-umap_table2")
+            if btn == "Annotation":
+                if not umap2_annotation_initialized.get():
+                    dropdown = ui.input_select(
+                        "umap_rb_anno2", "Select an Annotation", choices=obs_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_anno2"}, dropdown),
+                        selector="#main-ump_rb_dropdown_anno2",
+                        where="beforeEnd",
+                    )
+                    umap2_annotation_initialized.set(True)
+                if umap2_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat2")
+                    ui.remove_ui("#inserted-umap_table2")
+                    umap2_feature_initialized.set(False)
 
             elif btn == "Feature":
-                dropdown1 = ui.input_select("umap_rb_feat2", "Select a Feature", choices=var_names.get())
-                ui.insert_ui(
-                    ui.div({"id": "inserted-rbdropdown_feat2"}, dropdown1),
-                    selector="#main-ump_rb_dropdown_feat2",
-                    where="beforeEnd",
-                )
-                new_choices = layers_names.get() + ["Original"]
-                table_umap_1 = ui.input_select("umap_layer2", "Select a Table", choices=new_choices, selected=["Original"])
-                ui.insert_ui(
-                    ui.div({"id": "inserted-umap_table2"}, table_umap_1),
-                    selector="#main-ump_table_dropdown_feat2",
-                    where="beforeEnd",
-                )
-                ui.remove_ui("#inserted-rbdropdown_anno2")
-                
+                if not umap2_feature_initialized.get():
+                    dropdown1 = ui.input_select(
+                        "umap_rb_feat2", "Select a Feature", choices=var_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-rbdropdown_feat2"}, dropdown1),
+                        selector="#main-ump_rb_dropdown_feat2",
+                        where="beforeEnd",
+                    )
+
+                    new_choices = layers_names.get() + ["Original"]
+                    table_umap_1 = ui.input_select(
+                        "umap_layer2", "Select a Table", choices=new_choices, selected=["Original"]
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-umap_table2"}, table_umap_1),
+                        selector="#main-ump_table_dropdown_feat2",
+                        where="beforeEnd",
+                    )
+                    umap2_feature_initialized.set(True)
+                if umap2_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno2")
+                    umap2_annotation_initialized.set(False)
+
             elif btn == "None":
-                ui.remove_ui("#inserted-rbdropdown_anno2")
-                ui.remove_ui("#inserted-rbdropdown_feat2")
-                ui.remove_ui("#inserted-umap_table2")
+                if umap2_annotation_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_anno2")
+                    umap2_annotation_initialized.set(False)
+                if umap2_feature_initialized.get():
+                    ui.remove_ui("#inserted-rbdropdown_feat2")
+                    ui.remove_ui("#inserted-umap_table2")
+                    umap2_feature_initialized.set(False)
 
 
     @reactive.effect
