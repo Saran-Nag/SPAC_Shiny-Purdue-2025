@@ -37,7 +37,9 @@ app_ui = ui.page_fluid(
                     ui.input_checkbox("subset_select_check", "Subset Annotation", False),
                     ui.div(id="main-subset_anno_dropdown"),
                     ui.div(id="main-subset_label_dropdown"),
-                    ui.input_action_button("go_subset", "Subset Data", class_="btn-success")
+                    ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
+                    ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
+                    ui.output_text("print_subset_history")
                 )
                 )
             
@@ -151,7 +153,7 @@ app_ui = ui.page_fluid(
             ui.card(
                 ui.row(
                     ui.column(2,
-                        ui.input_select("spatial_anno", "Select an Object", choices=[]),
+                        ui.input_select("spatial_anno", "Select an Annotation", choices=[]),
                         ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
                         ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
                         ui.div(id="main-slide_dropdown"),
@@ -552,7 +554,68 @@ def server(input, output, session):
             label_update_trigger.set(label_update_trigger.get() + 1)
 
 
+    # Reactive variable to store subset history as a simple string
+    subset_history = reactive.Value("")
 
+    @reactive.effect
+    @reactive.event(input.go_subset, ignore_none=True)
+    def track_subset():
+        """
+        Append the current annotation and selected labels to the subset history.
+        """
+        annotation = input.subset_anno_select()
+        labels = input.subset_label_select()
+
+        # If both annotation and labels are valid, add them to history
+        if annotation and labels:
+            # Create a string like "Annotation:label1,label2"
+            new_entry = f"{annotation}: {','.join(labels)}"
+
+            # Update the subset history string by appending the new entry
+            current_history = subset_history.get()
+            if current_history:  # If there's already history, append with a separator
+                subset_history.set(f"{current_history} -> {new_entry}")
+            else:  # Otherwise, just set the first entry
+                subset_history.set(new_entry)
+
+    @output
+    @render.text
+    def print_subset_history():
+        """
+        Render the subset history as plain text for the UI.
+        """
+        history = subset_history.get()
+        return history if history else "No subsets have been made yet."
+
+    # Reactive variable to store the master copy of the inputted adata object
+    adata_master = reactive.Value(None)
+
+    @reactive.Effect
+    def store_master_copy():
+        """
+        Store a master copy of the adata object when it is first loaded into adata_main.
+        """
+        adata = adata_main.get()
+        if adata is not None and adata_master.get() is None:
+            # Make a copy of the adata object and store it as the master copy
+            adata_master.set(adata.copy())
+
+    # Add a button to the UI for restoring the data
+    ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning")
+
+    @reactive.effect
+    @reactive.event(input.restore_data, ignore_none=True)
+    def restore_to_master():
+        """
+        Restore adata_main to the master copy stored in adata_master.
+        """
+        master_data = adata_master.get()
+        if master_data is not None:
+            # Set adata_main to a copy of the master data to ensure independence
+            adata_main.set(master_data.copy())
+
+            # Clear the subset history since the data is restored
+            subset_history.set("")
 
 
 
