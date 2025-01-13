@@ -1,5 +1,5 @@
 from shiny import App, Inputs, Outputs, Session, render, ui, reactive
-from shinywidgets import output_widget, render_widget 
+from shinywidgets import output_widget, render_widget
 import pickle
 import anndata as ad
 import pandas as pd
@@ -16,9 +16,9 @@ app_ui = ui.page_fluid(
 
 
     ui.navset_card_tab(
-        
 
-    
+
+
         ui.nav_panel("Data Input",
                 ui.div(
                 {"style": "font-weight: bold; font-size: 30px;"},
@@ -42,10 +42,10 @@ app_ui = ui.page_fluid(
                     ui.output_text("print_subset_history")
                 )
                 )
-            
-        ), 
+
+        ),
         ui.nav_panel("Features",
-    
+
             ui.card(
                 ui.row(
                     ui.column(2,
@@ -60,7 +60,7 @@ app_ui = ui.page_fluid(
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Histogram_1")
-                        
+
                     )
                 ),
             )),
@@ -162,14 +162,14 @@ app_ui = ui.page_fluid(
                         ui.div(id="main-region_dropdown"),
                         ui.div(id="main-region_label_select_dropdown"),
                         ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
-                        
+
                     ),
                     ui.column(10,
                         output_widget("spac_Spatial")
                     )
                 )
             )),
-        ui.nav_panel("UMAP",    
+        ui.nav_panel("UMAP",
             ui.card(
                 ui.row(
                     ui.column(6,
@@ -195,7 +195,7 @@ app_ui = ui.page_fluid(
 
 
                 )
-                
+
             )
 
             )
@@ -247,7 +247,7 @@ def server(input, output, session):
             data_loaded.set(True)  # Set to True if a file is successfully uploaded
 
 
-        
+
 
 
     # Create a reactive variable for the main data
@@ -283,27 +283,27 @@ def server(input, output, session):
                 obs_data.set(adata.obs)
             else:
                 obs_data.set(None)
-                
+
             if hasattr(adata, 'obsm'):
                 obsm_data.set(adata.obsm)
             else:
                 obsm_data.set(None)
-                
+
             if hasattr(adata, 'layers'):
                 layers_data.set(adata.layers)
             else:
                 layers_data.set(None)
-                
+
             if hasattr(adata, 'var'):
                 var_data.set(adata.var)
             else:
                 var_data.set(None)
-                
+
             if hasattr(adata, 'uns'):
                 uns_data.set(adata.uns)
             else:
                 uns_data.set(None)
-                
+
             shape_data.set(adata.shape)
 
             if hasattr(adata, 'obs'):
@@ -391,14 +391,14 @@ def server(input, output, session):
                 uns_str = uns[0] if uns else ""
             return "Uns: " + uns_str
         return
-    
+
     @reactive.Calc
-    @render.text 
+    @render.text
     def print_rows():
         shape = shape_data.get()
         if shape is not None:
             return "# of Rows: " + str(shape[0])
-        return 
+        return
 
     @reactive.Calc
     @render.text
@@ -406,8 +406,8 @@ def server(input, output, session):
         shape = shape_data.get()
         if shape is not None:
             return "# of Columns: " + str(shape[1])
-        return 
-    
+        return
+
 
 
     @reactive.Effect
@@ -431,7 +431,7 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-        
+
         return
 
     @reactive.Effect
@@ -458,7 +458,7 @@ def server(input, output, session):
         ui.update_select("scatter_y", choices=choices)
         return
 
-    
+
     @reactive.Effect
     def update_boxplot_selectize():
         selected_names=var_names.get()
@@ -474,7 +474,7 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
-    
+
 
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
@@ -681,16 +681,16 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None and adata.var is not None:
             if input.bp1_layer() != "Original" and input.bp1_anno() != "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), layer=input.bp1_layer(), features=list(input.bp1_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), layer=input.bp1_layer(), features=list(input.bp1_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp1_layer() == "Original" and input.bp1_anno() != "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), features=list(input.bp1_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), features=list(input.bp1_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp1_layer() != "Original" and input.bp1_anno() == "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, layer=input.bp1_layer(), features=list(input.bp1_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, layer=input.bp1_layer(), features=list(input.bp1_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp1_layer() == "Original" and input.bp1_anno() == "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, features=list(input.bp1_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, features=list(input.bp1_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
         return None
 
@@ -701,20 +701,20 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None and adata.var is not None:
             if input.bp2_layer() != "Original" and input.bp2_anno() != "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), layer=input.bp2_layer(), features=list(input.bp2_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), layer=input.bp2_layer(), features=list(input.bp2_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp2_layer() == "Original" and input.bp2_anno() != "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), features=list(input.bp2_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), features=list(input.bp2_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp2_layer() != "Original" and input.bp2_anno() == "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, layer=input.bp2_layer(), features=list(input.bp2_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, layer=input.bp2_layer(), features=list(input.bp2_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
             if input.bp2_layer() == "Original" and input.bp2_anno() == "No Annotation":
-                fig,ax = spac.visualization.boxplot(adata, features=list(input.bp2_features()))
+                fig, ax, df = spac.visualization.boxplot(adata, features=list(input.bp2_features()))
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
         return None
 
-    
+
 
     @output
     @render.plot
@@ -728,8 +728,8 @@ def server(input, output, session):
             else:
                 fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
                 return fig
-        return None    
-    
+        return None
+
     histogram2_ui_initialized = reactive.Value(False)
 
     @reactive.effect
@@ -772,8 +772,8 @@ def server(input, output, session):
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
                     return fig
             elif input.dendogram() is not False:
-                cluster_annotations = input.h2_anno_dendro()  
-                cluster_features = input.h2_feat_dendro()  
+                cluster_annotations = input.h2_anno_dendro()
+                cluster_features = input.h2_feat_dendro()
                 if input.hm1_layer() != "Original":
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
                     return fig
@@ -827,8 +827,8 @@ def server(input, output, session):
     def spac_Relational():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
         if adata is not None:
-            fig = spac.visualization.relational_heatmap(adata, source_annotation=input.rhm_anno1(), target_annotation=input.rhm_anno2())
-            return fig
+            result = spac.visualization.relational_heatmap(adata, source_annotation=input.rhm_anno1(), target_annotation=input.rhm_anno2())
+            return result['figure']
         return None
 
     @output
@@ -849,7 +849,7 @@ def server(input, output, session):
                 out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
                 return out1
         return None
-    
+
     # Track the UI state
     umap_annotation_initialized = reactive.Value(False)
     umap_feature_initialized = reactive.Value(False)
@@ -938,7 +938,7 @@ def server(input, output, session):
                 out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
                 return out1
         return None
-    
+
     # Track the UI state
     umap2_annotation_initialized = reactive.Value(False)
     umap2_feature_initialized = reactive.Value(False)
@@ -1072,8 +1072,8 @@ def server(input, output, session):
             labels = adata.obs[selected_anno].unique().tolist()
             ui.update_select("region_label_select", choices=labels)
 
-          
-    
+
+
 
     @output
     @render_widget
@@ -1085,33 +1085,33 @@ def server(input, output, session):
         if adata is not None:
             if slide_check is False and region_check is False:
                 out = spac.visualization.interative_spatial_plot(adata, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out
+                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out[0]['image_object']
             if slide_check is True and region_check is False:
 
                 adata_subset = adata[adata.obs[input.slide_select_drop()] == input.slide_select_label()].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out
+                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out[0]['image_object']
             if slide_check is True and region_check is True:
 
                 adata_subset = adata[(adata.obs[input.slide_select_drop()] == input.slide_select_label()) & (adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out
+                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out[0]['image_object']
             if slide_check is False and region_check is True:
 
                 adata_subset = adata[(adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
                 out = spac.visualization.interative_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out.update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out.update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out
+                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+                return out[0]['image_object']
 
         return None
-    
+
     #@output
     #@render.plot
     #def spac_Neighborhood():
@@ -1132,7 +1132,7 @@ def server(input, output, session):
 
             return dict
         return []
-    
+
     @reactive.Calc
     def get_scatterplot_coordinates_x():
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), layers=layers_data.get())
@@ -1154,10 +1154,10 @@ def server(input, output, session):
             new_layer = adata.layers[layer_selection]
             x_coords = new_layer[:, column_index]  # Extract the column corresponding to the feature
             return x_coords
-        
+
         return None
 
-    
+
 
     @reactive.Calc
     def get_scatterplot_coordinates_y():
@@ -1180,9 +1180,9 @@ def server(input, output, session):
             new_layer = adata.layers[layer_selection]
             y_coords = new_layer[:, column_index]  # Extract the column corresponding to the feature
             return y_coords
-        
+
         return None
-    
+
 
     # Track the UI state for scatterplot dropdowns
     scatter_ui_initialized = reactive.Value(False)
@@ -1210,9 +1210,9 @@ def server(input, output, session):
         column_index = adata.var_names.get_loc(input.scatter_color())
         color_values = adata.X[:, column_index]
         return color_values
-        
 
-    
+
+
     @output
     @render.plot
     @reactive.event(input.go_scatter, ignore_none=True)
@@ -1226,9 +1226,9 @@ def server(input, output, session):
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             return ax1
-        
 
-    
+
+
 
 
 app = App(app_ui, server)
