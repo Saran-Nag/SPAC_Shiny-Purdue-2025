@@ -92,20 +92,26 @@ app_ui = ui.page_fluid(
             )
         ),
         ui.nav_panel("Annotations",
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                        ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                        ui.div(id="main-h2_dropdown"),
-                        ui.div(id="main-h2_check"),
-                        ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                    ),
-                    ui.column(10,
-                        ui.output_plot("spac_Histogram_2")
-                    )
+            ui.div(
+                {"style": "height: 600px"},
+                ui.card(
+                    ui.div(
+                    {"style": "height: 550px"},
+                        ui.row(
+                            ui.column(2,
+                                ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                                ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                                ui.div(id="main-h2_dropdown"),
+                                ui.div(id="main-h2_check"),
+                                ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                            ),
+                            ui.column(10,
+                                ui.output_plot("spac_Histogram_2", width="100%", height="100%")
+                            )
+                        )
+                    )    
                 )
-            )
+            )    
         ),
         ui.nav_panel("Feat. Vs Anno.",
             ui.card(
