@@ -9,7 +9,6 @@ from pathlib import Path as path
 import spac
 import spac.visualization
 import spac.spatial_analysis
-from sag_py_execution_time_decorator import log_execution_time
 import logging
 
 app_ui = ui.page_fluid(
@@ -56,6 +55,7 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
                         ui.div(id="main-h1_dropdown"),
                         ui.div(id="main-h1_check"),
+                        ui.div(id="main-h1_together_drop"),
                         ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -98,6 +98,7 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("h2_group_by_check", "Group By", value=False),
                         ui.div(id="main-h2_dropdown"),
                         ui.div(id="main-h2_check"),
+                        ui.div(id="main-h2_together_drop"),
                         ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
                     ),
                     ui.column(10,
@@ -115,6 +116,9 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("dendogram", "Include Dendrogram", False),
                         ui.div(id="main-hm1_check"),
                         ui.div(id="main-hm2_check"),
+                        ui.input_checkbox("hm1_min_max", "Set Min/Max", value=False),
+                        ui.div(id="main-min_num"),
+                        ui.div(id="main-max_num"),
                         ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -639,10 +643,10 @@ def server(input, output, session):
 
             if input.h1_group_by_check() is not False:
                 if input.h1_layer() != "Original":
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y), multiple=input.h1_together_drop())
                     return fig1
                 else:
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y), multiple=input.h1_together_drop())
                     return fig1
         return None
 
@@ -667,12 +671,28 @@ def server(input, output, session):
                 selector="#main-h1_check",
                 where="beforeEnd",
             )
+
             histogram_ui_initialized.set(True)
 
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown")
             ui.remove_ui("#inserted-check")
+            ui.remove_ui("#inserted-dropdown_together")
             histogram_ui_initialized.set(False)
+
+    @reactive.effect
+    @reactive.event(input.h1_together_check)
+    def update_stack_type_dropdown():
+        if input.h1_together_check():
+            dropdown_together = ui.input_select("h1_together_drop", "Select Stack Type", 
+                                                choices=['stack', 'layer', 'dodge', 'fill'], 
+                                                selected='stack')
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown_together"}, dropdown_together),
+                selector="#main-h1_together_drop",
+                where="beforeEnd",)      
+        else:
+            ui.remove_ui("#inserted-dropdown_together")
 
     @output
     @render.plot
@@ -723,7 +743,7 @@ def server(input, output, session):
         adata = adata_main.get()
         if adata is not None:
             if input.h2_group_by_check() is not False:
-                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check())
+                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check(), multiple=input.h2_together_drop())
                 return fig1
             else:
                 fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
@@ -756,7 +776,22 @@ def server(input, output, session):
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown-1")
             ui.remove_ui("#inserted-check-1")
+            ui.remove_ui("#inserted-dropdown_together-1")
             histogram2_ui_initialized.set(False)
+
+    @reactive.effect
+    @reactive.event(input.h2_together_check)
+    def update_stack_type_dropdown():
+        if input.h2_together_check():
+            dropdown_together = ui.input_select("h2_together_drop", "Select Stack Type", 
+                                                choices=['stack', 'layer', 'dodge', 'fill'], 
+                                                selected='stack')
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown_together-1"}, dropdown_together),
+                selector="#main-h2_together_drop",
+                where="beforeEnd",)      
+        else:
+            ui.remove_ui("#inserted-dropdown_together-1")
 
     @output
     @render.plot
@@ -764,21 +799,34 @@ def server(input, output, session):
     def spac_Heatmap():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
+            if input.hm1_min_max is not False:
+                vmin = input.min_select()
+                vmax = input.min_select()
+            elif input.hm1_min_max is not True:
+                if input.hm1_layer() == "Original":
+                    layer_data = adata.X
+                else:
+                    layer_data = adata.layers[input.hm1_layer()]
+                    mask = adata.obs[input.hm1_anno()].notna()
+                    layer_data = layer_data[mask]
+                vmin = np.min(layer_data)
+                vmax = np.max(layer_data)
+                
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, vmin=vmin, vmax=vmax)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, vmin=vmin, vmax=vmax)
                     return fig
             elif input.dendogram() is not False:
                 cluster_annotations = input.h2_anno_dendro()  
                 cluster_features = input.h2_feat_dendro()  
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
                     return fig
 
         return None
@@ -809,7 +857,36 @@ def server(input, output, session):
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
+            ui.remove_ui("#inserted-min_num")
+            ui.remove_ui("#inserted-max_num")
             heatmap_ui_initialized.set(False)
+
+    @reactive.effect
+    @reactive.event(input.hm1_min_max)
+    def update_min_max():
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        if input.hm1_min_max():
+            if input.hm1_layer() == "Original":
+                layer_data = adata.X
+            else:
+                layer_data = adata.layers[input.hm1_layer()]
+            mask = adata.obs[input.hm1_anno()].notna()
+            layer_data = layer_data[mask]
+            min_val = round(np.min(layer_data), 2)
+            max_val = round(np.max(layer_data), 2)
+            min_num = ui.input_numeric("min_select", "Minimum", min_val, min_val, max=max_val)
+            ui.insert_ui(
+                ui.div({"id": "inserted-min_num"}, min_num),
+                selector="#main-min_num",
+                where="beforeEnd",)     
+            max_num = ui.input_numeric("max_select", "Maximum", max_val, min=min_val, max=max_val)
+            ui.insert_ui(
+                ui.div({"id": "inserted-max_num"}, max_num),
+                selector="#main-max_num",
+                where="beforeEnd",)  
+        else:
+            ui.remove_ui("#inserted-min_num")
+            ui.remove_ui("#inserted-max_num")
 
     @output
     @render_widget
