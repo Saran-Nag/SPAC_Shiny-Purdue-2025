@@ -9,8 +9,7 @@ from pathlib import Path as path
 import spac
 import spac.visualization
 import spac.spatial_analysis
-from sag_py_execution_time_decorator import log_execution_time
-import logging
+
 
 app_ui = ui.page_fluid(
 
@@ -56,6 +55,7 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
                         ui.div(id="main-h1_dropdown"),
                         ui.div(id="main-h1_check"),
+                        ui.div(id="main-h1_together_drop"),
                         ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -72,6 +72,7 @@ app_ui = ui.page_fluid(
                             ui.input_select("bp1_anno", "Select an Annotation", choices=[]),
                             ui.input_select("bp1_layer", "Select a Table", choices=[], selected="Original"),
                             ui.input_selectize("bp1_features", "Select Features", multiple=True, choices=[], selected=[]),
+                            ui.input_checkbox("bp1_outlier_check", "Add Outliers", False),
                             ui.input_action_button("go_bp1", "Render Plot", class_="btn-success"),
                             ui.output_plot("spac_Boxplot_1")
                         )
@@ -83,6 +84,7 @@ app_ui = ui.page_fluid(
                             ui.input_select("bp2_anno", "Select an Annotation", choices=[]),
                             ui.input_select("bp2_layer", "Select a Table", choices=[], selected="Original"),
                             ui.input_selectize("bp2_features", "Select Features", multiple=True, choices=[], selected=[]),
+                            ui.input_checkbox("bp2_outlier_check", "Add Outliers", False),
                             ui.input_action_button("go_bp2", "Render Plot", class_="btn-success"),
                             ui.output_plot("spac_Boxplot_2")
                         )
@@ -91,20 +93,27 @@ app_ui = ui.page_fluid(
             )
         ),
         ui.nav_panel("Annotations",
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                        ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                        ui.div(id="main-h2_dropdown"),
-                        ui.div(id="main-h2_check"),
-                        ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                    ),
-                    ui.column(10,
-                        ui.output_plot("spac_Histogram_2")
-                    )
+            ui.div(
+                {"style": "height: 600px"},
+                ui.card(
+                    ui.div(
+                    {"style": "height: 550px"},
+                        ui.row(
+                            ui.column(2,
+                                ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                                ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                                ui.div(id="main-h2_dropdown"),
+                                ui.div(id="main-h2_check"),
+                                ui.div(id="main-h2_together_drop"),
+                                ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                            ),
+                            ui.column(10,
+                                ui.output_plot("spac_Histogram_2", width="100%", height="100%")
+                            )
+                        )
+                    )    
                 )
-            )
+            )    
         ),
         ui.nav_panel("Feat. Vs Anno.",
             ui.card(
@@ -639,10 +648,10 @@ def server(input, output, session):
 
             if input.h1_group_by_check() is not False:
                 if input.h1_layer() != "Original":
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y), multiple=input.h1_together_drop())
                     return fig1
                 else:
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y))
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), log_scale=(btn_log_x, btn_log_y), multiple=input.h1_together_drop())
                     return fig1
         return None
 
@@ -672,7 +681,22 @@ def server(input, output, session):
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown")
             ui.remove_ui("#inserted-check")
+            ui.remove_ui("#inserted-dropdown_together")
             histogram_ui_initialized.set(False)
+
+    @reactive.effect
+    @reactive.event(input.h1_together_check)
+    def update_stack_type_dropdown():
+        if input.h1_together_check():
+            dropdown_together = ui.input_select("h1_together_drop", "Select Stack Type", 
+                                                choices=['stack', 'layer', 'dodge', 'fill'], 
+                                                selected='stack')
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown_together"}, dropdown_together),
+                selector="#main-h1_together_drop",
+                where="beforeEnd",)      
+        else:
+            ui.remove_ui("#inserted-dropdown_together")
 
     @output
     @render.plot
@@ -723,10 +747,10 @@ def server(input, output, session):
         adata = adata_main.get()
         if adata is not None:
             if input.h2_group_by_check() is not False:
-                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check())
+                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check(), multiple=input.h2_together_drop())
                 return fig1
             else:
-                fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
+                fig = spac.visualization.histogram(adata, annotation=input.h2_anno(), multiple=input.h2_together_drop())
                 return fig
         return None
 
@@ -756,7 +780,22 @@ def server(input, output, session):
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-dropdown-1")
             ui.remove_ui("#inserted-check-1")
+            ui.remove_ui("#inserted-dropdown_together-1")
             histogram2_ui_initialized.set(False)
+    
+    @reactive.effect
+    @reactive.event(input.h2_together_check)
+    def update_stack_type_dropdown():
+        if input.h2_together_check():
+            dropdown_together = ui.input_select("h2_together_drop", "Select Stack Type", 
+                                                choices=['stack', 'layer', 'dodge', 'fill'], 
+                                                selected='stack')
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown_together-1"}, dropdown_together),
+                selector="#main-h2_together_drop",
+                where="beforeEnd",)      
+        else:
+            ui.remove_ui("#inserted-dropdown_together-1")
 
     @output
     @render.plot
