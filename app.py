@@ -116,7 +116,6 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("dendogram", "Include Dendrogram", False),
                         ui.div(id="main-hm1_check"),
                         ui.div(id="main-hm2_check"),
-                        ui.input_checkbox("hm1_min_max", "Set Min/Max", value=False),
                         ui.div(id="main-min_num"),
                         ui.div(id="main-max_num"),
                         ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
@@ -799,19 +798,8 @@ def server(input, output, session):
     def spac_Heatmap():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
-            if input.hm1_min_max is not False:
-                vmin = input.min_select()
-                vmax = input.min_select()
-            elif input.hm1_min_max is not True:
-                if input.hm1_layer() == "Original":
-                    layer_data = adata.X
-                else:
-                    layer_data = adata.layers[input.hm1_layer()]
-                    mask = adata.obs[input.hm1_anno()].notna()
-                    layer_data = layer_data[mask]
-                vmin = np.min(layer_data)
-                vmax = np.max(layer_data)
-                
+            vmin = input.min_select()
+            vmax = input.max_select()    
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, vmin=vmin, vmax=vmax)
@@ -857,36 +845,37 @@ def server(input, output, session):
         elif not btn and ui_initialized:
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
-            ui.remove_ui("#inserted-min_num")
-            ui.remove_ui("#inserted-max_num")
             heatmap_ui_initialized.set(False)
 
     @reactive.effect
-    @reactive.event(input.hm1_min_max)
+    @reactive.event(input.hm1_layer)
     def update_min_max():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
-        if input.hm1_min_max():
-            if input.hm1_layer() == "Original":
-                layer_data = adata.X
-            else:
-                layer_data = adata.layers[input.hm1_layer()]
-            mask = adata.obs[input.hm1_anno()].notna()
-            layer_data = layer_data[mask]
-            min_val = round(np.min(layer_data), 2)
-            max_val = round(np.max(layer_data), 2)
-            min_num = ui.input_numeric("min_select", "Minimum", min_val, min_val, max=max_val)
-            ui.insert_ui(
-                ui.div({"id": "inserted-min_num"}, min_num),
-                selector="#main-min_num",
-                where="beforeEnd",)     
-            max_num = ui.input_numeric("max_select", "Maximum", max_val, min=min_val, max=max_val)
-            ui.insert_ui(
-                ui.div({"id": "inserted-max_num"}, max_num),
-                selector="#main-max_num",
-                where="beforeEnd",)  
+        if input.hm1_layer() == "Original":
+            layer_data = adata.X
         else:
-            ui.remove_ui("#inserted-min_num")
-            ui.remove_ui("#inserted-max_num")
+            layer_data = adata.layers[input.hm1_layer()]
+        mask = adata.obs[input.hm1_anno()].notna()
+        layer_data = layer_data[mask]
+        min_val = round(float(np.min(layer_data)), 2)
+        max_val = round(float(np.max(layer_data)), 2)
+
+        ui.remove_ui("#inserted-min_num")
+        ui.remove_ui("#inserted-max_num")
+
+        min_num = ui.input_numeric("min_select", "Minimum", min_val, min=min_val, max=max_val)
+        ui.insert_ui(
+            ui.div({"id": "inserted-min_num"}, min_num),
+            selector="#main-min_num",
+            where="beforeEnd",
+        )
+        
+        max_num = ui.input_numeric("max_select", "Maximum", max_val, min=min_val, max=max_val)
+        ui.insert_ui(
+            ui.div({"id": "inserted-max_num"}, max_num),
+            selector="#main-max_num",
+            where="beforeEnd",
+        )
 
     @output
     @render_widget
