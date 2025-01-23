@@ -750,7 +750,7 @@ def server(input, output, session):
                 fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check(), multiple=input.h2_together_drop())
                 return fig1
             else:
-                fig = spac.visualization.histogram(adata, annotation=input.h2_anno(), multiple=input.h2_together_drop())
+                fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
                 return fig
         return None
 
