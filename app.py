@@ -10,7 +10,6 @@ import spac
 import spac.visualization
 import spac.spatial_analysis
 
-
 app_ui = ui.page_fluid(
 
 
@@ -93,6 +92,7 @@ app_ui = ui.page_fluid(
             )
         ),
         ui.nav_panel("Annotations",
+
             ui.div(
                 {"style": "height: 600px"},
                 ui.card(
@@ -124,6 +124,8 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("dendogram", "Include Dendrogram", False),
                         ui.div(id="main-hm1_check"),
                         ui.div(id="main-hm2_check"),
+                        ui.div(id="main-min_num"),
+                        ui.div(id="main-max_num"),
                         ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
                     ),
                     ui.column(10,
@@ -676,6 +678,7 @@ def server(input, output, session):
                 selector="#main-h1_check",
                 where="beforeEnd",
             )
+
             histogram_ui_initialized.set(True)
 
         elif not btn and ui_initialized:
@@ -797,27 +800,43 @@ def server(input, output, session):
         else:
             ui.remove_ui("#inserted-dropdown_together-1")
 
+    @reactive.effect
+    @reactive.event(input.h2_together_check)
+    def update_stack_type_dropdown():
+        if input.h2_together_check():
+            dropdown_together = ui.input_select("h2_together_drop", "Select Stack Type", 
+                                                choices=['stack', 'layer', 'dodge', 'fill'], 
+                                                selected='stack')
+            ui.insert_ui(
+                ui.div({"id": "inserted-dropdown_together-1"}, dropdown_together),
+                selector="#main-h2_together_drop",
+                where="beforeEnd",)      
+        else:
+            ui.remove_ui("#inserted-dropdown_together-1")
+
     @output
     @render.plot
     @reactive.event(input.go_hm1, ignore_none=True)
     def spac_Heatmap():
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
+            vmin = input.min_select()
+            vmax = input.max_select()    
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, vmin=vmin, vmax=vmax)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, vmin=vmin, vmax=vmax)
                     return fig
             elif input.dendogram() is not False:
                 cluster_annotations = input.h2_anno_dendro()
                 cluster_features = input.h2_feat_dendro()
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
                     return fig
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
                     return fig
 
         return None
@@ -849,6 +868,36 @@ def server(input, output, session):
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
             heatmap_ui_initialized.set(False)
+
+    @reactive.effect
+    @reactive.event(input.hm1_layer)
+    def update_min_max():
+        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get())
+        if input.hm1_layer() == "Original":
+            layer_data = adata.X
+        else:
+            layer_data = adata.layers[input.hm1_layer()]
+        mask = adata.obs[input.hm1_anno()].notna()
+        layer_data = layer_data[mask]
+        min_val = round(float(np.min(layer_data)), 2)
+        max_val = round(float(np.max(layer_data)), 2)
+
+        ui.remove_ui("#inserted-min_num")
+        ui.remove_ui("#inserted-max_num")
+
+        min_num = ui.input_numeric("min_select", "Minimum", min_val, min=min_val, max=max_val)
+        ui.insert_ui(
+            ui.div({"id": "inserted-min_num"}, min_num),
+            selector="#main-min_num",
+            where="beforeEnd",
+        )
+        
+        max_num = ui.input_numeric("max_select", "Maximum", max_val, min=min_val, max=max_val)
+        ui.insert_ui(
+            ui.div({"id": "inserted-max_num"}, max_num),
+            selector="#main-max_num",
+            where="beforeEnd",
+        )
 
     @output
     @render_widget
