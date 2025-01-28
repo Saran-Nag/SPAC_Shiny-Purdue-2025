@@ -800,20 +800,6 @@ def server(input, output, session):
         else:
             ui.remove_ui("#inserted-dropdown_together-1")
 
-    @reactive.effect
-    @reactive.event(input.h2_together_check)
-    def update_stack_type_dropdown():
-        if input.h2_together_check():
-            dropdown_together = ui.input_select("h2_together_drop", "Select Stack Type", 
-                                                choices=['stack', 'layer', 'dodge', 'fill'], 
-                                                selected='stack')
-            ui.insert_ui(
-                ui.div({"id": "inserted-dropdown_together-1"}, dropdown_together),
-                selector="#main-h2_together_drop",
-                where="beforeEnd",)      
-        else:
-            ui.remove_ui("#inserted-dropdown_together-1")
-
     @output
     @render.plot
     @reactive.event(input.go_hm1, ignore_none=True)
