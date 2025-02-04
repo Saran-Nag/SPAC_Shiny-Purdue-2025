@@ -753,8 +753,6 @@ def server(input, output, session):
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
         return None
 
-
-
     @output
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
@@ -880,7 +878,6 @@ def server(input, output, session):
         if df_heatmap.get() is not None:
             return ui.download_button("download_df", "Download Data", class_="btn-success")
         return None
-
 
     @reactive.effect
     @reactive.event(input.hm1_layer)
