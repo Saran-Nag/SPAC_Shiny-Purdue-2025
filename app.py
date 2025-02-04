@@ -153,8 +153,8 @@ app_ui = ui.page_fluid(
                     ui.column(2,
                         ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
                         ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
-                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success")#,
-                        #ui.output_ui("download_button_ui_1")
+                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
+                        ui.output_ui("download_button_ui_1")
                     ),
                     ui.column(10,
                         output_widget("spac_Relational")
@@ -929,25 +929,25 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
         if adata is not None:
             result = spac.visualization.relational_heatmap(adata, source_annotation=input.rhm_anno1(), target_annotation=input.rhm_anno2())
-            #df_relational.set(result['data'])
+            df_relational.set(result['data'])
             return result['figure']
         return None
-    
-#    @session.download(filename="relational_data.csv")
-#    def download_df_1():
-##        heatmap_object = df_relational.get()
-#        if heatmap_object is not None and hasattr(heatmap_object, 'data'):
-#            df = heatmap_object.data
-#            return df.to_csv(index=False)
-#        return None
-#
-#    @render.ui
- #   @reactive.event(input.go_rhm1, ignore_none=True)
-  #  def download_button_ui_1():
-   #     if df_relational.get() is not None:
-    #        return ui.download_button("download_df_1", "Download Data", class_="btn-success")
-     #   return None
 
+    @session.download(filename="relational_data.csv")
+    def download_df_1():
+        df = df_relational.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_rhm1, ignore_none=True)
+    def download_button_ui_1():
+        if df_relational.get() is not None:
+            return ui.download_button("download_df_1", "Download Data", class_="btn-success")
+        return None
 
     @output
     @render.plot
