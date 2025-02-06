@@ -126,7 +126,8 @@ app_ui = ui.page_fluid(
                         ui.div(id="main-hm2_check"),
                         ui.div(id="main-min_num"),
                         ui.div(id="main-max_num"),
-                        ui.input_action_button("go_hm1", "Render Plot", class_="btn-success")
+                        ui.input_action_button("go_hm1", "Render Plot", class_="btn-success"),
+                        ui.output_ui("download_button_ui")
                     ),
                     ui.column(10,
                         ui.output_plot("spac_Heatmap")
@@ -152,7 +153,8 @@ app_ui = ui.page_fluid(
                     ui.column(2,
                         ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
                         ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
-                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success")
+                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
+                        ui.output_ui("download_button_ui_1")
                     ),
                     ui.column(10,
                         output_widget("spac_Relational")
@@ -278,6 +280,8 @@ def server(input, output, session):
     layers_names = reactive.Value(None)
     var_names = reactive.Value(None)
     uns_names = reactive.Value(None)
+    df_heatmap = reactive.Value(None)
+    df_relational = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -749,8 +753,6 @@ def server(input, output, session):
                 return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
         return None
 
-
-
     @output
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
@@ -819,19 +821,17 @@ def server(input, output, session):
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, vmin=vmin, vmax=vmax)
-                    return fig
                 else:
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, vmin=vmin, vmax=vmax)
-                    return fig
             elif input.dendogram() is not False:
                 cluster_annotations = input.h2_anno_dendro()
                 cluster_features = input.h2_feat_dendro()
                 if input.hm1_layer() != "Original":
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
-                    return fig
                 else:
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
-                    return fig
+            df_heatmap.set(df)
+            return fig
 
         return None
 
@@ -862,6 +862,22 @@ def server(input, output, session):
             ui.remove_ui("#inserted-check")
             ui.remove_ui("#inserted-check1")
             heatmap_ui_initialized.set(False)
+
+    @session.download(filename="heatmap_data.csv")
+    def download_df():
+        df = df_heatmap.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_hm1, ignore_none=True)
+    def download_button_ui():
+        if df_heatmap.get() is not None:
+            return ui.download_button("download_df", "Download Data", class_="btn-success")
+        return None
 
     @reactive.effect
     @reactive.event(input.hm1_layer)
@@ -910,7 +926,24 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()))
         if adata is not None:
             result = spac.visualization.relational_heatmap(adata, source_annotation=input.rhm_anno1(), target_annotation=input.rhm_anno2())
+            df_relational.set(result['data'])
             return result['figure']
+        return None
+
+    @session.download(filename="relational_data.csv")
+    def download_df_1():
+        df = df_relational.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_rhm1, ignore_none=True)
+    def download_button_ui_1():
+        if df_relational.get() is not None:
+            return ui.download_button("download_df_1", "Download Data", class_="btn-success")
         return None
 
     @output
