@@ -138,7 +138,10 @@ app_ui = ui.page_fluid(
                             ui.div(id="main-min_num"),
                             ui.div(id="main-max_num"),
                             ui.input_action_button("go_hm1", "Render Plot", class_="btn-success"),
-                            ui.output_ui("download_button_ui")
+                            ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_button_ui")
+                                )
                         ),
                         ui.column(10,
                             ui.output_plot("spac_Heatmap", width="100%", height="80vh")
@@ -174,7 +177,10 @@ app_ui = ui.page_fluid(
                             ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
                             ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
                             ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
-                            ui.output_ui("download_button_ui_1")
+                            ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_button_ui_1")
+                                )
                         ),
                         ui.column(10,
                             ui.div(
@@ -934,7 +940,7 @@ def server(input, output, session):
     @reactive.event(input.go_hm1, ignore_none=True)
     def download_button_ui():
         if df_heatmap.get() is not None:
-            return ui.download_button("download_df", "Download Data", class_="btn-success")
+            return ui.download_button("download_df", "Download Data", class_="btn-warning")
         return None
 
     @reactive.effect
@@ -1001,7 +1007,7 @@ def server(input, output, session):
     @reactive.event(input.go_rhm1, ignore_none=True)
     def download_button_ui_1():
         if df_relational.get() is not None:
-            return ui.download_button("download_df_1", "Download Data", class_="btn-success")
+            return ui.download_button("download_df_1", "Download Data", class_="btn-warning")
         return None
 
     @output
