@@ -43,7 +43,29 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # 2. FEATURES PANEL (Histogram) --------------------------
+        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
+        ui.nav_panel("Annotations",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                            ui.div(id="main-h2_dropdown"),
+                            ui.div(id="main-h2_check"),
+                            ui.div(id="main-h2_together_drop"),
+                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                        ),
+                        ui.column(10,
+                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
+                        )
+                    )
+                )
+            )
+        ),
+
+
+        # 3. FEATURES PANEL (Histogram) --------------------------
         ui.nav_panel("Features",
             ui.card({"style": "width:100%;"},
                 ui.column(12,
@@ -67,7 +89,7 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # 3. BOXPLOTS PANEL --------------------------------------
+        # 4. BOXPLOTS PANEL --------------------------------------
         ui.nav_panel("Boxplots",
             ui.card({"style": "width:100%;"},
                 ui.column(12,
@@ -101,26 +123,6 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # 4. ANNOTATIONS PANEL (Histogram of annotations) --------
-        ui.nav_panel("Annotations",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                            ui.div(id="main-h2_dropdown"),
-                            ui.div(id="main-h2_check"),
-                            ui.div(id="main-h2_together_drop"),
-                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                        ),
-                        ui.column(10,
-                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
-                        )
-                    )
-                )
-            )
-        ),
 
         # 5. FEAT. VS ANNO. (Heatmap) ----------------------------
         ui.nav_panel("Feat. Vs Anno.",
