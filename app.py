@@ -57,7 +57,10 @@ app_ui = ui.page_fluid(
                             ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
                         ),
                         ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
                             ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
+                            )
                         )
                     )
                 )
@@ -82,7 +85,10 @@ app_ui = ui.page_fluid(
                             ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                         ),
                         ui.column(10,
-                            ui.output_plot("spac_Histogram_1", width="100%", height="80vh")
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
+                            )
                         )
                     )
                 )
@@ -102,7 +108,10 @@ app_ui = ui.page_fluid(
                                     ui.input_selectize("bp1_features", "Select Features", multiple=True, choices=[], selected=[]),
                                     ui.input_checkbox("bp1_outlier_check", "Add Outliers", False),
                                     ui.input_action_button("go_bp1", "Render Plot", class_="btn-success"),
-                                    ui.output_plot("spac_Boxplot_1", width="100%", height="80vh")
+                                    ui.div(
+                                    {"style": "padding-bottom: 100px;"},
+                                    ui.output_plot("spac_Boxplot_1", width="100%", height="60vh")
+                                    )
                                 )
                             )
                         ),
@@ -114,7 +123,10 @@ app_ui = ui.page_fluid(
                                     ui.input_selectize("bp2_features", "Select Features", multiple=True, choices=[], selected=[]),
                                     ui.input_checkbox("bp2_outlier_check", "Add Outliers", False),
                                     ui.input_action_button("go_bp2", "Render Plot", class_="btn-success"),
-                                    ui.output_plot("spac_Boxplot_2", width="100%", height="80vh")
+                                    ui.div(
+                                    {"style": "padding-bottom: 100px;"},
+                                    ui.output_plot("spac_Boxplot_2", width="100%", height="60vh")
+                                    )
                                 )
                             )
                         )
@@ -144,7 +156,10 @@ app_ui = ui.page_fluid(
                                 )
                         ),
                         ui.column(10,
-                            ui.output_plot("spac_Heatmap", width="100%", height="80vh")
+                            ui.div(
+                                    {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Heatmap", width="100%", height="60vh")
+                            )
                         )
                     )
                 )
@@ -211,6 +226,7 @@ app_ui = ui.page_fluid(
                         ),
                         ui.column(10,
                             ui.div(
+                                {"style": "padding-bottom: 20px;"},
                                 output_widget("spac_Spatial"),
                                 style="width:100%; height:80vh;"
                             )
