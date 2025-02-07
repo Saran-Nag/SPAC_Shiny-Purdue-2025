@@ -400,7 +400,7 @@ def server(input, output, session):
                 obs_str = ", ".join(obs)
             else:
                 obs_str = obs[0] if obs else ""
-            return "Obs: " + obs_str
+            return "Annotations: " + obs_str
         return
 
     @reactive.Calc
@@ -412,7 +412,7 @@ def server(input, output, session):
                 obsm_str = ", ".join(obsm)
             else:
                 obsm_str = obsm[0] if obsm else ""
-            return "Obsm: " + obsm_str
+            return "Associated Tables: " + obsm_str
         return
 
     @reactive.Calc
@@ -424,7 +424,7 @@ def server(input, output, session):
                 layers_str = ", ".join(layers)
             elif len(layers) > 1:
                 layers_str = layers[0] if layers else ""
-            return "Layers: " + layers_str
+            return "Tables: " + layers_str
         return
 
     @reactive.Calc
@@ -436,7 +436,7 @@ def server(input, output, session):
                 uns_str = ", ".join(uns)
             else:
                 uns_str = uns[0] if uns else ""
-            return "Uns: " + uns_str
+            return "Unstructured Data: " + uns_str
         return
 
     @reactive.Calc
@@ -444,7 +444,7 @@ def server(input, output, session):
     def print_rows():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Rows: " + str(shape[0])
+            return "# of Cells: " + str(shape[0])
         return
 
     @reactive.Calc
@@ -452,7 +452,7 @@ def server(input, output, session):
     def print_columns():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Columns: " + str(shape[1])
+            return "# of Features: " + str(shape[1])
         return
 
 
