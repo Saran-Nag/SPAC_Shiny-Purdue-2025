@@ -144,6 +144,7 @@ app_ui = ui.page_fluid(
                         ui.column(2,
                             ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
                             ui.input_select("hm1_layer", "Select a Table", choices=[]),
+                            ui.input_slider("hm_x_label_rotation", "Rotate X Axis Labels", min=0, max=90, value=25),
                             ui.input_checkbox("dendogram", "Include Dendrogram", False),
                             ui.div(id="main-hm1_check"),
                             ui.div(id="main-hm2_check"),
@@ -158,7 +159,7 @@ app_ui = ui.page_fluid(
                         ui.column(10,
                             ui.div(
                                     {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Heatmap", width="100%", height="60vh")
+                            ui.output_plot("spac_Heatmap", width="100%", height="100vh")
                             )
                         )
                     )
@@ -911,6 +912,15 @@ def server(input, output, session):
                 else:
                     df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
             df_heatmap.set(df)
+            
+            # Rotate x-axis labels
+            fig.ax_heatmap.set_xticklabels(
+                fig.ax_heatmap.get_xticklabels(),
+                rotation=input.hm_x_label_rotation(),  # degrees
+                horizontalalignment='right'
+            )
+            # fig is a seaborn.matrix.ClusterGrid
+            fig.fig.subplots_adjust(bottom=0.4)
             return fig
 
         return None
