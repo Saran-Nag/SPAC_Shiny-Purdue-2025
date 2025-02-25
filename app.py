@@ -10,6 +10,12 @@ import spac
 import spac.visualization
 import spac.spatial_analysis
 
+# Preload the default dataset
+file_path = "dev_example.pickle"  # Path to your preloaded .pickle file
+with open(file_path, 'rb') as file:
+    preloaded_data = pickle.load(file)
+
+
 app_ui = ui.page_fluid(
 
     ui.navset_card_tab(
@@ -298,12 +304,16 @@ def server(input, output, session):
     # Define a reactive variable to track if data is loaded
     data_loaded = reactive.Value(False)
 
+    # Create a reactive variable for the main data
+    adata_main = reactive.Value(preloaded_data)  # Initialize with preloaded data
+
     @reactive.Effect
     def adata_filter():
         print("Calling Data")
         file_info = input.input_file()
         if not file_info:
-            data_loaded.set(False)  # Set to False if no file is uploaded
+            adata_main.set(preloaded_data)
+            data_loaded.set(True)  # Set to False if no file is uploaded
             return
         else:
             file_path = file_info[0]['datapath']
