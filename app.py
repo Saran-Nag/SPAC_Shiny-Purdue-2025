@@ -798,8 +798,8 @@ def server(input, output, session):
                     showfliers=on_outlier_check(),
                     log_scale=input.bp_log_scale(),
                     orient=on_orient_check(),
-                    figure_height=2.5, 
-                    figure_width=4.2, 
+                    figure_height=3, 
+                    figure_width=4.8, 
                     interactive=input.bp_output_type()
                 )
             elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
@@ -810,8 +810,8 @@ def server(input, output, session):
                     showfliers=on_outlier_check(),
                     log_scale=input.bp_log_scale(),
                     orient=on_orient_check(),
-                    figure_height=2.5, 
-                    figure_width=4.2, 
+                    figure_height=3, 
+                    figure_width=4.8, 
                     interactive=input.bp_output_type()
                 )
             elif input.bp_layer() == "Original" and input.bp_anno() == "No Annotation":
@@ -821,8 +821,8 @@ def server(input, output, session):
                     showfliers=on_outlier_check(),
                     log_scale=input.bp_log_scale(),
                     orient=on_orient_check(),
-                    figure_height=2.5, 
-                    figure_width=4.2, 
+                    figure_height=3, 
+                    figure_width=4.8, 
                     interactive=input.bp_output_type())
         
             if input.bp_output_type():
