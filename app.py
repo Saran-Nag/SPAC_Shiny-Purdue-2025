@@ -10,10 +10,15 @@ import spac
 import spac.visualization
 import spac.spatial_analysis
 
-# Preload the default dataset
 file_path = "dev_example.pickle"  # Path to your preloaded .pickle file
-with open(file_path, 'rb') as file:
-    preloaded_data = pickle.load(file)
+preloaded_data = None  # Initialize as None
+
+# Check if the file exists before attempting to load it
+try:
+    with open(file_path, 'rb') as file:
+        preloaded_data = pickle.load(file)
+except FileNotFoundError:
+    print("Preloaded data file not found. Proceeding without preloaded data.")
 
 
 app_ui = ui.page_fluid(
@@ -312,9 +317,12 @@ def server(input, output, session):
         print("Calling Data")
         file_info = input.input_file()
         if not file_info:
-            adata_main.set(preloaded_data)
-            data_loaded.set(True)  # Set to False if no file is uploaded
-            return
+            # Only set preloaded data if it exists
+            if preloaded_data is not None:
+                adata_main.set(preloaded_data)
+                data_loaded.set(True)
+            else:
+                data_loaded.set(False)
         else:
             file_path = file_info[0]['datapath']
             with open(file_path, 'rb') as file:
