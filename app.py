@@ -833,6 +833,88 @@ def server(input, output, session):
 
         return None
 
+
+    @output
+    @render.ui
+    @reactive.event(input.go_bp, ignore_none=True)
+    def boxplot_static():
+        """
+        This function produces a static (PNG) boxplot image.
+        """
+
+        adata = ad.AnnData(
+            X=X_data.get(), 
+            obs=pd.DataFrame(obs_data.get()), 
+            var=pd.DataFrame(var_data.get()), 
+            layers=layers_data.get(), 
+            dtype=X_data.get().dtype
+        )
+
+        def on_outlier_check():
+            selected_choice = input.bp_outlier_check()
+            return None if selected_choice == "none" else selected_choice
+
+        def on_orient_check():
+            return "h" if input.bp_orient() else "v"
+
+        # Proceed only if adata is valid
+        if adata is not None and adata.var is not None:
+            
+            # Four scenarios for layer/annotation
+            if input.bp_layer() != "Original" and input.bp_anno() != "No Annotation":
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata, 
+                    annotation=input.bp_anno(), 
+                    layer=input.bp_layer(), 
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    interactive=False  # Force static
+                )
+            elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata, 
+                    annotation=input.bp_anno(), 
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    interactive=False  # Force static
+                )
+            elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata, 
+                    layer=input.bp_layer(), 
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    interactive=False  # Force static
+                )
+            else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata,
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    interactive=False  # Force static
+                )
+
+            # Return static PNG as a base64-encoded string
+            return ui.img(src=f"data:image/png;base64,{fig}", alt="Boxplot Image")
+
+        return None
+
     @output
     @render.plot
     @reactive.event(input.go_h2, ignore_none=True)
