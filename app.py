@@ -756,27 +756,29 @@ def server(input, output, session):
     @render.ui
     @reactive.event(input.go_bp, ignore_none=True)
     def spac_Boxplot():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
+        """
+        This function produces an interactive (Plotly) boxplot figure.
+        """
+
+        adata = ad.AnnData(
+            X=X_data.get(), 
+            obs=pd.DataFrame(obs_data.get()), 
+            var=pd.DataFrame(var_data.get()), 
+            layers=layers_data.get(), 
+            dtype=X_data.get().dtype
+        )
 
         def on_outlier_check():
             selected_choice = input.bp_outlier_check()
-            if selected_choice == "none":
-                outlier_check_value = None  # Set to Python None
-            else:
-                outlier_check_value = selected_choice
-            
-            return outlier_check_value
+            return None if selected_choice == "none" else selected_choice
 
         def on_orient_check():
-            selected_choice = input.bp_orient()
-            if selected_choice:
-                orientation = "h"
-            else:
-                orientation = "v"
-            
-            return orientation
+            return "h" if input.bp_orient() else "v"
 
+        # Proceed only if adata is valid
         if adata is not None and adata.var is not None:
+
+            # Four scenarios for layer/annotation
             if input.bp_layer() != "Original" and input.bp_anno() != "No Annotation":
                 fig, df = spac.visualization.boxplot_interactive(
                     adata, 
@@ -788,7 +790,7 @@ def server(input, output, session):
                     orient=on_orient_check(),
                     figure_height=3, 
                     figure_width=4.8, 
-                    interactive=input.bp_output_type()
+                    interactive=True  # Force interactive
                 )
             elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
                 fig, df = spac.visualization.boxplot_interactive(
@@ -800,7 +802,7 @@ def server(input, output, session):
                     orient=on_orient_check(),
                     figure_height=3, 
                     figure_width=4.8, 
-                    interactive=input.bp_output_type()
+                    interactive=True  # Force interactive
                 )
             elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
                 fig, df = spac.visualization.boxplot_interactive(
@@ -812,23 +814,23 @@ def server(input, output, session):
                     orient=on_orient_check(),
                     figure_height=3, 
                     figure_width=4.8, 
-                    interactive=input.bp_output_type()
+                    interactive=True  # Force interactive
                 )
-            elif input.bp_layer() == "Original" and input.bp_anno() == "No Annotation":
+            else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
                 fig, df = spac.visualization.boxplot_interactive(
-                    adata, 
+                    adata,
                     features=list(input.bp_features()),
                     showfliers=on_outlier_check(),
                     log_scale=input.bp_log_scale(),
                     orient=on_orient_check(),
                     figure_height=3, 
                     figure_width=4.8, 
-                    interactive=input.bp_output_type())
-        
-            if input.bp_output_type():
-                return fig
-            else:
-                return ui.img(src=f"data:image/png;base64,{fig}", alt="Boxplot Image")
+                    interactive=True  # Force interactive
+                )
+
+            # Return the interactive Plotly figure object
+            return fig
+
         return None
 
     @output
