@@ -114,9 +114,17 @@ app_ui = ui.page_fluid(
                     ui.column(9,
                         ui.div(
                             {"style": "padding-bottom: 50px;"},
-                            output_widget("spac_Boxplot", width="100%", height="60vh"),
-                            ui.output_ui("boxplot_static", width="100%", height="60vh")
+                            # Static plot conditional panel (when interactive unchecked)
+                            ui.panel_conditional(
+                                "input.bp_output_type === false",
+                                ui.output_ui("boxplot_static", width="100%", height="600px")
+                            ),
+                            # Interactive plot conditional panel (when interactive checked)
+                            ui.panel_conditional(
+                                "input.bp_output_type === true",
+                                output_widget("spac_Boxplot", width="100%", height="600px")
                             )
+                        )
                     ),
                 )
             ),
@@ -763,6 +771,7 @@ def server(input, output, session):
         This function produces an interactive (Plotly) boxplot figure.
         """
         # Only run this function if both conditions are met
+
         if not input.bp_output_type():
             return None
 
@@ -852,6 +861,7 @@ def server(input, output, session):
         """
 
          # Only run this function if both conditions are met
+
         if input.bp_output_type():
             return None
 
