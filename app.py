@@ -465,42 +465,55 @@ def server(input, output, session):
     @render.text
     def print_obs_names():
         obs = obs_names.get()
+        if not obs:
+            return "Annotations: None"
         if obs is not None:
             if len(obs) > 1:
                 obs_str = ", ".join(obs)
             else:
                 obs_str = obs[0] if obs else ""
             return "Annotations: " + obs_str
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_obsm_names():
         obsm = obsm_names.get()
+        if not obsm:
+            return "Associated Tables: None"
         if obsm is not None:
             if len(obsm) > 1:
                 obsm_str = ", ".join(obsm)
             else:
                 obsm_str = obsm[0] if obsm else ""
             return "Associated Tables: " + obsm_str
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_layers_names():
         layers = layers_names.get()
-        if layers is not None:
-            if len(layers) > 1:
-                layers_str = ", ".join(layers)
-            elif len(layers) > 1:
-                layers_str = layers[0] if layers else ""
-            return "Tables: " + layers_str
-        return
+        # If there are no layers at all, just say "None"
+        if not layers:
+            return "Tables: None"
+        # If there's more than one layer
+        if len(layers) > 1:
+            layers_str = ", ".join(layers)
+        # If there's exactly one layer
+        else:
+            layers_str = layers[0]
+        return "Tables: " + layers_str
 
     @reactive.Calc
     @render.text
     def print_uns_names():
         uns = uns_names.get()
+        if not uns:
+            return "Unstructured Data: None"
         if uns is not None:
             if len(uns) > 1:
                 uns_str = ", ".join(uns)
@@ -513,16 +526,24 @@ def server(input, output, session):
     @render.text
     def print_rows():
         shape = shape_data.get()
+        if not shape:
+            return "Number of Cells: None"
         if shape is not None:
             return "Number of Cells: " + str(shape[0])
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_columns():
         shape = shape_data.get()
+        if not shape:
+            return "Number of Features: None"
         if shape is not None:
             return "Number of Features: " + str(shape[1])
+        else:
+            return "Empty"
         return
 
 
