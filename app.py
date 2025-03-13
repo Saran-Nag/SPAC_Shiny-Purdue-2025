@@ -116,6 +116,57 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
+        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
+        ui.nav_panel("Annotations",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                            ui.div(id="main-h2_dropdown"),
+                            ui.div(id="main-h2_check"),
+                            ui.div(id="main-h2_together_drop"),
+                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+
+
+        # 3. FEATURES PANEL (Histogram) --------------------------
+        ui.nav_panel("Features",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("h1_feat", "Select a Feature", choices=[]),
+                            ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
+                            ui.input_checkbox("h1_group_by_check", "Group By", value=False),
+                            ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
+                            ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
+                            ui.div(id="main-h1_dropdown"),
+                            ui.div(id="main-h1_check"),
+                            ui.div(id="main-h1_together_drop"),
+                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
 
         # 4. BOXPLOTS PANEL --------------------------------------
         ui.nav_panel("Boxplot",
