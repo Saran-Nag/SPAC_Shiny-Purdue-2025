@@ -106,6 +106,11 @@ app_ui = ui.page_fluid(
                                 ),
                                 class_="mb-3"
                             )
+                        ),
+                        ui.card(
+                            {"style": "width:100%;"},
+                            ui.h4("Annotation Summary with Top 10 Labels"),
+                            ui.output_ui("annotation_labels_display")
                         )
                     )
                 )
@@ -308,6 +313,28 @@ app_ui = ui.page_fluid(
     )
 )
 
+def get_annotation_label_counts(adata):
+    """
+    Return a dictionary of every annotation (column in adata.obs),
+    where the value is a dict of {label: cell_count}.
+
+    Example structure:
+      {
+        "cell_type": {"T-cell": 100, "B-cell": 80, ...},
+        "condition": {"disease": 120, "healthy": 60, ...},
+        ...
+      }
+    """
+    if adata is None or not hasattr(adata, "obs") or adata.obs.empty:
+        return {}
+
+    annotation_counts = {}
+    for col in adata.obs.columns:
+        # value_counts returns a Series of {label: count}
+        vc = adata.obs[col].value_counts(dropna=False)
+        annotation_counts[col] = vc.to_dict()
+
+    return annotation_counts
 
 def server(input, output, session):
 
@@ -563,6 +590,48 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
+
+    @output
+    @render.ui
+    def annotation_labels_display():
+        """
+        1) Retrieve ALL annotations (via get_annotation_label_counts).
+        2) Within each annotation, keep only the top 5 labels (sorted by count).
+        3) Display them in separate cards, each card listing the top 5 labels.
+        """
+        adata = adata_main.get()  # your reactive AnnData
+        annotation_counts = get_annotation_label_counts(adata)
+
+        # If no data, show a simple message
+        if not annotation_counts:
+            return ui.tags.div("No annotations or data found.")
+
+        # Build a list of annotation cards
+        container = []
+        for annotation_name, label_counts_dict in annotation_counts.items():
+            # Sort labels by count (descending) and take top 5
+            sorted_label_counts = sorted(
+                label_counts_dict.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:10]
+
+            # Build bullet points of "Label (count cells)"
+            list_items = [
+                ui.tags.li(f"{label} ({count} cells)")
+                for label, count in sorted_label_counts
+            ]
+
+            # Wrap it in a card for this annotation
+            annotation_card = ui.card(
+                ui.h5(annotation_name),
+                ui.tags.ul(*list_items),
+                style="margin-bottom: 15px;"
+            )
+            container.append(annotation_card)
+
+        # Return them as one TagList so each annotation is its own card
+        return ui.TagList(*container)
 
 
 
