@@ -1,5 +1,5 @@
 from shiny import App, Inputs, Outputs, Session, render, ui, reactive
-from shinywidgets import output_widget, render_widget
+from shinywidgets import output_widget, render_widget, render_plotly
 import pickle
 import anndata as ad
 import pandas as pd
@@ -12,220 +12,273 @@ import spac.spatial_analysis
 
 app_ui = ui.page_fluid(
 
-
     ui.navset_card_tab(
 
-
-
+        # 1. DATA INPUT PANEL -----------------------------------
         ui.nav_panel("Data Input",
-                ui.div(
-                {"style": "font-weight: bold; font-size: 30px;"},
-                ui.p("SPAC Interactive Dashboard")),
-                ui.row(
-                ui.column(6,
-                    ui.input_file("input_file", "Choose a file to upload:", multiple=False),
-                    ui.output_text("print_rows"),
-                    ui.output_text("print_columns"),
-                    ui.output_text("print_obs_names"),
-                    ui.output_text("print_obsm_names"),
-                    ui.output_text("print_layers_names"),
-                    ui.output_text("print_uns_names")
-                ),
-                ui.column(6,
-                    ui.input_checkbox("subset_select_check", "Subset Annotation", False),
-                    ui.div(id="main-subset_anno_dropdown"),
-                    ui.div(id="main-subset_label_dropdown"),
-                    ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
-                    ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
-                    ui.output_text("print_subset_history")
-                )
-                )
-
-        ),
-        ui.nav_panel("Features",
-
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("h1_feat", "Select a Feature", choices=[]),
-                        ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
-                        ui.input_checkbox("h1_group_by_check", "Group By", value=False),
-                        ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
-                        ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
-                        ui.div(id="main-h1_dropdown"),
-                        ui.div(id="main-h1_check"),
-                        ui.div(id="main-h1_together_drop"),
-                        ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
-                    ),
-                    ui.column(10,
-                        ui.output_plot("spac_Histogram_1")
-
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(6,
+                            ui.div({"style": "font-weight: bold; font-size: 30px;"},
+                                   ui.p("SPAC Interactive Dashboard")),
+                            ui.input_file("input_file", "Choose a file to upload:", multiple=False),
+                            ui.output_text("print_rows"),
+                            ui.output_text("print_columns"),
+                            ui.output_text("print_obs_names"),
+                            ui.output_text("print_obsm_names"),
+                            ui.output_text("print_layers_names"),
+                            ui.output_text("print_uns_names")
+                        ),
+                        ui.column(6,
+                            ui.input_checkbox("subset_select_check", "Subset Annotation", False),
+                            ui.div(id="main-subset_anno_dropdown"),
+                            ui.div(id="main-subset_label_dropdown"),
+                            ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
+                            ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
+                            ui.output_text("print_subset_history")
+                        )
                     )
-                ),
-            )),
-            ui.nav_panel("Boxplots",
-            ui.row(
-                ui.column(6,
-                    ui.card(
-                        ui.column(12,
-                            ui.input_select("bp1_anno", "Select an Annotation", choices=[]),
-                            ui.input_select("bp1_layer", "Select a Table", choices=[], selected="Original"),
-                            ui.input_selectize("bp1_features", "Select Features", multiple=True, choices=[], selected=[]),
-                            ui.input_checkbox("bp1_outlier_check", "Add Outliers", False),
-                            ui.input_action_button("go_bp1", "Render Plot", class_="btn-success"),
-                            ui.output_plot("spac_Boxplot_1")
-                        )
-                    ),
-                ),
-                ui.column(6,
-                    ui.card(
-                        ui.column(12,
-                            ui.input_select("bp2_anno", "Select an Annotation", choices=[]),
-                            ui.input_select("bp2_layer", "Select a Table", choices=[], selected="Original"),
-                            ui.input_selectize("bp2_features", "Select Features", multiple=True, choices=[], selected=[]),
-                            ui.input_checkbox("bp2_outlier_check", "Add Outliers", False),
-                            ui.input_action_button("go_bp2", "Render Plot", class_="btn-success"),
-                            ui.output_plot("spac_Boxplot_2")
-                        )
-                    ),
-                ),
+                )
             )
         ),
-        ui.nav_panel("Annotations",
 
-            ui.div(
-                {"style": "height: 600px"},
-                ui.card(
-                    ui.div(
-                    {"style": "height: 550px"},
-                        ui.row(
-                            ui.column(2,
-                                ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                                ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                                ui.div(id="main-h2_dropdown"),
-                                ui.div(id="main-h2_check"),
-                                ui.div(id="main-h2_together_drop"),
-                                ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                            ),
-                            ui.column(10,
-                                ui.output_plot("spac_Histogram_2", width="100%", height="100%")
+        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
+        ui.nav_panel("Annotations",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
+                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
+                            ui.div(id="main-h2_dropdown"),
+                            ui.div(id="main-h2_check"),
+                            ui.div(id="main-h2_together_drop"),
+                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
                             )
                         )
-                    )    
-                )
-            )    
-        ),
-        ui.nav_panel("Feat. Vs Anno.",
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
-                        ui.input_select("hm1_layer", "Select a Table", choices=[]),
-                        ui.input_checkbox("dendogram", "Include Dendrogram", False),
-                        ui.div(id="main-hm1_check"),
-                        ui.div(id="main-hm2_check"),
-                        ui.div(id="main-min_num"),
-                        ui.div(id="main-max_num"),
-                        ui.input_action_button("go_hm1", "Render Plot", class_="btn-success"),
-                        ui.output_ui("download_button_ui")
-                    ),
-                    ui.column(10,
-                        ui.output_plot("spac_Heatmap")
                     )
                 )
             )
         ),
-        ui.nav_panel("Anno. Vs Anno.",
-            ui.card(
+
+
+        # 3. FEATURES PANEL (Histogram) --------------------------
+        ui.nav_panel("Features",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("h1_feat", "Select a Feature", choices=[]),
+                            ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
+                            ui.input_checkbox("h1_group_by_check", "Group By", value=False),
+                            ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
+                            ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
+                            ui.div(id="main-h1_dropdown"),
+                            ui.div(id="main-h1_check"),
+                            ui.div(id="main-h1_together_drop"),
+                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+
+        # 4. BOXPLOTS PANEL --------------------------------------
+        ui.nav_panel("Boxplot",
+            ui.card({"style": "width:100%;"},
                 ui.row(
-                    ui.column(2,
-                        ui.input_select("sk1_anno1", "Select Source Annotation", choices=[]),
-                        ui.input_select("sk1_anno2", "Select Target Annotation", choices=[]),
-                        ui.input_action_button("go_sk1", "Render Plot", class_="btn-success")
+                    ui.column(3,
+                        ui.input_select("bp_anno", "Select an Annotation", choices=[]),
+                        ui.input_selectize("bp_features", "Select Features", multiple=True, choices=[], selected=[]),
+
+                        ui.input_select("bp_layer", "Select a Table", choices=[], selected="Original"),
+                        ui.input_select("bp_outlier_check", "Add Outliers", choices={"all": 'All', "downsample": "Downsampled", "none": "None"}, selected="none"),
+
+                        ui.input_checkbox("bp_log_scale", "Log Scale", False),
+                        ui.input_checkbox("bp_orient", "Horizontal Orientation", False),
+                        ui.input_checkbox("bp_output_type", "Enable Interactive Plot", False),
+                        ui.input_action_button("go_bp", "Render Plot", class_="btn-success"),
                     ),
-                    ui.column(10,
-                        output_widget("spac_Sankey")
+                    ui.column(9,
+                        ui.div(
+                            {"style": "padding-bottom: 50px;"},
+                            # Static plot conditional panel (when interactive unchecked)
+                            ui.panel_conditional(
+                                "input.bp_output_type === false",
+                                ui.output_ui("boxplot_static", width="100%", height="600px")
+                            ),
+                            # Interactive plot conditional panel (when interactive checked)
+                            ui.panel_conditional(
+                                "input.bp_output_type === true",
+                                output_widget("spac_Boxplot", width="100%", height="600px")
+                            )
+                        )
+                    ),
+                )
+            ),
+        ),
+
+
+        # 5. FEAT. VS ANNO. (Heatmap) ----------------------------
+        ui.nav_panel("Feat. Vs Anno.",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
+                            ui.input_select("hm1_layer", "Select a Table", choices=[]),
+                            ui.input_select("hm1_cmap", "Select Color Map", choices=["viridis", "plasma", "inferno", "magma", "cividis","coolwarm", "RdYlBu", "Spectral", "PiYG", "PRGn"]),  # Dropdown for color maps
+                            ui.input_slider("hm_x_label_rotation", "Rotate X Axis Labels", min=0, max=90, value=25),
+                            ui.input_checkbox("dendogram", "Include Dendrogram", False),
+                            ui.div(id="main-hm1_check"),
+                            ui.div(id="main-hm2_check"),
+                            ui.div(id="main-min_num"),
+                            ui.div(id="main-max_num"),
+                            ui.input_action_button("go_hm1", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_button_ui")
+                                )
+                        ),
+                        ui.column(10,
+                            ui.div(
+                                    {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_Heatmap", width="100%", height="100vh")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+
+        # 6. ANNO. VS ANNO. (Sankey, Relational Heatmap) ---------
+        ui.nav_panel("Anno. Vs Anno.",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("sk1_anno1", "Select Source Annotation", choices=[]),
+                            ui.input_select("sk1_anno2", "Select Target Annotation", choices=[]),
+                            ui.input_action_button("go_sk1", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.div(
+                                output_widget("spac_Sankey"),
+                                style="width:100%; height:80vh;"
+                            )
+                        )
                     )
                 )
             ),
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
-                        ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
-                        ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
-                        ui.output_ui("download_button_ui_1")
-                    ),
-                    ui.column(10,
-                        output_widget("spac_Relational")
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
+                            ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
+                            ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_button_ui_1")
+                                )
+                        ),
+                        ui.column(10,
+                            ui.div(
+                                output_widget("spac_Relational"),
+                                style="width:100%; height:80vh;"
+                            )
+                        )
                     )
                 )
             )
         ),
+
+        # 7. SPATIAL PANEL ---------------------------------------
         ui.nav_panel("Spatial",
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("spatial_anno", "Select an Annotation", choices=[]),
-                        ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
-                        ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
-                        ui.div(id="main-slide_dropdown"),
-                        ui.div(id="main-label_dropdown"),
-                        ui.input_checkbox("region_select_check", "Stratify by Region", False),
-                        ui.div(id="main-region_dropdown"),
-                        ui.div(id="main-region_label_select_dropdown"),
-                        ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
-
-                    ),
-                    ui.column(10,
-                        output_widget("spac_Spatial")
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("spatial_anno", "Select an Annotation", choices=[]),
+                            ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
+                            ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
+                            ui.div(id="main-slide_dropdown"),
+                            ui.div(id="main-label_dropdown"),
+                            ui.input_checkbox("region_select_check", "Stratify by Region", False),
+                            ui.div(id="main-region_dropdown"),
+                            ui.div(id="main-region_label_select_dropdown"),
+                            ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.div(
+                                {"style": "padding-bottom: 20px;"},
+                                output_widget("spac_Spatial"),
+                                style="width:100%; height:80vh;"
+                            )
+                        )
                     )
                 )
-            )),
-        ui.nav_panel("UMAP",
-            ui.card(
-                ui.row(
-                    ui.column(6,
-                        ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
-                        ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
-                        ui.div(id="main-ump_rb_dropdown_anno"),
-                        ui.div(id="main-ump_rb_dropdown_feat"),
-                        ui.div(id="main-ump_table_dropdown_feat"),
-                        ui.input_slider("umap_slider_1", "Point Size", min=.5, max=10, value=3),
-                        ui.input_action_button("go_umap1", "Render Plot", class_="btn-success"),
-                        ui.output_plot("spac_UMAP")
-                    ),
-                    ui.column(6,
-                        ui.input_radio_buttons("umap_rb2", "Choose one:", ["Annotation", "Feature"]),
-                        ui.input_select("plottype2", "Select a plot type", choices=["umap", "pca", "tsne"]),
-                        ui.div(id="main-ump_rb_dropdown_anno2"),
-                        ui.div(id="main-ump_rb_dropdown_feat2"),
-                        ui.div(id="main-ump_table_dropdown_feat2"),
-                        ui.input_slider("umap_slider_2", "Point Size", min=.5, max=10, value=3),
-                        ui.input_action_button("go_umap2", "Render Plot", class_="btn-success"),
-                        ui.output_plot("spac_UMAP2")
-
-
-
-                )
-
-            )
-
             )
         ),
+
+        # 8. UMAP PANEL ------------------------------------------
+        ui.nav_panel("UMAP",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(6,
+                            ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
+                            ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
+                            ui.div(id="main-ump_rb_dropdown_anno"),
+                            ui.div(id="main-ump_rb_dropdown_feat"),
+                            ui.div(id="main-ump_table_dropdown_feat"),
+                            ui.input_slider("umap_slider_1", "Point Size", min=.5, max=10, value=3),
+                            ui.input_action_button("go_umap1", "Render Plot", class_="btn-success"),
+                            ui.output_plot("spac_UMAP", width="100%", height="80vh")
+                        ),
+                        ui.column(6,
+                            ui.input_radio_buttons("umap_rb2", "Choose one:", ["Annotation", "Feature"]),
+                            ui.input_select("plottype2", "Select a plot type", choices=["umap", "pca", "tsne"]),
+                            ui.div(id="main-ump_rb_dropdown_anno2"),
+                            ui.div(id="main-ump_rb_dropdown_feat2"),
+                            ui.div(id="main-ump_table_dropdown_feat2"),
+                            ui.input_slider("umap_slider_2", "Point Size", min=.5, max=10, value=3),
+                            ui.input_action_button("go_umap2", "Render Plot", class_="btn-success"),
+                            ui.output_plot("spac_UMAP2", width="100%", height="80vh")
+                        )
+                    )
+                )
+            )
+        ),
+
+        # 9. SCATTERPLOT PANEL ------------------------------------
         ui.nav_panel("Scatterplot",
-            ui.card(
-                ui.row(
-                    ui.column(2,
-                        ui.input_select("scatter_layer", "Select a Table", choices=[], selected="Original"),
-                        ui.input_select("scatter_x", "Select X Axis", choices=[]),
-                        ui.input_select("scatter_y", "Select Y Axis", choices=[]),
-                        ui.input_checkbox("scatter_color_check", "Color by Feature", value=False),
-                        ui.div(id="main-scatter_dropdown"),
-                        ui.input_action_button("go_scatter", "Render Plot", class_="btn-success")
-                    ),
-                    ui.column(10,
-                        ui.output_plot("spac_Scatter")
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("scatter_layer", "Select a Table", choices=[], selected="Original"),
+                            ui.input_select("scatter_x", "Select X Axis", choices=[]),
+                            ui.input_select("scatter_y", "Select Y Axis", choices=[]),
+                            ui.input_checkbox("scatter_color_check", "Color by Feature", value=False),
+                            ui.div(id="main-scatter_dropdown"),
+                            ui.input_action_button("go_scatter", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.output_plot("spac_Scatter", width="100%", height="80vh")
+                        )
                     )
                 )
             )
@@ -368,7 +421,7 @@ def server(input, output, session):
                 obs_str = ", ".join(obs)
             else:
                 obs_str = obs[0] if obs else ""
-            return "Obs: " + obs_str
+            return "Annotations: " + obs_str
         return
 
     @reactive.Calc
@@ -380,7 +433,7 @@ def server(input, output, session):
                 obsm_str = ", ".join(obsm)
             else:
                 obsm_str = obsm[0] if obsm else ""
-            return "Obsm: " + obsm_str
+            return "Associated Tables: " + obsm_str
         return
 
     @reactive.Calc
@@ -392,7 +445,7 @@ def server(input, output, session):
                 layers_str = ", ".join(layers)
             elif len(layers) > 1:
                 layers_str = layers[0] if layers else ""
-            return "Layers: " + layers_str
+            return "Tables: " + layers_str
         return
 
     @reactive.Calc
@@ -404,7 +457,7 @@ def server(input, output, session):
                 uns_str = ", ".join(uns)
             else:
                 uns_str = uns[0] if uns else ""
-            return "Uns: " + uns_str
+            return "Unstructured Data: " + uns_str
         return
 
     @reactive.Calc
@@ -412,7 +465,7 @@ def server(input, output, session):
     def print_rows():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Rows: " + str(shape[0])
+            return "# of Cells: " + str(shape[0])
         return
 
     @reactive.Calc
@@ -420,7 +473,7 @@ def server(input, output, session):
     def print_columns():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Columns: " + str(shape[1])
+            return "# of Features: " + str(shape[1])
         return
 
 
@@ -430,15 +483,13 @@ def server(input, output, session):
         choices = var_names.get()
         ui.update_select("h1_feat", choices=choices)
         ui.update_select("umap_feat", choices=choices)
-        ui.update_select("bp1_features", choices=choices)
-        ui.update_select("bp2_features", choices=choices)
+        ui.update_select("bp_features", choices=choices)
 
 
     @reactive.Effect
     def update_select_input_anno():
         choices = obs_names.get()
-        ui.update_select("bp1_anno", choices=choices)
-        ui.update_select("bp2_anno", choices=choices)
+        ui.update_select("bp_anno", choices=choices)
         ui.update_select("h2_anno", choices=choices)
         ui.update_select("hm1_anno", choices=choices)
         ui.update_select("sk1_anno1", choices=choices)
@@ -454,8 +505,7 @@ def server(input, output, session):
         if layers_names.get() is not None:
             new_choices = layers_names.get() + ["Original"]
             ui.update_select("h1_layer", choices=new_choices)
-            ui.update_select("bp1_layer", choices=new_choices)
-            ui.update_select("bp2_layer", choices=new_choices)
+            ui.update_select("bp_layer", choices=new_choices)
             ui.update_select("hm1_layer", choices=new_choices)
             ui.update_select("scatter_layer", choices=new_choices)
         return
@@ -463,8 +513,7 @@ def server(input, output, session):
     def update_select_input_anno_bp():
         if obs_names.get() is not None:
             new_choices = obs_names.get() + ["No Annotation"]
-            ui.update_select("bp1_anno", choices=new_choices)
-            ui.update_select("bp2_anno", choices=new_choices)
+            ui.update_select("bp_anno", choices=new_choices)
 
     @reactive.Effect
     def update_select_input_layer_scatter():
@@ -478,8 +527,7 @@ def server(input, output, session):
     def update_boxplot_selectize():
         selected_names=var_names.get()
         if selected_names is not None:
-            ui.update_selectize("bp1_features", selected=selected_names[:2])
-            ui.update_selectize("bp2_features", selected=selected_names[:2])
+            ui.update_selectize("bp_features", selected=selected_names[:2])
             return
     @reactive.Effect
     def update_relational_select():
@@ -684,7 +732,7 @@ def server(input, output, session):
                 where="beforeEnd",
             )
 
-            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=False)
+            together_check = ui.input_checkbox("h1_together_check", "Plot Together", value=True)
             ui.insert_ui(
                 ui.div({"id": "inserted-check"}, together_check),
                 selector="#main-h1_check",
@@ -713,44 +761,183 @@ def server(input, output, session):
         else:
             ui.remove_ui("#inserted-dropdown_together")
 
-    @output
-    @render.plot
-    @reactive.event(input.go_bp1, ignore_none=True)
-    def spac_Boxplot_1():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
-        if adata is not None and adata.var is not None:
-            if input.bp1_layer() != "Original" and input.bp1_anno() != "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), layer=input.bp1_layer(), features=list(input.bp1_features()),showfliers=input.bp1_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp1_layer() == "Original" and input.bp1_anno() != "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp1_anno(), features=list(input.bp1_features()),showfliers=input.bp1_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp1_layer() != "Original" and input.bp1_anno() == "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, layer=input.bp1_layer(), features=list(input.bp1_features()),showfliers=input.bp1_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp1_layer() == "Original" and input.bp1_anno() == "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, features=list(input.bp1_features()),showfliers=input.bp1_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-        return None
+
 
     @output
-    @render.plot
-    @reactive.event(input.go_bp2, ignore_none=True)
-    def spac_Boxplot_2():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
-        if adata is not None and adata.var is not None:
-            if input.bp2_layer() != "Original" and input.bp2_anno() != "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), layer=input.bp2_layer(), features=list(input.bp2_features()),showfliers=input.bp2_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp2_layer() == "Original" and input.bp2_anno() != "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, annotation=input.bp2_anno(), features=list(input.bp2_features()),showfliers=input.bp2_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp2_layer() != "Original" and input.bp2_anno() == "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, layer=input.bp2_layer(), features=list(input.bp2_features()),showfliers=input.bp2_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            if input.bp2_layer() == "Original" and input.bp2_anno() == "No Annotation":
-                fig, ax, df = spac.visualization.boxplot(adata, features=list(input.bp2_features()),showfliers=input.bp2_outlier_check())
-                return ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    @render_widget
+    @reactive.event(input.go_bp, ignore_none=True)
+    def spac_Boxplot():
+        """
+        This function produces an interactive (Plotly) boxplot figure.
+        """
+        # Only run this function if both conditions are met
+
+        if not input.bp_output_type():
+            return None
+
+        else: 
+
+            adata = ad.AnnData(
+                X=X_data.get(), 
+                obs=pd.DataFrame(obs_data.get()), 
+                var=pd.DataFrame(var_data.get()), 
+                layers=layers_data.get(), 
+                dtype=X_data.get().dtype
+            )
+
+            def on_outlier_check():
+                selected_choice = input.bp_outlier_check()
+                return None if selected_choice == "none" else selected_choice
+
+            def on_orient_check():
+                return "h" if input.bp_orient() else "v"
+
+            # Proceed only if adata is valid
+            if adata is not None and adata.var is not None:
+
+                # Four scenarios for layer/annotation
+                if input.bp_layer() != "Original" and input.bp_anno() != "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        annotation=input.bp_anno(), 
+                        layer=input.bp_layer(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=True  # Force interactive
+                    )
+                elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        annotation=input.bp_anno(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=True  # Force interactive
+                    )
+                elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        layer=input.bp_layer(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=True  # Force interactive
+                    )
+                else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata,
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=True  # Force interactive
+                    )
+
+                # Return the interactive Plotly figure object
+                print(type(fig))
+                return fig
+
+        return None
+
+
+    @output
+    @render.ui
+    @reactive.event(input.go_bp, ignore_none=True)
+    def boxplot_static():
+        """
+        This function produces a static (PNG) boxplot image.
+        """
+
+         # Only run this function if both conditions are met
+
+        if input.bp_output_type():
+            return None
+
+        else: 
+
+            adata = ad.AnnData(
+                X=X_data.get(), 
+                obs=pd.DataFrame(obs_data.get()), 
+                var=pd.DataFrame(var_data.get()), 
+                layers=layers_data.get(), 
+                dtype=X_data.get().dtype
+            )
+
+            def on_outlier_check():
+                selected_choice = input.bp_outlier_check()
+                return None if selected_choice == "none" else selected_choice
+
+            def on_orient_check():
+                return "h" if input.bp_orient() else "v"
+
+            # Proceed only if adata is valid
+            if adata is not None and adata.var is not None:
+                
+                # Four scenarios for layer/annotation
+                if input.bp_layer() != "Original" and input.bp_anno() != "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        annotation=input.bp_anno(), 
+                        layer=input.bp_layer(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=False  # Force static
+                    )
+                elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        annotation=input.bp_anno(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=False  # Force static
+                    )
+                elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata, 
+                        layer=input.bp_layer(), 
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=False  # Force static
+                    )
+                else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
+                    fig, df = spac.visualization.boxplot_interactive(
+                        adata,
+                        features=list(input.bp_features()),
+                        showfliers=on_outlier_check(),
+                        log_scale=input.bp_log_scale(),
+                        orient=on_orient_check(),
+                        figure_height=3, 
+                        figure_width=4.8, 
+                        interactive=False  # Force static
+                    )
+
+                # Return static PNG as a base64-encoded string
+                return ui.img(src=f"data:image/png;base64,{fig}", alt="Boxplot Image")
+
         return None
 
     @output
@@ -758,13 +945,37 @@ def server(input, output, session):
     @reactive.event(input.go_h2, ignore_none=True)
     def spac_Histogram_2():
         adata = adata_main.get()
-        if adata is not None:
-            if input.h2_group_by_check() is not False:
-                fig1 = spac.visualization.histogram(adata, annotation=input.h2_anno(), group_by=input.h2_anno_1(), together=input.h2_together_check(), multiple=input.h2_together_drop())
-                return fig1
+        if adata is None:
+            return None
+
+        # 1) If "Group By" is UNCHECKED, show a simple annotation histogram
+        if not input.h2_group_by_check():
+            fig = spac.visualization.histogram(
+                adata,
+                annotation=input.h2_anno()
+            )
+            return fig
+
+        # 2) If "Group By" is CHECKED, we must always supply a valid multiple parameter
+        else:
+            # If user also checked "Plot Together", use their selected stack type
+            if input.h2_together_check():
+                multiple_param = input.h2_together_drop()  # e.g. 'stack', 'dodge', etc.
+                together_flag = True
             else:
-                fig = spac.visualization.histogram(adata, annotation=input.h2_anno())
-                return fig
+                # If grouping by but not "plot together", pick a default layout
+                multiple_param = "layer"  # or 'dodge' or any valid string
+                together_flag = False
+
+            fig = spac.visualization.histogram(
+                adata,
+                annotation=input.h2_anno(),
+                group_by=input.h2_anno_1(),
+                together=together_flag,
+                multiple=multiple_param
+            )
+            return fig
+
         return None
 
     histogram2_ui_initialized = reactive.Value(False)
@@ -782,7 +993,7 @@ def server(input, output, session):
                 where="beforeEnd",
             )
 
-            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=False)
+            together_check = ui.input_checkbox("h2_together_check", "Plot Together", value=True)
             ui.insert_ui(
                 ui.div({"id": "inserted-check-1"}, together_check),
                 selector="#main-h2_check",
@@ -817,20 +1028,37 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), var=pd.DataFrame(var_data.get()), layers=layers_data.get(), dtype=X_data.get().dtype)
         if adata is not None:
             vmin = input.min_select()
-            vmax = input.max_select()    
+            vmax = input.max_select()  
+            cmap = input.hm1_cmap()  # Get the selected color map from the dropdown 
+            kwargs = {"vmin": vmin,"vmax": vmax,} 
+
             if input.dendogram() is not True:
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, vmin=vmin, vmax=vmax)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, **kwargs)
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, vmin=vmin, vmax=vmax)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, **kwargs)
             elif input.dendogram() is not False:
                 cluster_annotations = input.h2_anno_dendro()
                 cluster_features = input.h2_feat_dendro()
                 if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=input.hm1_layer(), z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, **kwargs)
                 else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, vmin=vmin, vmax=vmax)
+                    df, fig, ax = spac.visualization.hierarchical_heatmap(adata, annotation=input.hm1_anno(), layer=None, z_score=None, cluster_annotations=cluster_annotations, cluster_feature=cluster_features, **kwargs)
+
+            if cmap != "viridis":  # Only update if a non-default color map is selected
+                fig.ax_heatmap.collections[0].set_cmap(cmap)
+
             df_heatmap.set(df)
+            
+            # Rotate x-axis labels
+            fig.ax_heatmap.set_xticklabels(
+                fig.ax_heatmap.get_xticklabels(),
+                rotation=input.hm_x_label_rotation(),  # degrees
+                horizontalalignment='right'
+            )
+            # fig is a seaborn.matrix.ClusterGrid
+            fig.fig.subplots_adjust(bottom=0.4)
+            fig.fig.subplots_adjust(left=0.1)
             return fig
 
         return None
@@ -876,7 +1104,7 @@ def server(input, output, session):
     @reactive.event(input.go_hm1, ignore_none=True)
     def download_button_ui():
         if df_heatmap.get() is not None:
-            return ui.download_button("download_df", "Download Data", class_="btn-success")
+            return ui.download_button("download_df", "Download Data", class_="btn-warning")
         return None
 
     @reactive.effect
@@ -943,7 +1171,7 @@ def server(input, output, session):
     @reactive.event(input.go_rhm1, ignore_none=True)
     def download_button_ui_1():
         if df_relational.get() is not None:
-            return ui.download_button("download_df_1", "Download Data", class_="btn-success")
+            return ui.download_button("download_df_1", "Download Data", class_="btn-warning")
         return None
 
     @output
