@@ -130,7 +130,7 @@ app_ui = ui.page_fluid(
 
                         ui.input_checkbox("bp_log_scale", "Log Scale", False),
                         ui.input_checkbox("bp_orient", "Horizontal Orientation", False),
-                        ui.input_checkbox("bp_output_type", "Enable Interactive Plot", False),
+                        ui.input_checkbox("bp_output_type", "Enable Interactive Plot", True),
                         ui.input_action_button("go_bp", "Render Plot", class_="btn-success"),
                     ),
                     ui.column(9,
@@ -139,7 +139,7 @@ app_ui = ui.page_fluid(
                             # Static plot conditional panel (when interactive unchecked)
                             ui.panel_conditional(
                                 "input.bp_output_type === false",
-                                ui.output_ui("boxplot_static", width="100%", height="600px")
+                                output_widget("boxplot_static", width="100%", height="600px")
                             ),
                             # Interactive plot conditional panel (when interactive checked)
                             ui.panel_conditional(
@@ -914,7 +914,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=True  # Force interactive
+                        figure_type="interactive"
                     )
                 elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
@@ -926,7 +926,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=True  # Force interactive
+                        figure_type="interactive"
                     )
                 elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
@@ -938,7 +938,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=True  # Force interactive
+                        figure_type="interactive"
                     )
                 else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
                     fig, df = spac.visualization.boxplot_interactive(
@@ -949,7 +949,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=True  # Force interactive
+                        figure_type="interactive"
                     )
 
                 # Return the interactive Plotly figure object
@@ -960,7 +960,7 @@ def server(input, output, session):
 
 
     @output
-    @render.ui
+    @render_widget
     @reactive.event(input.go_bp, ignore_none=True)
     def boxplot_static():
         """
@@ -1004,7 +1004,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=False  # Force static
+                        figure_type="static"
                     )
                 elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
@@ -1016,7 +1016,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=False  # Force static
+                        figure_type="static"
                     )
                 elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
@@ -1028,7 +1028,7 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=False  # Force static
+                        figure_type="static"
                     )
                 else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
                     fig, df = spac.visualization.boxplot_interactive(
@@ -1039,11 +1039,10 @@ def server(input, output, session):
                         orient=on_orient_check(),
                         figure_height=3, 
                         figure_width=4.8, 
-                        interactive=False  # Force static
+                        figure_type="static"
                     )
 
-                # Return static PNG as a base64-encoded string
-                return ui.img(src=f"data:image/png;base64,{fig}", alt="Boxplot Image")
+                return fig
 
         return None
 
