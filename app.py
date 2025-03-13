@@ -16,79 +16,101 @@ app_ui = ui.page_fluid(
 
         # 1. DATA INPUT PANEL -----------------------------------
         ui.nav_panel("Data Input",
+            # Add custom CSS to increase height of upload message/progress bar
+            ui.tags.head(ui.tags.style("""
+                .shiny-file-input-progress {
+                    height: 30px !important; 
+                    line-height: 30px !important;
+                }
+                .progress-bar {
+                    height: 30px !important;
+                    line-height: 30px !important;
+                    font-size: 16px !important;
+                }
+                /* Ensure text doesn't get cut off */
+                .progress-bar span {
+                    white-space: nowrap;
+                    overflow: visible;
+                }
+                /* Style for the metric output text - larger but not bold */
+                .metric-output {
+                    font-size: 18px;
+                }
+            """)),
             ui.card({"style": "width:100%;"},
                 ui.column(12,
                     ui.row(
                         ui.column(6,
-                            ui.div({"style": "font-weight: bold; font-size: 30px;"},
-                                   ui.p("SPAC Interactive Dashboard")),
-                            ui.input_file("input_file", "Choose a file to upload:", multiple=False),
-                            ui.output_text("print_rows"),
-                            ui.output_text("print_columns"),
-                            ui.output_text("print_obs_names"),
-                            ui.output_text("print_obsm_names"),
-                            ui.output_text("print_layers_names"),
-                            ui.output_text("print_uns_names")
+                            ui.card(
+                                ui.div({"style": "font-weight: bold; font-size: 30px;"},
+                                    ui.p("SPAC Interactive Dashboard")),
+                                ui.div({"style": "margin-bottom: 15px;"},
+                                    ui.input_file("input_file", "Choose a file to upload:", 
+                                                multiple=False, 
+                                                width="100%")
+                                ),
+                                ui.row(
+                                    ui.column(6,
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_rows")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_columns")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_obs_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        )
+                                    ),
+                                    ui.column(6,
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_obsm_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_layers_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_uns_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        )
+                                    )
+                                ),
+                                class_="mb-3"
+                            )
                         ),
                         ui.column(6,
-                            ui.input_checkbox("subset_select_check", "Subset Annotation", False),
-                            ui.div(id="main-subset_anno_dropdown"),
-                            ui.div(id="main-subset_label_dropdown"),
-                            ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
-                            ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
-                            ui.output_text("print_subset_history")
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
-        ui.nav_panel("Annotations",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                            ui.div(id="main-h2_dropdown"),
-                            ui.div(id="main-h2_check"),
-                            ui.div(id="main-h2_together_drop"),
-                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                        ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
+                            ui.card(
+                                ui.input_checkbox("subset_select_check", "Subset Annotation", False),
+                                ui.div(id="main-subset_anno_dropdown"),
+                                ui.div(id="main-subset_label_dropdown"),
+                                ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
+                                ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
+                                ui.div({"class": "metric-output"},
+                                    ui.output_text("print_subset_history")
+                                ),
+                                class_="mb-3"
                             )
-                        )
-                    )
-                )
-            )
-        ),
-
-
-        # 3. FEATURES PANEL (Histogram) --------------------------
-        ui.nav_panel("Features",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h1_feat", "Select a Feature", choices=[]),
-                            ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
-                            ui.input_checkbox("h1_group_by_check", "Group By", value=False),
-                            ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
-                            ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
-                            ui.div(id="main-h1_dropdown"),
-                            ui.div(id="main-h1_check"),
-                            ui.div(id="main-h1_together_drop"),
-                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                         ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
-                            )
+                        ui.card(
+                            {"style": "width:100%;"},
+                            ui.h4("Annotation Summary with Top 10 Labels"),
+                            ui.output_ui("annotation_labels_display")
                         )
                     )
                 )
@@ -286,6 +308,28 @@ app_ui = ui.page_fluid(
     )
 )
 
+def get_annotation_label_counts(adata):
+    """
+    Return a dictionary of every annotation (column in adata.obs),
+    where the value is a dict of {label: cell_count}.
+
+    Example structure:
+      {
+        "cell_type": {"T-cell": 100, "B-cell": 80, ...},
+        "condition": {"disease": 120, "healthy": 60, ...},
+        ...
+      }
+    """
+    if adata is None or not hasattr(adata, "obs") or adata.obs.empty:
+        return {}
+
+    annotation_counts = {}
+    for col in adata.obs.columns:
+        # value_counts returns a Series of {label: count}
+        vc = adata.obs[col].value_counts(dropna=False)
+        annotation_counts[col] = vc.to_dict()
+
+    return annotation_counts
 
 def server(input, output, session):
 
@@ -416,42 +460,55 @@ def server(input, output, session):
     @render.text
     def print_obs_names():
         obs = obs_names.get()
+        if not obs:
+            return "Annotations: None"
         if obs is not None:
             if len(obs) > 1:
                 obs_str = ", ".join(obs)
             else:
                 obs_str = obs[0] if obs else ""
             return "Annotations: " + obs_str
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_obsm_names():
         obsm = obsm_names.get()
+        if not obsm:
+            return "Associated Tables: None"
         if obsm is not None:
             if len(obsm) > 1:
                 obsm_str = ", ".join(obsm)
             else:
                 obsm_str = obsm[0] if obsm else ""
             return "Associated Tables: " + obsm_str
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_layers_names():
         layers = layers_names.get()
-        if layers is not None:
-            if len(layers) > 1:
-                layers_str = ", ".join(layers)
-            elif len(layers) > 1:
-                layers_str = layers[0] if layers else ""
-            return "Tables: " + layers_str
-        return
+        # If there are no layers at all, just say "None"
+        if not layers:
+            return "Tables: None"
+        # If there's more than one layer
+        if len(layers) > 1:
+            layers_str = ", ".join(layers)
+        # If there's exactly one layer
+        else:
+            layers_str = layers[0]
+        return "Tables: " + layers_str
 
     @reactive.Calc
     @render.text
     def print_uns_names():
         uns = uns_names.get()
+        if not uns:
+            return "Unstructured Data: None"
         if uns is not None:
             if len(uns) > 1:
                 uns_str = ", ".join(uns)
@@ -464,16 +521,24 @@ def server(input, output, session):
     @render.text
     def print_rows():
         shape = shape_data.get()
+        if not shape:
+            return "Number of Cells: None"
         if shape is not None:
-            return "# of Cells: " + str(shape[0])
+            return "Number of Cells: " + str(shape[0])
+        else:
+            return "Empty"
         return
 
     @reactive.Calc
     @render.text
     def print_columns():
         shape = shape_data.get()
+        if not shape:
+            return "Number of Features: None"
         if shape is not None:
-            return "# of Features: " + str(shape[1])
+            return "Number of Features: " + str(shape[1])
+        else:
+            return "Empty"
         return
 
 
@@ -536,6 +601,48 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
+
+    @output
+    @render.ui
+    def annotation_labels_display():
+        """
+        1) Retrieve ALL annotations (via get_annotation_label_counts).
+        2) Within each annotation, keep only the top 5 labels (sorted by count).
+        3) Display them in separate cards, each card listing the top 5 labels.
+        """
+        adata = adata_main.get()  # your reactive AnnData
+        annotation_counts = get_annotation_label_counts(adata)
+
+        # If no data, show a simple message
+        if not annotation_counts:
+            return ui.tags.div("No annotations or data found.")
+
+        # Build a list of annotation cards
+        container = []
+        for annotation_name, label_counts_dict in annotation_counts.items():
+            # Sort labels by count (descending) and take top 5
+            sorted_label_counts = sorted(
+                label_counts_dict.items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:10]
+
+            # Build bullet points of "Label (count cells)"
+            list_items = [
+                ui.tags.li(f"{label} ({count} cells)")
+                for label, count in sorted_label_counts
+            ]
+
+            # Wrap it in a card for this annotation
+            annotation_card = ui.card(
+                ui.h5(annotation_name),
+                ui.tags.ul(*list_items),
+                style="margin-bottom: 15px;"
+            )
+            container.append(annotation_card)
+
+        # Return them as one TagList so each annotation is its own card
+        return ui.TagList(*container)
 
 
 
