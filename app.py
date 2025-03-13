@@ -16,78 +16,95 @@ app_ui = ui.page_fluid(
 
         # 1. DATA INPUT PANEL -----------------------------------
         ui.nav_panel("Data Input",
+            # Add custom CSS to increase height of upload message/progress bar
+            ui.tags.head(ui.tags.style("""
+                .shiny-file-input-progress {
+                    height: 30px !important; 
+                    line-height: 30px !important;
+                }
+                .progress-bar {
+                    height: 30px !important;
+                    line-height: 30px !important;
+                    font-size: 16px !important;
+                }
+                /* Ensure text doesn't get cut off */
+                .progress-bar span {
+                    white-space: nowrap;
+                    overflow: visible;
+                }
+                /* Style for the metric output text - larger but not bold */
+                .metric-output {
+                    font-size: 18px;
+                }
+            """)),
             ui.card({"style": "width:100%;"},
                 ui.column(12,
                     ui.row(
                         ui.column(6,
-                            ui.div({"style": "font-weight: bold; font-size: 30px;"},
-                                   ui.p("SPAC Interactive Dashboard")),
-                            ui.input_file("input_file", "Choose a file to upload:", multiple=False),
-                            ui.output_text("print_rows"),
-                            ui.output_text("print_columns"),
-                            ui.output_text("print_obs_names"),
-                            ui.output_text("print_obsm_names"),
-                            ui.output_text("print_layers_names"),
-                            ui.output_text("print_uns_names")
-                        ),
-                        ui.column(6,
-                            ui.input_checkbox("subset_select_check", "Subset Annotation", False),
-                            ui.div(id="main-subset_anno_dropdown"),
-                            ui.div(id="main-subset_label_dropdown"),
-                            ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
-                            ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
-                            ui.output_text("print_subset_history")
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
-        ui.nav_panel("Annotations",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                            ui.div(id="main-h2_dropdown"),
-                            ui.div(id="main-h2_check"),
-                            ui.div(id="main-h2_together_drop"),
-                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                        ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
+                            ui.card(
+                                ui.div({"style": "font-weight: bold; font-size: 30px;"},
+                                    ui.p("SPAC Interactive Dashboard")),
+                                ui.div({"style": "margin-bottom: 15px;"},
+                                    ui.input_file("input_file", "Choose a file to upload:", 
+                                                multiple=False, 
+                                                width="100%")
+                                ),
+                                ui.row(
+                                    ui.column(6,
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_rows")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_columns")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_obs_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        )
+                                    ),
+                                    ui.column(6,
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_obsm_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_layers_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        ),
+                                        ui.card(
+                                            ui.div({"class": "metric-output"},
+                                                ui.output_text("print_uns_names")
+                                            ),
+                                            height="auto", class_="p-2 mb-2"
+                                        )
+                                    )
+                                ),
+                                class_="mb-3"
                             )
-                        )
-                    )
-                )
-            )
-        ),
-
-
-        # 3. FEATURES PANEL (Histogram) --------------------------
-        ui.nav_panel("Features",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h1_feat", "Select a Feature", choices=[]),
-                            ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
-                            ui.input_checkbox("h1_group_by_check", "Group By", value=False),
-                            ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
-                            ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
-                            ui.div(id="main-h1_dropdown"),
-                            ui.div(id="main-h1_check"),
-                            ui.div(id="main-h1_together_drop"),
-                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                         ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
+                        ui.column(6,
+                            ui.card(
+                                ui.input_checkbox("subset_select_check", "Subset Annotation", False),
+                                ui.div(id="main-subset_anno_dropdown"),
+                                ui.div(id="main-subset_label_dropdown"),
+                                ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
+                                ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
+                                ui.div({"class": "metric-output"},
+                                    ui.output_text("print_subset_history")
+                                ),
+                                class_="mb-3"
                             )
                         )
                     )
@@ -470,7 +487,7 @@ def server(input, output, session):
     def print_rows():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Cells: " + str(shape[0])
+            return "Number of Cells: " + str(shape[0])
         return
 
     @reactive.Calc
@@ -478,7 +495,7 @@ def server(input, output, session):
     def print_columns():
         shape = shape_data.get()
         if shape is not None:
-            return "# of Features: " + str(shape[1])
+            return "Number of Features: " + str(shape[1])
         return
 
 
