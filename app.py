@@ -183,6 +183,10 @@ app_ui = ui.page_fluid(
                         ui.input_checkbox("bp_orient", "Horizontal Orientation", False),
                         ui.input_checkbox("bp_output_type", "Enable Interactive Plot", True),
                         ui.input_action_button("go_bp", "Render Plot", class_="btn-success"),
+                        ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_button_ui1")
+                                )
                     ),
                     ui.column(9,
                         ui.div(
@@ -430,6 +434,7 @@ def server(input, output, session):
     uns_names = reactive.Value(None)
     df_heatmap = reactive.Value(None)
     df_relational = reactive.Value(None)
+    df_boxplot = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -853,6 +858,7 @@ def server(input, output, session):
             if input.h1_group_by_check() is not True:
                 if input.h1_layer() != "Original":
                     fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
+                    #update the global variable
                     return fig1
                 else:
                     fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), log_scale=(btn_log_x, btn_log_y))
@@ -1002,12 +1008,31 @@ def server(input, output, session):
                         figure_width=4.8, 
                         figure_type="interactive"
                     )
-
                 # Return the interactive Plotly figure object
+                df_boxplot.set(df)
                 print(type(fig))
                 return fig
-
         return None
+
+
+    @session.download(filename="boxplot_data.csv")
+    def download_boxplot():
+        df = df_boxplot.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+
+    @render.ui
+    @reactive.event(input.go_bp, ignore_none=True)
+    def download_button_ui1():
+        if df_boxplot.get() is not None:
+            return ui.download_button("download_boxplot", "Download Data", class_="btn-warning")
+        return None
+
+
 
 
     @output
