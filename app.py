@@ -855,7 +855,7 @@ def server(input, output, session):
                     fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
                     return fig1
                 else:
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), log_scale=(btn_log_x, btn_log_y))
+                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
                     return fig1
 
             if input.h1_group_by_check() is not False:
