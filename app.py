@@ -1607,8 +1607,8 @@ def server(input, output, session):
                     adata_subset,
                     feature=input.spatial_feat(),
                     layer=layer,
-                    figure_width=4,
-                    figure_height=4,
+                    figure_width=5.5,
+                    figure_height=5,
                     dot_size=input.spatial_slider()
                 )
             elif input.spatial_rb() == "Annotation":
@@ -1617,8 +1617,8 @@ def server(input, output, session):
                 out = spac.visualization.interactive_spatial_plot(
                     adata_subset,
                     annotations=input.spatial_anno(),
-                    figure_width=4,
-                    figure_height=4,
+                    figure_width=5.5,
+                    figure_height=5,
                     dot_size=input.spatial_slider()
                 )
             else:
