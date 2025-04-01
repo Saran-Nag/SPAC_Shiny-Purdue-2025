@@ -112,10 +112,31 @@ app_ui = ui.page_fluid(
                             ui.h4("Annotation Summary with Top 10 Labels"),
                             ui.output_ui("annotation_labels_display")
                         )
+                    ),
+
+                    #SPAC TERMINOLOGY 
+                    ui.row(
+                        ui.card({"style": "width:100%;"},   
+                            ui.column(12,
+                                ui.h2("SPAC Terminology"),
+                                ui.p("SPAC uses general terminology to simplify technical terms from the AnnData object for less technical users. Here is a quick guide:"),
+                                ui.tags.ul(
+                                    ui.tags.li([ui.tags.b("Cells:"), " Rows in the X matrix of AnnData."]),
+                                    ui.tags.li([ui.tags.b("Features:"), " Columns in the X matrix of AnnData, representing gene expression or antibody intensity."]),
+                                    ui.tags.li([ui.tags.b("Tables:"), " Originally called layers in AnnData, these represent transformed features."]),
+                                    ui.tags.li([ui.tags.b("Associated Tables:"), " Corresponds to .obsm in AnnData and can store spatial coordinates, UMAP embeddings, etc."]),
+                                    ui.tags.li([ui.tags.b("Annotation:"), " Corresponds to .obs in AnnData and can store cell phenotypes, experiment names, slide IDs, etc."])
+                                ),
+                                ui.p("For more in-depth explanations, visit our ",
+                                    ui.a("GitHub page", href="https://github.com/FNLCR-DMAP/spac_datamine/blob/main/CONTRIBUTING.md", target="_blank"),
+                                    ".")
+                            )
+                        )
                     )
                 )
             )
         ),
+
         # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
         ui.nav_panel("Annotations",
             ui.card({"style": "width:100%;"},
