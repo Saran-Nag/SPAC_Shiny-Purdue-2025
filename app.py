@@ -876,26 +876,26 @@ def server(input, output, session):
         if adata is not None:
             if input.h1_group_by_check() is not True:
                 if input.h1_layer() != "Original":
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
+                    fig1, ax, df = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                     return fig1
                 else:
-                    fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
+                    fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                     return fig1
 
             if input.h1_group_by_check() is not False:
                 if input.h1_layer() != "Original":
                     if input.h1_together_check() is  not False:
-                        fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop())
+                        fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
                         return fig1
                     else:
-                        fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
+                        fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                         return fig1
                 else:
                     if input.h1_together_check() is  not False:
-                        fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop())
+                        fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
                         return fig1
                     else:
-                        fig1 = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y)
+                        fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                         return fig1
         return None
 
@@ -990,7 +990,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="interactive"
-                    )
+                    ).values()
                 elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
                         adata, 
@@ -1002,7 +1002,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="interactive"
-                    )
+                    ).values()
                 elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
                         adata, 
@@ -1014,7 +1014,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="interactive"
-                    )
+                    ).values()
                 else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
                     fig, df = spac.visualization.boxplot_interactive(
                         adata,
@@ -1025,7 +1025,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="interactive"
-                    )
+                    ).values()
 
                 # Return the interactive Plotly figure object
                 print(type(fig))
@@ -1080,7 +1080,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="static"
-                    )
+                    ).values()
                 elif input.bp_layer() == "Original" and input.bp_anno() != "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
                         adata, 
@@ -1092,7 +1092,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="static"
-                    )
+                    ).values()
                 elif input.bp_layer() != "Original" and input.bp_anno() == "No Annotation":
                     fig, df = spac.visualization.boxplot_interactive(
                         adata, 
@@ -1104,7 +1104,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="static"
-                    )
+                    ).values()
                 else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
                     fig, df = spac.visualization.boxplot_interactive(
                         adata,
@@ -1115,7 +1115,7 @@ def server(input, output, session):
                         figure_height=3, 
                         figure_width=4.8, 
                         figure_type="static"
-                    )
+                    ).values()
 
                 return fig
 
@@ -1131,10 +1131,10 @@ def server(input, output, session):
 
         # 1) If "Group By" is UNCHECKED, show a simple annotation histogram
         if not input.h2_group_by_check():
-            fig = spac.visualization.histogram(
+            fig, ax, df = spac.visualization.histogram(
                 adata,
                 annotation=input.h2_anno()
-            )
+            ).values()
             return fig
 
         # 2) If "Group By" is CHECKED, we must always supply a valid multiple parameter
@@ -1148,15 +1148,14 @@ def server(input, output, session):
                 multiple_param = "layer"  # or 'dodge' or any valid string
                 together_flag = False
 
-            fig = spac.visualization.histogram(
+            fig, ax, df = spac.visualization.histogram(
                 adata,
                 annotation=input.h2_anno(),
                 group_by=input.h2_anno_1(),
                 together=together_flag,
                 multiple=multiple_param
-            )
+            ).values()
             return fig
-
         return None
 
     histogram2_ui_initialized = reactive.Value(False)
