@@ -10,13 +10,16 @@ import spac
 import spac.visualization
 import spac.spatial_analysis
 
-file_path = "dev_example.pickle"  # Path to your preloaded .pickle file
+file_path = "healthy_lung_adata.h5ad"  # Path to your preloaded .pickle file
 preloaded_data = None  # Initialize as None
 
 # Check if the file exists before attempting to load it
 try:
     with open(file_path, 'rb') as file:
-        preloaded_data = pickle.load(file)
+        if file_path.endswith('.pickle'):
+            preloaded_data = pickle.load(file)
+        elif file_path.endswith('.h5ad'):
+            preloaded_data = ad.read_h5ad(file)
 except FileNotFoundError:
     print("Preloaded data file not found. Proceeding without preloaded data.")
 
