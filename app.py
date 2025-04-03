@@ -10,6 +10,20 @@ import spac
 import spac.visualization
 import spac.spatial_analysis
 
+file_path = "healthy_lung_adata.h5ad"  # Path to your preloaded .pickle file
+preloaded_data = None  # Initialize as None
+
+# Check if the file exists before attempting to load it
+try:
+    with open(file_path, 'rb') as file:
+        if file_path.endswith('.pickle'):
+            preloaded_data = pickle.load(file)
+        elif file_path.endswith('.h5ad'):
+            preloaded_data = ad.read_h5ad(file)
+except FileNotFoundError:
+    print("Preloaded data file not found. Proceeding without preloaded data.")
+
+
 app_ui = ui.page_fluid(
 
     ui.navset_card_tab(
@@ -413,13 +427,20 @@ def server(input, output, session):
     # Define a reactive variable to track if data is loaded
     data_loaded = reactive.Value(False)
 
+    # Create a reactive variable for the main data
+    adata_main = reactive.Value(preloaded_data)  # Initialize with preloaded data
+
     @reactive.Effect
     def adata_filter():
         print("Calling Data")
         file_info = input.input_file()
         if not file_info:
-            data_loaded.set(False)  # Set to False if no file is uploaded
-            return
+            # Only set preloaded data if it exists
+            if preloaded_data is not None:
+                adata_main.set(preloaded_data)
+                data_loaded.set(True)
+            else:
+                data_loaded.set(False)
         else:
             file_path = file_info[0]['datapath']
             with open(file_path, 'rb') as file:
