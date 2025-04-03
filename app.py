@@ -278,13 +278,16 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # 7. SPATIAL PANEL ---------------------------------------
+       # 7. SPATIAL PANEL ---------------------------------------
         ui.nav_panel("Spatial",
             ui.card({"style": "width:100%;"},
                 ui.column(12,
                     ui.row(
                         ui.column(2,
-                            ui.input_select("spatial_anno", "Select an Annotation", choices=[]),
+                            ui.input_radio_buttons("spatial_rb", "Color by:", ["Annotation", "Feature"]),
+                            ui.div(id="main-spatial_dropdown_anno"),
+                            ui.div(id="main-spatial_dropdown_feat"),
+                            ui.div(id="main-spatial_table_dropdown_feat"),
                             ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
                             ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
                             ui.div(id="main-slide_dropdown"),
@@ -1579,38 +1582,103 @@ def server(input, output, session):
     @render_widget
     @reactive.event(input.go_sp1, ignore_none=True)
     def spac_Spatial():
-        adata = ad.AnnData(X=X_data.get(), obs=pd.DataFrame(obs_data.get()), obsm=obsm_data.get(), dtype=X_data.get().dtype)
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get(), dtype=X_data.get().dtype, layers=layers_data.get())
         slide_check = input.slide_select_check()
         region_check = input.region_select_check()
         if adata is not None:
             if slide_check is False and region_check is False:
-                out = spac.visualization.interactive_spatial_plot(adata, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out[0]['image_object']
-            if slide_check is True and region_check is False:
-
+                adata_subset = adata
+            elif slide_check is True and region_check is False:
                 adata_subset = adata[adata.obs[input.slide_select_drop()] == input.slide_select_label()].copy()
-                out = spac.visualization.interactive_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out[0]['image_object']
-            if slide_check is True and region_check is True:
-
-                adata_subset = adata[(adata.obs[input.slide_select_drop()] == input.slide_select_label()) & (adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
-                out = spac.visualization.interactive_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out[0]['image_object']
-            if slide_check is False and region_check is True:
-
-                adata_subset = adata[(adata.obs[input.region_select_drop()] == input.region_label_select())].copy()
-                out = spac.visualization.interactive_spatial_plot(adata_subset, annotations=input.spatial_anno(), figure_width=4, figure_height=4, dot_size=input.spatial_slider())
-                out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
-                return out[0]['image_object']
+            elif slide_check is True and region_check is True:
+                adata_subset = adata[
+                    (adata.obs[input.slide_select_drop()] == input.slide_select_label()) &
+                    (adata.obs[input.region_select_drop()] == input.region_label_select())
+                ].copy()
+            elif slide_check is False and region_check is True:
+                adata_subset = adata[adata.obs[input.region_select_drop()] == input.region_label_select()].copy()
+            else:
+                return None
+            if input.spatial_rb() == "Feature":
+                if "spatial_feat" not in input or input.spatial_feat() is None:
+                    return None
+                layer = None if input.spatial_layer() == "Original" else input.spatial_layer()
+                out = spac.visualization.interactive_spatial_plot(
+                    adata_subset,
+                    feature=input.spatial_feat(),
+                    layer=layer,
+                    figure_width=5.5,
+                    figure_height=5,
+                    dot_size=input.spatial_slider()
+                )
+            elif input.spatial_rb() == "Annotation":
+                if "spatial_anno" not in input or input.spatial_anno() is None:
+                    return None
+                out = spac.visualization.interactive_spatial_plot(
+                    adata_subset,
+                    annotations=input.spatial_anno(),
+                    figure_width=5.5,
+                    figure_height=5,
+                    dot_size=input.spatial_slider()
+                )
+            else:
+                return None
+            out[0]['image_object'].update_xaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+            out[0]['image_object'].update_yaxes(showticklabels=True, ticks="outside", tickwidth=2, ticklen=10)
+            return out[0]['image_object']
 
         return None
+
+    #Track UI State 
+    spatial_annotation_initialized = reactive.Value(False)
+    spatial_feature_initialized = reactive.Value(False)
+   
+    @reactive.effect
+    def spatial_reactivity():
+        flipper = data_loaded.get()
+        if flipper is not False:
+            btn = input.spatial_rb()
+
+            if btn == "Annotation":
+                if not spatial_annotation_initialized.get():
+                    dropdown = ui.input_select(
+                        "spatial_anno", "Select an Annotation", choices=obs_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-spatial_dropdown_anno"}, dropdown),
+                        selector="#main-spatial_dropdown_anno",
+                        where="beforeEnd"
+                    )
+                    spatial_annotation_initialized.set(True)
+
+                if spatial_feature_initialized.get():
+                    ui.remove_ui("#inserted-spatial_dropdown_feat")
+                    ui.remove_ui("#inserted-spatial_table")
+                    spatial_feature_initialized.set(False)
+
+            elif btn == "Feature":
+                if not spatial_feature_initialized.get():
+                    dropdown = ui.input_select(
+                        "spatial_feat", "Select a Feature", choices=var_names.get()
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-spatial_dropdown_feat"}, dropdown),
+                        selector="#main-spatial_dropdown_feat",
+                        where="beforeEnd"
+                    )
+                    table_select = ui.input_select(
+                        "spatial_layer", "Select a Table", choices=layers_names.get() + ["Original"], selected="Original"
+                    )
+                    ui.insert_ui(
+                        ui.div({"id": "inserted-spatial_table"}, table_select),
+                        selector="#main-spatial_table_dropdown_feat",
+                        where="beforeEnd"
+                    )
+                    spatial_feature_initialized.set(True)
+
+                if spatial_annotation_initialized.get():
+                    ui.remove_ui("#inserted-spatial_dropdown_anno")
+                    spatial_annotation_initialized.set(False)
 
     #@output
     #@render.plot
