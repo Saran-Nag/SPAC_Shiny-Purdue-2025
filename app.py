@@ -1838,12 +1838,15 @@ def server(input, output, session):
 
     @reactive.Calc
     def get_color_values():
+        selected_feature = input.scatter_color()
+        if selected_feature is None:
+            return None
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()))
-        column_index = adata.var_names.get_loc(input.scatter_color())
-        color_values = adata.X[:, column_index]
-        return color_values
-
-
+        if selected_feature in adata.var_names:
+            column_index = adata.var_names.get_loc(selected_feature)
+            color_values = adata.X[:, column_index]
+            return color_values
+        return None 
 
     @output
     @render.plot
@@ -1852,11 +1855,19 @@ def server(input, output, session):
         x_points = get_scatterplot_coordinates_x()
         y_points = get_scatterplot_coordinates_y()
         btn = input.scatter_color_check()
+        x_label = input.scatter_x()
+        y_label = input.scatter_y()
+        title = f"Scatter Plot: {x_label} vs {y_label}"
         if btn is False:
             fig, ax = spac.visualization.visualize_2D_scatter(x_points,y_points)
+            ax.set_title(title, fontsize=14)
             return ax
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
+            ax1.set_title(title, fontsize=14)
+            for color in fig1.axes:
+                if hasattr(color, "get_ylabel") and color != ax1:
+                    color.set_ylabel(f"Colored by: {input.scatter_color()}")
             return ax1
 
 
