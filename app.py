@@ -159,6 +159,7 @@ app_ui = ui.page_fluid(
                             ui.div(id="main-h2_dropdown"),
                             ui.div(id="main-h2_check"),
                             ui.div(id="main-h2_together_drop"),
+                            ui.input_slider("anno_slider", "Rotate Axis", min=0, max=90, value=0),
                             ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
                         ),
                         ui.column(10,
@@ -187,6 +188,7 @@ app_ui = ui.page_fluid(
                             ui.div(id="main-h1_dropdown"),
                             ui.div(id="main-h1_check"),
                             ui.div(id="main-h1_together_drop"),
+                            ui.input_slider("feat_slider", "Rotate Axis", min=0, max=90, value=0),
                             ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
                         ),
                         ui.column(10,
@@ -900,25 +902,35 @@ def server(input, output, session):
             if input.h1_group_by_check() is not True:
                 if input.h1_layer() != "Original":
                     fig1, ax, df = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
+                    ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                     return fig1
                 else:
                     fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
+                    ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                     return fig1
 
             if input.h1_group_by_check() is not False:
                 if input.h1_layer() != "Original":
                     if input.h1_together_check() is  not False:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
+                        ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                         return fig1
                     else:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
+                        axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
+                        for ax in axes:
+                            ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                         return fig1
                 else:
                     if input.h1_together_check() is  not False:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
+                        ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                         return fig1
                     else:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
+                        axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
+                        for ax in axes:
+                            ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
                         return fig1
         return None
 
@@ -1179,6 +1191,7 @@ def server(input, output, session):
                 adata,
                 annotation=input.h2_anno()
             ).values()
+            ax.tick_params(axis='x', rotation=input.anno_slider(), labelsize=10)
             return fig
 
         # 2) If "Group By" is CHECKED, we must always supply a valid multiple parameter
@@ -1199,6 +1212,9 @@ def server(input, output, session):
                 together=together_flag,
                 multiple=multiple_param
             ).values()
+            axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
+            for ax in axes:
+                ax.tick_params(axis='x', rotation=input.anno_slider(), labelsize=10)
             return fig
         return None
 
