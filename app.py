@@ -9,6 +9,7 @@ from pathlib import Path as path
 import spac
 import spac.visualization
 import spac.spatial_analysis
+import spac.data_utils
 
 file_path = "healthy_lung_adata.h5ad"  # Path to your preloaded .pickle file
 preloaded_data = None  # Initialize as None
@@ -822,10 +823,10 @@ def server(input, output, session):
         adata = adata_main.get()
         if adata is not None:
             annotation = input.subset_anno_select()
-            labels = input.subset_label_select()
+            labels = list(input.subset_label_select())
 
             # Perform the subsetting
-            adata_subset = adata[adata.obs[annotation].isin(labels)].copy()
+            adata_subset = spac.data_utils.select_values(adata, annotation=annotation, values=labels)
 
             # Update the main data
             adata_main.set(adata_subset)
