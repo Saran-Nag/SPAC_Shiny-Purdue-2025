@@ -161,6 +161,10 @@ app_ui = ui.page_fluid(
                             ui.div(id="main-h2_together_drop"),
                             ui.input_slider("anno_slider", "Rotate Axis", min=0, max=90, value=0),
                             ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                {"style": "padding-top: 20px;"},
+                                ui.output_ui("download_histogram_button_ui")
+                                ),
                         ),
                         ui.column(10,
                             ui.div(
@@ -189,7 +193,11 @@ app_ui = ui.page_fluid(
                             ui.div(id="main-h1_check"),
                             ui.div(id="main-h1_together_drop"),
                             ui.input_slider("feat_slider", "Rotate Axis", min=0, max=90, value=0),
-                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success")
+                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                    {"style": "padding-top: 20px;"},
+                                    ui.output_ui("download_histogram1_button_ui")
+                                ),
                         ),
                         ui.column(10,
                             ui.div(
@@ -479,6 +487,8 @@ def server(input, output, session):
     df_heatmap = reactive.Value(None)
     df_relational = reactive.Value(None)
     df_boxplot = reactive.Value(None)
+    df_histogram2 = reactive.Value(None)
+    df_histogram1 = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -903,10 +913,12 @@ def server(input, output, session):
                 if input.h1_layer() != "Original":
                     fig1, ax, df = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                     ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                    df_histogram1.set(df)
                     return fig1
                 else:
                     fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                     ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                    df_histogram1.set(df)
                     return fig1
 
             if input.h1_group_by_check() is not False:
@@ -914,27 +926,47 @@ def server(input, output, session):
                     if input.h1_together_check() is  not False:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
                         ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                        df_histogram1.set(df)
                         return fig1
                     else:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), layer=input.h1_layer(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                         axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
                         for ax in axes:
                             ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                            df_histogram1.set(df)
                         return fig1
                 else:
                     if input.h1_together_check() is  not False:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y, multiple=input.h1_together_drop()).values()
                         ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                        df_histogram1.set(df)
                         return fig1
                     else:
                         fig1, ax, df  = spac.visualization.histogram(adata, feature=input.h1_feat(), group_by=input.h1_anno(), together=input.h1_together_check(), x_log_scale=btn_log_x, y_log_scale=btn_log_y).values()
                         axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
                         for ax in axes:
                             ax.tick_params(axis='x', rotation=input.feat_slider(), labelsize=10)
+                            df_histogram1.set(df)
                         return fig1
         return None
 
     histogram_ui_initialized = reactive.Value(False)
+
+    @session.download(filename="feautures_histogram_data.csv")
+    def download_histogram1_df():
+        df = df_histogram1.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_h1, ignore_none=True)
+    def download_histogram1_button_ui():
+        if df_histogram1.get() is not None:
+            return ui.download_button("download_histogram1_df", "Download Data", class_="btn-warning")
+        return None
 
     @reactive.effect
     def histogram_reactivity():
@@ -1191,6 +1223,7 @@ def server(input, output, session):
                 adata,
                 annotation=input.h2_anno()
             ).values()
+            df_histogram2.set(df) 
             ax.tick_params(axis='x', rotation=input.anno_slider(), labelsize=10)
             return fig
 
@@ -1212,6 +1245,7 @@ def server(input, output, session):
                 together=together_flag,
                 multiple=multiple_param
             ).values()
+            df_histogram2.set(df) 
             axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
             for ax in axes:
                 ax.tick_params(axis='x', rotation=input.anno_slider(), labelsize=10)
@@ -1219,6 +1253,22 @@ def server(input, output, session):
         return None
 
     histogram2_ui_initialized = reactive.Value(False)
+
+    @render.ui
+    @reactive.event(input.go_h2, ignore_none=True)
+    def download_histogram_button_ui():
+        if df_histogram2.get() is not None:
+            return ui.download_button("download_histogram2_df", "Download Data", class_="btn-warning")
+        return None
+
+    @session.download(filename="annotation_histogram_data.csv")
+    def download_histogram2_df():
+        df = df_histogram2.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
 
     @reactive.effect
     def histogram_reactivity_2():
