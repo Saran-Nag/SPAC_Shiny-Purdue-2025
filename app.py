@@ -11,6 +11,7 @@ import spac.visualization
 import spac.spatial_analysis
 import spac.data_utils
 
+
 file_path = "healthy_lung_adata.h5ad"  # Path to your preloaded .pickle file
 preloaded_data = None  # Initialize as None
 
@@ -405,6 +406,20 @@ app_ui = ui.page_fluid(
                     )
                 )
             )
+        ),
+        ui.nav_panel("Nearest Neigbors",
+            ui.row(
+                ui.column(6,
+                    ui.card(
+                        ui.column(12,
+                            ui.input_select("nn_anno", "Select an Annotation", choices=[]),
+                            ui.output_plot("spac_nearest_neighbor"),
+                            ui.output_text_verbatim("nearest_neighbor_profile"),
+                            ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
+                        )
+                    ),
+                ),
+            )
         )
     )
 )
@@ -713,6 +728,7 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
+      
     @output
     @render.ui
     def annotation_labels_display():
@@ -756,6 +772,12 @@ def server(input, output, session):
         return ui.TagList(*container)
 
 
+    @reactive.Effect
+    def update_select_input_anno():
+        choices = obs_names.get()
+        ui.update_select("nn_anno", choices=choices)      
+        return
+    
 
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
@@ -1925,6 +1947,21 @@ def server(input, output, session):
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             return ax1
+
+
+    @output
+    @render.plot
+    @reactive.event(input.go_nn, ignore_none=True)
+    def spac_nearest_neighbor():
+        adata = ad.AnnData(X=X_adata.get(), annotation = pd.DataFrame(obs_names.get()))
+        if adata is not None:
+            if input.nn_anno() != "Original":
+                    fig = spac.visualization.nearest_neighbor(adata, annotation)
+                    return fig
+            else:
+                    fig = spac.visualization.nearest_neighbor(adata, annotation)
+                    return fig
+  
 
 
 
