@@ -9,7 +9,6 @@ from pathlib import Path as path
 import spac
 import spac.visualization
 import spac.spatial_analysis
-from sag_py_execution_time_decorator import log_execution_time
 import logging
 
 app_ui = ui.page_fluid(
@@ -215,6 +214,20 @@ app_ui = ui.page_fluid(
                         ui.output_plot("spac_Scatter")
                     )
                 )
+            )
+        ),
+        ui.nav_panel("Nearest Neigbors",
+            ui.row(
+                ui.column(6,
+                    ui.card(
+                        ui.column(12,
+                            ui.input_select("nn_anno", "Select an Annotation", choices=[]),
+                            ui.output_plot("spac_nearest_neighbor"),
+                            ui.output_text_verbatim("nearest_neighbor_profile"),
+                            ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
+                        )
+                    ),
+                ),
             )
         )
     )
@@ -474,6 +487,11 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
+    @reactive.Effect
+    def update_select_input_anno():
+        choices = obs_names.get()
+        ui.update_select("nn_anno", choices=choices)      
+        return
     
 
     # Initialize a flag to track dropdown creation
@@ -1226,7 +1244,22 @@ def server(input, output, session):
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             return ax1
-        
+
+
+
+    @output
+    @render.plot
+    @reactive.event(input.go_nn, ignore_none=True)
+    def spac_nearest_neighbor():
+        adata = ad.AnnData(X=X_adata.get(), annotation = pd.DataFrame(obs_names.get()))
+        if adata is not None:
+            if input.nn_anno() != "Original":
+                    fig = spac.visualization.nearest_neighbor(adata, annotation)
+                    return fig
+            else:
+                    fig = spac.visualization.nearest_neighbor(adata, annotation)
+                    return fig
+  
 
     
 
