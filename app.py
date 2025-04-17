@@ -420,7 +420,33 @@ app_ui = ui.page_fluid(
                     ),
                 ),
             )
-        )
+        ),
+
+        # 10. Ripley L PANEL (Plot Ripley’s L statistic) --------
+        ui.nav_panel("Ripley L",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("rl_anno", "Select an Annotation", choices=[]),
+                            ui.input_selectize("rl_label", "Select two Phenotypes", multiple=True, choices=[], selected=[]),
+                            ui.input_selectize("region_select_check_rl", "Stratify by Regions", multiple=True, choices=[], selected=[]),
+                            ui.input_action_button("go_rl", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                {"style": "padding-top: 20px;"},
+                                ui.output_ui("download_ripley_button_ui")
+                                ),
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_ripley_l_plot", width="100%", height="80vh")
+                            )
+                        )
+                    )
+                )
+            )
+        ),
     )
 )
 
@@ -688,7 +714,8 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-
+        ui.update_select("rl_anno", choices=choices)
+        ui.update_select("region_select_check_rl", choices=choices)
         return
 
     @reactive.Effect
@@ -727,7 +754,18 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
+    @reactive.Effect
+    def update_rl_selectize():
+        adata = adata_main.get()  # Reactive AnnData
+        label_counts =  get_annotation_label_counts(adata)
+        anno_name = input.rl_anno() # Selected annotation column
 
+        if anno_name is None or anno_name not in label_counts:
+            return
+        label_list = list(label_counts[anno_name].keys())
+        if label_counts is not None:
+            ui.update_selectize("rl_label", selected=label_list[:2], choices=label_list)
+            return
       
     @output
     @render.ui
@@ -1961,7 +1999,34 @@ def server(input, output, session):
             else:
                     fig = spac.visualization.nearest_neighbor(adata, annotation)
                     return fig
-  
+        
+    @output
+    @render.plot
+    @reactive.event(input.go_rl, ignore_none=True)
+    def spac_ripley_l_plot():
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        annotation = input.rl_anno()
+        print(type(annotation))
+        phenotypes = list(input.rl_label())
+        regions = list(input.region_select_check_rl())
+        distances=np.linspace(0, 500, 100)
+
+        spac.spatial_analysis.ripley_l(
+            adata,
+            annotation=annotation,
+            phenotypes=phenotypes,
+            regions=regions, 
+            distances=distances,
+        )
+
+        # Plot Rupley L Data
+        #fig = spac.visualization.plot_ripley_l(
+        #    adata,
+        #    phenotypes=("A", "A"),
+        #    sims=False
+        #)
+        return None
+    
 
 
 
