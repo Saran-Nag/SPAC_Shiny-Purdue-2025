@@ -1861,10 +1861,14 @@ def server(input, output, session):
         if btn is False:
             fig, ax = spac.visualization.visualize_2D_scatter(x_points,y_points)
             ax.set_title(title, fontsize=14)
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
             return ax
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
             ax1.set_title(title, fontsize=14)
+            ax1.set_xlabel(x_label)
+            ax1.set_ylabel(y_label)
             for color in fig1.axes:
                 if hasattr(color, "get_ylabel") and color != ax1:
                     color.set_ylabel(f"Colored by: {input.scatter_color()}")
