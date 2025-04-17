@@ -1857,7 +1857,7 @@ def server(input, output, session):
         btn = input.scatter_color_check()
         x_label = input.scatter_x()
         y_label = input.scatter_y()
-        title = f"Scatter Plot: {x_label} vs {y_label}"
+        title = f"Scatterplot: {x_label} vs {y_label}"
         if btn is False:
             fig, ax = spac.visualization.visualize_2D_scatter(x_points,y_points)
             ax.set_title(title, fontsize=14)
