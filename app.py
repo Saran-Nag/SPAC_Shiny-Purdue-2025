@@ -2021,28 +2021,25 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_rl, ignore_none=True)
     def spac_ripley_l_plot():
-        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get(), dtype=X_data.get().dtype)
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
         annotation = input.rl_anno()
+        if annotation in adata.obs.columns:
+            adata.obs[annotation] = adata.obs[annotation].astype(str)
         phenotypes = list(map(str, input.rl_label()))
-        print(phenotypes)
-        for item in phenotypes:
-            print(type(item))
         region_anno = None
         n_simulations = 0
         seed = None
         region_labels=None
+        distances=np.linspace(0, 500, 100).tolist()
 
         if input.region_check_rl():
             region_anno = input.region_select_rl()
+            if region_anno in adata.obs.columns:
+                adata.obs[region_anno] = adata.obs[region_anno].astype(str)
             region_labels = list(map(str, input.rl_region_labels()))
-            region_labels = list(input.rl_region_labels())
-            for item in region_labels:
-                print("***************")
-                print(type(region_labels))
         if input.sim_check_rl():
             n_simulations=input.num_sim_rl()
             seed=input.seed_rl()
-        distances=np.linspace(0, 500, 100).tolist()
 
         # Calculate Ripley’s L statistic for spatial data in adata
         spac.spatial_analysis.ripley_l(
