@@ -2024,6 +2024,9 @@ def server(input, output, session):
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get(), dtype=X_data.get().dtype)
         annotation = input.rl_anno()
         phenotypes = list(map(str, input.rl_label()))
+        print(phenotypes)
+        for item in phenotypes:
+            print(type(item))
         region_anno = None
         n_simulations = 0
         seed = None
@@ -2032,6 +2035,10 @@ def server(input, output, session):
         if input.region_check_rl():
             region_anno = input.region_select_rl()
             region_labels = list(map(str, input.rl_region_labels()))
+            region_labels = list(input.rl_region_labels())
+            for item in region_labels:
+                print("***************")
+                print(type(region_labels))
         if input.sim_check_rl():
             n_simulations=input.num_sim_rl()
             seed=input.seed_rl()
