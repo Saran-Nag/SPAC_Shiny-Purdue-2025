@@ -2016,7 +2016,7 @@ def server(input, output, session):
             else:
                     fig = spac.visualization.nearest_neighbor(adata, annotation)
                     return fig
-        
+
     @output
     @render.plot
     @reactive.event(input.go_rl, ignore_none=True)
@@ -2029,8 +2029,8 @@ def server(input, output, session):
         region_anno = None
         n_simulations = 0
         seed = None
-        region_labels=None
-        distances=np.linspace(0, 500, 100).tolist()
+        region_labels = None
+        distances = np.linspace(0, 500, 100).tolist()
 
         if input.region_check_rl():
             region_anno = input.region_select_rl()
@@ -2038,8 +2038,8 @@ def server(input, output, session):
                 adata.obs[region_anno] = adata.obs[region_anno].astype(str)
             region_labels = list(map(str, input.rl_region_labels()))
         if input.sim_check_rl():
-            n_simulations=input.num_sim_rl()
-            seed=input.seed_rl()
+            n_simulations = input.num_sim_rl()
+            seed = input.seed_rl()
 
         # Calculate Ripley’s L statistic for spatial data in adata
         spac.spatial_analysis.ripley_l(
@@ -2056,8 +2056,8 @@ def server(input, output, session):
         fig, df = spac.visualization.plot_ripley_l(
             adata,
             phenotypes=phenotypes,
-            regions=region_labels, 
-            sims=input.sim_check_rl(), 
+            regions=region_labels,
+            sims=input.sim_check_rl(),
             return_df=True,
         )
         df_ripley.set(df)
@@ -2076,14 +2076,9 @@ def server(input, output, session):
     @reactive.event(input.go_rl, ignore_none=True)
     def download_button_ui_rl():
         if df_ripley.get() is not None:
-            return ui.download_button("download_df_rl", "Download Data", class_="btn-warning")
+            return ui.download_button("download_df_rl",
+                                      "Download Data", class_="btn-warning")
         return None
-    
-
-
-
 
 
 app = App(app_ui, server)
-
-
