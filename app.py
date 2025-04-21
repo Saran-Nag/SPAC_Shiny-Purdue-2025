@@ -1499,12 +1499,22 @@ def server(input, output, session):
                     layer = None
                 else:
                     layer = input.umap_layer()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_feat()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat().upper()}", fontsize=12)
+                return fig
             elif input.umap_rb() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_anno()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                return fig
         return None
+
 
     # Track the UI state
     umap_annotation_initialized = reactive.Value(False)
@@ -1520,7 +1530,7 @@ def server(input, output, session):
                 if not umap_annotation_initialized.get():
                     # Create the Annotation dropdown
                     dropdown = ui.input_select(
-                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get()
+                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get(),
                     )
                     ui.insert_ui(
                         ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
@@ -1588,11 +1598,20 @@ def server(input, output, session):
                     layer2 = None
                 else:
                     layer2 = input.umap_layer2()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_feat2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Color by: {input.umap_rb_feat2()}", fontsize=12)
+                return fig
             elif input.umap_rb2() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_anno2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                return fig
         return None
 
     # Track the UI state
