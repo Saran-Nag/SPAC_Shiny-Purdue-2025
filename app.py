@@ -436,6 +436,12 @@ app_ui = ui.page_fluid(
                                 ui.input_select("region_select_rl", "Select Region Annotation", choices=[]),
                                 ui.input_selectize("rl_region_labels", "Select Regions", multiple=True, choices=[], selected=[]),
                             ),
+                            ui.input_checkbox("slide_check_rl", "Stratify by Slides?", False),
+                            ui.panel_conditional(
+                                "input.slide_check_rl === true",
+                                ui.input_select("slide_select_rl", "Select Slide Annotation", choices=[]),
+                                ui.input_select("rl_slide_labels", "Select Slides", choices=[], selected=[]),
+                            ),
                             ui.input_checkbox("sim_check_rl", "Simulations", False),
                             ui.panel_conditional(
                                 "input.sim_check_rl === true",
@@ -452,7 +458,8 @@ app_ui = ui.page_fluid(
                             ui.div(
                             {"style": "padding-bottom: 100px;"},
                             ui.output_plot("spac_ripley_l_plot", width="100%", height="80vh")
-                            )
+                            ),
+                            ui.output_text_verbatim("status_msg_rl")
                         )
                     )
                 )
@@ -728,6 +735,7 @@ def server(input, output, session):
         ui.update_select("spatial_anno", choices=choices)
         ui.update_select("rl_anno", choices=choices)
         ui.update_select("region_select_rl", choices=choices)
+        ui.update_select("slide_select_rl", choices=choices)
         return
 
     @reactive.Effect
@@ -772,16 +780,22 @@ def server(input, output, session):
         label_counts =  get_annotation_label_counts(adata)
         anno_name = input.rl_anno() # Selected annotation column
         region_name = input.region_select_rl() # Selected region column
+        slide_name = input.slide_select_rl() # Selected slide column
 
         if anno_name is None or anno_name not in label_counts:
             return
         if region_name is None or region_name not in label_counts:
             return
+        if slide_name is None or slide_name not in label_counts:
+            return
         pheno_label_list = list(map(str, label_counts[anno_name].keys()))
         region_label_list =list(map(str, label_counts[region_name].keys())) 
+        slide_label_list =list(map(str, label_counts[slide_name].keys()))
+
         if label_counts is not None:
             ui.update_selectize("rl_label", selected=pheno_label_list[:2], choices=pheno_label_list)
             ui.update_selectize("rl_region_labels", selected=region_label_list[0], choices=region_label_list)
+            ui.update_selectize("rl_slide_labels", choices=slide_label_list)
             return
       
     @output
@@ -2036,10 +2050,19 @@ def server(input, output, session):
             region_anno = input.region_select_rl()
             if region_anno in adata.obs.columns:
                 adata.obs[region_anno] = adata.obs[region_anno].astype(str)
-            region_labels = list(map(str, input.rl_region_labels()))
+            region_labels = input.rl_region_labels()
         if input.sim_check_rl():
             n_simulations = input.num_sim_rl()
             seed = input.seed_rl()
+        if input.slide_check_rl():
+            slide_anno = input.slide_select_rl()
+            slide_label = input.rl_slide_labels()
+            subset = adata.obs[adata.obs[slide_anno] == slide_label]
+            check_subset = subset[annotation].unique()
+            if set(phenotypes).issubset(set(check_subset)):
+                adata = adata[adata.obs[slide_anno] == slide_label].copy()
+            else:
+                return
 
         # Calculate Ripley’s L statistic for spatial data in adata
         spac.spatial_analysis.ripley_l(
