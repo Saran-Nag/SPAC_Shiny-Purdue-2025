@@ -1604,7 +1604,7 @@ def server(input, output, session):
                 ax.set_ylabel(f"{input.plottype2().upper()} 2")
                 for color_ax in fig.axes:
                     if hasattr(color_ax, "get_ylabel") and color_ax != ax:
-                        color_ax.set_ylabel(f"Color by: {input.umap_rb_feat2()}", fontsize=12)
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat2()}", fontsize=12)
                 return fig
             elif input.umap_rb2() == "Annotation":
                 fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
