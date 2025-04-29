@@ -11,445 +11,41 @@ import spac.visualization
 import spac.spatial_analysis
 import spac.data_utils
 
+# Screen imports
+from screens.data_input import data_input_panel
+from screens.annotations import annotations_panel
+from screens.features import features_panel
+from screens.boxplot import boxplot_panel
+from screens.feat_vs_anno import feat_vs_anno_panel
+from screens.anno_vs_anno import anno_vs_anno_panel
+from screens.spatial import spatial_panel
+from screens.umap import umap_panel
+from screens.scatterplot import scatterplot_panel
+from screens.nearestneighbor import nearest_neighbor_panel
 
-file_path = "healthy_lung_adata.h5ad"  # Path to your preloaded .pickle file
-preloaded_data = None  # Initialize as None
+# Util imports
+from utils.data_processing import load_data, get_annotation_label_counts
 
-# Check if the file exists before attempting to load it
-try:
-    with open(file_path, 'rb') as file:
-        if file_path.endswith('.pickle'):
-            preloaded_data = pickle.load(file)
-        elif file_path.endswith('.h5ad'):
-            preloaded_data = ad.read_h5ad(file)
-except FileNotFoundError:
-    print("Preloaded data file not found. Proceeding without preloaded data.")
 
+file_path = "dev_example.pickle"  # Path to your preloaded .pickle file
+preloaded_data = load_data(file_path)  # Initialize as None
 
 app_ui = ui.page_fluid(
-
     ui.navset_card_tab(
-
-        # 1. DATA INPUT PANEL -----------------------------------
-        ui.nav_panel("Data Input",
-            # Add custom CSS to increase height of upload message/progress bar
-            ui.tags.head(ui.tags.style("""
-                .shiny-file-input-progress {
-                    height: 30px !important; 
-                    line-height: 30px !important;
-                }
-                .progress-bar {
-                    height: 30px !important;
-                    line-height: 30px !important;
-                    font-size: 16px !important;
-                }
-                /* Ensure text doesn't get cut off */
-                .progress-bar span {
-                    white-space: nowrap;
-                    overflow: visible;
-                }
-                /* Style for the metric output text - larger but not bold */
-                .metric-output {
-                    font-size: 18px;
-                }
-            """)),
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(6,
-                            ui.card(
-                                ui.div({"style": "font-weight: bold; font-size: 30px;"},
-                                    ui.p("SPAC Interactive Dashboard")),
-                                ui.div({"style": "margin-bottom: 15px;"},
-                                    ui.input_file("input_file", "Choose a file to upload:", 
-                                                multiple=False, 
-                                                width="100%")
-                                ),
-                                ui.row(
-                                    ui.column(6,
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_rows")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        ),
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_columns")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        ),
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_obs_names")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        )
-                                    ),
-                                    ui.column(6,
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_obsm_names")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        ),
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_layers_names")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        ),
-                                        ui.card(
-                                            ui.div({"class": "metric-output"},
-                                                ui.output_text("print_uns_names")
-                                            ),
-                                            height="auto", class_="p-2 mb-2"
-                                        )
-                                    )
-                                ),
-                                class_="mb-3"
-                            ),
-                            #SPAC TERMINOLOGY 
-                            ui.card({"style": "width:100%;"},   
-                                ui.column(12,
-                                    ui.h2("SPAC Terminology"),
-                                    ui.p("SPAC uses general terminology to simplify technical terms from the AnnData object for less technical users. Here is a quick guide:"),
-                                    ui.tags.ul(
-                                        ui.tags.li([ui.tags.b("Cells:"), " Rows in the X matrix of AnnData."]),
-                                        ui.tags.li([ui.tags.b("Features:"), " Columns in the X matrix of AnnData, representing gene expression or antibody intensity."]),
-                                        ui.tags.li([ui.tags.b("Tables:"), " Originally called layers in AnnData, these represent transformed features."]),
-                                        ui.tags.li([ui.tags.b("Associated Tables:"), " Corresponds to .obsm in AnnData and can store spatial coordinates, UMAP embeddings, etc."]),
-                                        ui.tags.li([ui.tags.b("Annotation:"), " Corresponds to .obs in AnnData and can store cell phenotypes, experiment names, slide IDs, etc."])
-                                    ),
-                                    ui.p("For more in-depth explanations, visit our ",
-                                        ui.a("GitHub page", href="https://github.com/FNLCR-DMAP/spac_datamine/blob/main/CONTRIBUTING.md", target="_blank"),
-                                        ".")
-                                )
-                            )
-                        ),
-                        ui.column(6,
-                            ui.card(
-                                ui.input_checkbox("subset_select_check", "Subset Annotation", False),
-                                ui.div(id="main-subset_anno_dropdown"),
-                                ui.div(id="main-subset_label_dropdown"),
-                                ui.input_action_button("go_subset", "Subset Data", class_="btn-success"),
-                                ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning"),
-                                ui.div({"class": "metric-output"},
-                                    ui.output_text("print_subset_history")
-                                ),
-                                class_="mb-3"
-                            )
-                        ),
-                        ui.card(
-                            {"style": "width:100%;"},
-                            ui.h4("Annotation Summary with Top 10 Labels"),
-                            ui.output_ui("annotation_labels_display")
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
-        ui.nav_panel("Annotations",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h2_anno", "Select an Annotation", choices=[]),
-                            ui.input_checkbox("h2_group_by_check", "Group By", value=False),
-                            ui.div(id="main-h2_dropdown"),
-                            ui.div(id="main-h2_check"),
-                            ui.div(id="main-h2_together_drop"),
-                            ui.input_slider("anno_slider", "Rotate Axis", min=0, max=90, value=0),
-                            ui.input_action_button("go_h2", "Render Plot", class_="btn-success"),
-                            ui.div(
-                                {"style": "padding-top: 20px;"},
-                                ui.output_ui("download_histogram_button_ui")
-                                ),
-                        ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_2", width="100%", height="80vh")
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-
-
-        # 3. FEATURES PANEL (Histogram) --------------------------
-        ui.nav_panel("Features",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("h1_feat", "Select a Feature", choices=[]),
-                            ui.input_select("h1_layer", "Select a Table", choices=[], selected=["Original"]),
-                            ui.input_checkbox("h1_group_by_check", "Group By", value=False),
-                            ui.input_checkbox("h1_log_x", "Log X-axis", value=False),
-                            ui.input_checkbox("h1_log_y", "Log Y-axis", value=False),
-                            ui.div(id="main-h1_dropdown"),
-                            ui.div(id="main-h1_check"),
-                            ui.div(id="main-h1_together_drop"),
-                            ui.input_slider("feat_slider", "Rotate Axis", min=0, max=90, value=0),
-                            ui.input_action_button("go_h1", "Render Plot", class_="btn-success"),
-                            ui.div(
-                                    {"style": "padding-top: 20px;"},
-                                    ui.output_ui("download_histogram1_button_ui")
-                                ),
-                        ),
-                        ui.column(10,
-                            ui.div(
-                            {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Histogram_1", width="100%", height="60vh")
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 4. BOXPLOTS PANEL --------------------------------------
-        ui.nav_panel("Boxplot",
-            ui.card({"style": "width:100%;"},
-                ui.row(
-                    ui.column(3,
-                        ui.input_select("bp_anno", "Select an Annotation", choices=[]),
-                        ui.input_selectize("bp_features", "Select Features", multiple=True, choices=[], selected=[]),
-
-                        ui.input_select("bp_layer", "Select a Table", choices=[], selected="Original"),
-                        ui.input_select("bp_outlier_check", "Add Outliers", choices={"all": 'All', "downsample": "Downsampled", "none": "None"}, selected="none"),
-
-                        ui.input_checkbox("bp_log_scale", "Log Scale", False),
-                        ui.input_checkbox("bp_orient", "Horizontal Orientation", False),
-                        ui.input_checkbox("bp_output_type", "Enable Interactive Plot", True),
-                        ui.input_action_button("go_bp", "Render Plot", class_="btn-success"),
-                        ui.div(
-                                    {"style": "padding-top: 20px;"},
-                                    ui.output_ui("download_button_ui1")
-                                )
-                    ),
-                    ui.column(9,
-                        ui.div(
-                            {"style": "padding-bottom: 50px;"},
-                            # Static plot conditional panel (when interactive unchecked)
-                            ui.panel_conditional(
-                                "input.bp_output_type === false",
-                                output_widget("boxplot_static", width="100%", height="600px")
-                            ),
-                            # Interactive plot conditional panel (when interactive checked)
-                            ui.panel_conditional(
-                                "input.bp_output_type === true",
-                                output_widget("spac_Boxplot", width="100%", height="600px")
-                            )
-                        )
-                    ),
-                )
-            ),
-        ),
-
-
-        # 5. FEAT. VS ANNO. (Heatmap) ----------------------------
-        ui.nav_panel("Feat. Vs Anno.",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("hm1_anno", "Select an Annotation", choices=[]),
-                            ui.input_select("hm1_layer", "Select a Table", choices=[]),
-                            ui.input_select("hm1_cmap", "Select Color Map", choices=["viridis", "plasma", "inferno", "magma", "cividis","coolwarm", "RdYlBu", "Spectral", "PiYG", "PRGn"]),  # Dropdown for color maps
-                            ui.input_slider("hm_x_label_rotation", "Rotate X Axis Labels", min=0, max=90, value=25),
-                            ui.input_checkbox("dendogram", "Include Dendrogram", False),
-                            ui.div(id="main-hm1_check"),
-                            ui.div(id="main-hm2_check"),
-                            ui.div(id="main-min_num"),
-                            ui.div(id="main-max_num"),
-                            ui.input_action_button("go_hm1", "Render Plot", class_="btn-success"),
-                            ui.div(
-                                    {"style": "padding-top: 20px;"},
-                                    ui.output_ui("download_button_ui")
-                                )
-                        ),
-                        ui.column(10,
-                            ui.div(
-                                    {"style": "padding-bottom: 100px;"},
-                            ui.output_plot("spac_Heatmap", width="100%", height="100vh")
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 6. ANNO. VS ANNO. (Sankey, Relational Heatmap) ---------
-        ui.nav_panel("Anno. Vs Anno.",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("sk1_anno1", "Select Source Annotation", choices=[]),
-                            ui.input_select("sk1_anno2", "Select Target Annotation", choices=[]),
-                            ui.input_action_button("go_sk1", "Render Plot", class_="btn-success")
-                        ),
-                        ui.column(10,
-                            ui.div(
-                                output_widget("spac_Sankey"),
-                                style="width:100%; height:80vh;"
-                            )
-                        )
-                    )
-                )
-            ),
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("rhm_anno1", "Select Source Annotation", choices=[], selected=[]),
-                            ui.input_select("rhm_anno2", "Select Target Annotation", choices=[], selected=[]),
-                            ui.input_action_button("go_rhm1", "Render Plot", class_="btn-success"),
-                            ui.div(
-                                    {"style": "padding-top: 20px;"},
-                                    ui.output_ui("download_button_ui_1")
-                                )
-                        ),
-                        ui.column(10,
-                            ui.div(
-                                output_widget("spac_Relational"),
-                                style="width:100%; height:80vh;"
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-
-       # 7. SPATIAL PANEL ---------------------------------------
-        ui.nav_panel("Spatial",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_radio_buttons("spatial_rb", "Color by:", ["Annotation", "Feature"]),
-                            ui.div(id="main-spatial_dropdown_anno"),
-                            ui.div(id="main-spatial_dropdown_feat"),
-                            ui.div(id="main-spatial_table_dropdown_feat"),
-                            ui.input_slider("spatial_slider", "Point Size", min=2, max=10, value=3),
-                            ui.input_checkbox("slide_select_check", "Stratify by Slide", False),
-                            ui.div(id="main-slide_dropdown"),
-                            ui.div(id="main-label_dropdown"),
-                            ui.input_checkbox("region_select_check", "Stratify by Region", False),
-                            ui.div(id="main-region_dropdown"),
-                            ui.div(id="main-region_label_select_dropdown"),
-                            ui.input_action_button("go_sp1", "Render Plot", class_="btn-success")
-                        ),
-                        ui.column(10,
-                            ui.div(
-                                {"style": "padding-bottom: 20px;"},
-                                output_widget("spac_Spatial"),
-                                style="width:100%; height:80vh;"
-                            )
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 8. UMAP PANEL ------------------------------------------
-        ui.nav_panel("UMAP",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(6,
-                            ui.input_radio_buttons("umap_rb", "Choose one:", ["Annotation", "Feature"]),
-                            ui.input_select("plottype", "Select a plot type", choices=["umap", "pca", "tsne"]),
-                            ui.div(id="main-ump_rb_dropdown_anno"),
-                            ui.div(id="main-ump_rb_dropdown_feat"),
-                            ui.div(id="main-ump_table_dropdown_feat"),
-                            ui.input_slider("umap_slider_1", "Point Size", min=.5, max=10, value=3),
-                            ui.input_action_button("go_umap1", "Render Plot", class_="btn-success"),
-                            ui.output_plot("spac_UMAP", width="100%", height="80vh")
-                        ),
-                        ui.column(6,
-                            ui.input_radio_buttons("umap_rb2", "Choose one:", ["Annotation", "Feature"]),
-                            ui.input_select("plottype2", "Select a plot type", choices=["umap", "pca", "tsne"]),
-                            ui.div(id="main-ump_rb_dropdown_anno2"),
-                            ui.div(id="main-ump_rb_dropdown_feat2"),
-                            ui.div(id="main-ump_table_dropdown_feat2"),
-                            ui.input_slider("umap_slider_2", "Point Size", min=.5, max=10, value=3),
-                            ui.input_action_button("go_umap2", "Render Plot", class_="btn-success"),
-                            ui.output_plot("spac_UMAP2", width="100%", height="80vh")
-                        )
-                    )
-                )
-            )
-        ),
-
-        # 9. SCATTERPLOT PANEL ------------------------------------
-        ui.nav_panel("Scatterplot",
-            ui.card({"style": "width:100%;"},
-                ui.column(12,
-                    ui.row(
-                        ui.column(2,
-                            ui.input_select("scatter_layer", "Select a Table", choices=[], selected="Original"),
-                            ui.input_select("scatter_x", "Select X Axis", choices=[]),
-                            ui.input_select("scatter_y", "Select Y Axis", choices=[]),
-                            ui.input_checkbox("scatter_color_check", "Color by Feature", value=False),
-                            ui.div(id="main-scatter_dropdown"),
-                            ui.input_action_button("go_scatter", "Render Plot", class_="btn-success")
-                        ),
-                        ui.column(10,
-                            ui.output_plot("spac_Scatter", width="100%", height="80vh")
-                        )
-                    )
-                )
-            )
-        ),
-        ui.nav_panel("Nearest Neigbors",
-            ui.row(
-                ui.column(6,
-                    ui.card(
-                        ui.column(12,
-                            ui.input_select("nn_anno", "Select an Annotation", choices=[]),
-                            ui.output_plot("spac_nearest_neighbor"),
-                            ui.output_text_verbatim("nearest_neighbor_profile"),
-                            ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
-                        )
-                    ),
-                ),
-            )
-        )
+        data_input_panel(),
+        annotations_panel(),
+        features_panel(),
+        boxplot_panel(),
+        feat_vs_anno_panel(),
+        anno_vs_anno_panel(),
+        spatial_panel(),
+        umap_panel(),
+        scatterplot_panel(),
+        nearest_neighbor_panel(),
     )
 )
 
-def get_annotation_label_counts(adata):
-    """
-    Return a dictionary of every annotation (column in adata.obs),
-    where the value is a dict of {label: cell_count}.
-
-    Example structure:
-      {
-        "cell_type": {"T-cell": 100, "B-cell": 80, ...},
-        "condition": {"disease": 120, "healthy": 60, ...},
-        ...
-      }
-    """
-    if adata is None or not hasattr(adata, "obs") or adata.obs.empty:
-        return {}
-
-    annotation_counts = {}
-    for col in adata.obs.columns:
-        # value_counts returns a Series of {label: count}
-        vc = adata.obs[col].value_counts(dropna=False)
-        annotation_counts[col] = vc.to_dict()
-
-    return annotation_counts
-
 def server(input, output, session):
-
-
 
     # Define a reactive variable to track if data is loaded
     data_loaded = reactive.Value(False)
@@ -478,10 +74,6 @@ def server(input, output, session):
                 else:
                     adata_main.set(ad.read(file_path))
             data_loaded.set(True)  # Set to True if a file is successfully uploaded
-
-
-
-
 
     # Create a reactive variable for the main data
     adata_main = reactive.Value(None)
@@ -1962,10 +1554,6 @@ def server(input, output, session):
                     fig = spac.visualization.nearest_neighbor(adata, annotation)
                     return fig
   
-
-
-
-
 
 app = App(app_ui, server)
 
