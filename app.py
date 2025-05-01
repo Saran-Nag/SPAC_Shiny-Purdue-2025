@@ -423,7 +423,51 @@ app_ui = ui.page_fluid(
                     ),
                 ),
             )
-        )
+        ),
+
+        # 10. Ripley L PANEL (Plot Ripley’s L statistic) --------
+        ui.nav_panel("Ripley L",
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
+                            ui.input_select("rl_anno", "Select an Annotation", choices=[]),
+                            ui.input_selectize("rl_label", "Select two Phenotypes", multiple=True, choices=[], selected=[]),
+                            ui.input_checkbox("region_check_rl", "Stratify by Regions?", False),
+                            ui.panel_conditional(
+                                "input.region_check_rl === true",
+                                ui.input_select("region_select_rl", "Select Region Annotation", choices=[]),
+                                ui.input_selectize("rl_region_labels", "Select Regions", multiple=True, choices=[], selected=[]),
+                            ),
+                            ui.input_checkbox("slide_check_rl", "Stratify by Slides?", False),
+                            ui.panel_conditional(
+                                "input.slide_check_rl === true",
+                                ui.input_select("slide_select_rl", "Select Slide Annotation", choices=[]),
+                                ui.input_select("rl_slide_labels", "Select Slides", choices=[], selected=[]),
+                            ),
+                            ui.input_checkbox("sim_check_rl", "Simulations", False),
+                            ui.panel_conditional(
+                                "input.sim_check_rl === true",
+                                ui.input_slider("num_sim_rl", "Number of simulations", min=1, max=100, value=1),
+                                ui.input_slider("seed_rl", "Seed for Simulation Reproducibility", min=0, max=100, value=42)
+                            ),
+                            ui.input_action_button("go_rl", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                {"style": "padding-top: 20px;"},
+                                ui.output_ui("download_button_ui_rl")
+                                ),
+                        ),
+                        ui.column(10,
+                            ui.div(
+                            {"style": "padding-bottom: 100px;"},
+                            ui.output_plot("spac_ripley_l_plot", width="100%", height="80vh")
+                            ),
+                            ui.output_text_verbatim("status_msg_rl")
+                        )
+                    )
+                )
+            )
+        ),
     )
 )
 
@@ -508,6 +552,7 @@ def server(input, output, session):
     df_boxplot = reactive.Value(None)
     df_histogram2 = reactive.Value(None)
     df_histogram1 = reactive.Value(None)
+    df_ripley = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -691,7 +736,9 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-
+        ui.update_select("rl_anno", choices=choices)
+        ui.update_select("region_select_rl", choices=choices)
+        ui.update_select("slide_select_rl", choices=choices)
         return
 
     @reactive.Effect
@@ -730,7 +777,29 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
+    @reactive.Effect
+    def update_rl_selectize():
+        adata = adata_main.get()  # Reactive AnnData
+        label_counts =  get_annotation_label_counts(adata)
+        anno_name = input.rl_anno() # Selected annotation column
+        region_name = input.region_select_rl() # Selected region column
+        slide_name = input.slide_select_rl() # Selected slide column
 
+        if anno_name is None or anno_name not in label_counts:
+            return
+        if region_name is None or region_name not in label_counts:
+            return
+        if slide_name is None or slide_name not in label_counts:
+            return
+        pheno_label_list = list(map(str, label_counts[anno_name].keys()))
+        region_label_list =list(map(str, label_counts[region_name].keys())) 
+        slide_label_list =list(map(str, label_counts[slide_name].keys()))
+
+        if label_counts is not None:
+            ui.update_selectize("rl_label", selected=pheno_label_list[:2], choices=pheno_label_list)
+            ui.update_selectize("rl_region_labels", selected=region_label_list[0], choices=region_label_list)
+            ui.update_selectize("rl_slide_labels", choices=slide_label_list)
+            return
       
     @output
     @render.ui
@@ -1528,12 +1597,22 @@ def server(input, output, session):
                     layer = None
                 else:
                     layer = input.umap_layer()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_feat()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat().upper()}", fontsize=12)
+                return fig
             elif input.umap_rb() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_anno()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                return fig
         return None
+
 
     # Track the UI state
     umap_annotation_initialized = reactive.Value(False)
@@ -1549,7 +1628,7 @@ def server(input, output, session):
                 if not umap_annotation_initialized.get():
                     # Create the Annotation dropdown
                     dropdown = ui.input_select(
-                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get()
+                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get(),
                     )
                     ui.insert_ui(
                         ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
@@ -1617,11 +1696,20 @@ def server(input, output, session):
                     layer2 = None
                 else:
                     layer2 = input.umap_layer2()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_feat2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat2()}", fontsize=12)
+                return fig
             elif input.umap_rb2() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_anno2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                return fig
         return None
 
     # Track the UI state
@@ -1956,12 +2044,15 @@ def server(input, output, session):
 
     @reactive.Calc
     def get_color_values():
+        selected_feature = input.scatter_color()
+        if selected_feature is None:
+            return None
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()))
-        column_index = adata.var_names.get_loc(input.scatter_color())
-        color_values = adata.X[:, column_index]
-        return color_values
-
-
+        if selected_feature in adata.var_names:
+            column_index = adata.var_names.get_loc(selected_feature)
+            color_values = adata.X[:, column_index]
+            return color_values
+        return None 
 
     @output
     @render.plot
@@ -1970,11 +2061,23 @@ def server(input, output, session):
         x_points = get_scatterplot_coordinates_x()
         y_points = get_scatterplot_coordinates_y()
         btn = input.scatter_color_check()
+        x_label = input.scatter_x()
+        y_label = input.scatter_y()
+        title = f"Scatterplot: {x_label} vs {y_label}"
         if btn is False:
             fig, ax = spac.visualization.visualize_2D_scatter(x_points,y_points)
+            ax.set_title(title, fontsize=14)
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
             return ax
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
+            ax1.set_title(title, fontsize=14)
+            ax1.set_xlabel(x_label)
+            ax1.set_ylabel(y_label)
+            for color in fig1.axes:
+                if hasattr(color, "get_ylabel") and color != ax1:
+                    color.set_ylabel(f"Colored by: {input.scatter_color()}")
             return ax1
 
 
@@ -2003,8 +2106,77 @@ def server(input, output, session):
 
 
 
+    @output
+    @render.plot
+    @reactive.event(input.go_rl, ignore_none=True)
+    def spac_ripley_l_plot():
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        annotation = input.rl_anno()
+        if annotation in adata.obs.columns:
+            adata.obs[annotation] = adata.obs[annotation].astype(str)
+        phenotypes = list(map(str, input.rl_label()))
+        region_anno = None
+        n_simulations = 0
+        seed = None
+        region_labels = None
+        distances = np.linspace(0, 500, 100).tolist()
+
+        if input.region_check_rl():
+            region_anno = input.region_select_rl()
+            if region_anno in adata.obs.columns:
+                adata.obs[region_anno] = adata.obs[region_anno].astype(str)
+            region_labels = input.rl_region_labels()
+        if input.sim_check_rl():
+            n_simulations = input.num_sim_rl()
+            seed = input.seed_rl()
+        if input.slide_check_rl():
+            slide_anno = input.slide_select_rl()
+            slide_label = input.rl_slide_labels()
+            subset = adata.obs[adata.obs[slide_anno] == slide_label]
+            check_subset = subset[annotation].unique()
+            if set(phenotypes).issubset(set(check_subset)):
+                adata = adata[adata.obs[slide_anno] == slide_label].copy()
+            else:
+                return
+
+        # Calculate Ripley’s L statistic for spatial data in adata
+        spac.spatial_analysis.ripley_l(
+            adata,
+            annotation=annotation,
+            phenotypes=phenotypes,
+            regions=region_anno,
+            distances=distances,
+            n_simulations=n_simulations,
+            seed=seed,
+        )
+
+        # Plot Rupley L Data
+        fig, df = spac.visualization.plot_ripley_l(
+            adata,
+            phenotypes=phenotypes,
+            regions=region_labels,
+            sims=input.sim_check_rl(),
+            return_df=True,
+        )
+        df_ripley.set(df)
+        return fig
+
+    @session.download(filename="ripley_plot_data.csv")
+    def download_df_rl():
+        df = df_ripley.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_rl, ignore_none=True)
+    def download_button_ui_rl():
+        if df_ripley.get() is not None:
+            return ui.download_button("download_df_rl",
+                                      "Download Data", class_="btn-warning")
+        return None
 
 
 app = App(app_ui, server)
-
-
