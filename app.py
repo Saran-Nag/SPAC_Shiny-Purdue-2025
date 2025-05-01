@@ -408,14 +408,17 @@ app_ui = ui.page_fluid(
             )
         ),
         ui.nav_panel("Nearest Neigbors",
-            ui.row(
-                ui.column(6,
-                    ui.card(
-                        ui.column(12,
+            ui.card({"style": "width:100%;"},
+                ui.column(12,
+                    ui.row(
+                        ui.column(2,
                             ui.input_select("nn_anno", "Select an Annotation", choices=[]),
-                            ui.output_plot("spac_nearest_neighbor"),
-                            ui.output_text_verbatim("nearest_neighbor_profile"),
+                            ui.input_select("nn_anno_label", "Select a Starting Annotation", choices=[]),
                             ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
+                        ),
+                        ui.column(10,
+                            ui.output_plot("spac_nearest_neighbor", width="100%", height="80vh"),
+                            ui.output_text_verbatim("nearest_neighbor_profile")
                         )
                     ),
                 ),
@@ -842,11 +845,37 @@ def server(input, output, session):
 
 
     @reactive.Effect
-    def update_select_input_anno():
+    def update_select_input_anno_nn():
         choices = obs_names.get()
-        ui.update_select("nn_anno", choices=choices)      
+        ui.update_select("nn_anno", choices=choices)     
         return
-    
+
+    @reactive.effect
+    def update_select_label_nn():
+        adata = ad.AnnData(obs=obs_data.get())
+        if input.nn_anno():
+            selected_anno = input.nn_anno()
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_select("nn_anno_label", choices=labels)
+            
+    region_ui_initialized = reactive.Value(False)
+
+    @reactive.Calc
+    @render.text
+    def print_obsm_names():
+        obsm = obsm_names.get()
+        if not obsm:
+            return "Associated Tables: None"
+        if obsm is not None:
+            if len(obsm) > 1:
+                obsm_str = ", ".join(obsm)
+            else:
+                obsm_str = obsm[0] if obsm else ""
+            return "Associated Tables: " + obsm_str
+        else:
+            return "Empty"
+        return
+
 
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
@@ -2056,14 +2085,26 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_nn, ignore_none=True)
     def spac_nearest_neighbor():
-        adata = ad.AnnData(X=X_adata.get(), annotation = pd.DataFrame(obs_names.get()))
+        adata = adata_main.get()
+        annotation = input.nn_anno()
+        label = str(input.nn_anno_label())
+        if annotation in adata.obs.columns:
+            adata.obs[annotation] = adata.obs[annotation].astype(str)
+
+        spac.spatial_analysis.calculate_nearest_neighbor(adata, annotation, spatial_associated_table='spatial', 
+                                                         imageid=None, label='spatial_distance', verbose=True)
         if adata is not None:
-            if input.nn_anno() != "Original":
-                    fig = spac.visualization.nearest_neighbor(adata, annotation)
-                    return fig
+            if annotation != "Original":
+                    out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label, method='numeric')
+                    df = out['data']
+                    return out['fig']
             else:
-                    fig = spac.visualization.nearest_neighbor(adata, annotation)
-                    return fig
+                    out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label, method='numeric')
+                    df = out['data']
+                    return out['fig']
+  
+
+
 
     @output
     @render.plot
