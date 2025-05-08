@@ -407,13 +407,32 @@ app_ui = ui.page_fluid(
                 )
             )
         ),
+
+        # 10. NEAREST NEIGHBORS PANEL ------------------------------------
         ui.nav_panel("Nearest Neigbors",
             ui.card({"style": "width:100%;"},
                 ui.column(12,
                     ui.row(
                         ui.column(2,
                             ui.input_select("nn_anno", "Select an Annotation", choices=[]),
-                            ui.input_select("nn_anno_label", "Select a Starting Annotation", choices=[]),
+                            ui.input_select("nn_anno_label", "Select a Reference Phenotype", choices=[]),
+                            ui.input_select("nn_spatial", "Select a Spatial Table", choices=[]),
+                            ui.input_checkbox("nn_stratify", "Stratify by annotation?", False),
+                            ui.panel_conditional(
+                                "input.nn_stratify === true",
+                                ui.input_select("nn_strat_select", "Select Annotation", choices=[]),
+                            ),
+                            ui.input_select("nn_plot_style", "Select Plot Style", choices=["numeric", "distribution"], selected=["numeric"]),
+                            ui.panel_conditional(
+                                "input.nn_plot_style === 'numeric'",
+                                ui.input_select("nn_plot_type_n", "Select Plot Type", choices=["box", "violin", "boxen"]),
+                            ),
+                            ui.panel_conditional(
+                                "input.nn_plot_style === 'distribution'",
+                                ui.input_select("nn_plot_type_d", "Select Plot Type", choices=["hist", "kde", "ecdf"]),
+                            ),
+                            ui.input_checkbox("nn_log", "Apply Log to Distance Values", value=False),
+                            #ui.input_checkbox("nn_facet", "Apply Facet Plots", value=False),
                             ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
                         ),
                         ui.column(10,
@@ -425,7 +444,7 @@ app_ui = ui.page_fluid(
             )
         ),
 
-        # 10. Ripley L PANEL (Plot Ripley’s L statistic) --------
+        # 11. Ripley L PANEL (Plot Ripley’s L statistic) --------
         ui.nav_panel("Ripley L",
             ui.card({"style": "width:100%;"},
                 ui.column(12,
@@ -736,6 +755,8 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
+        ui.update_select("nn_anno", choices=choices)   
+        ui.update_select("nn_strat_select", choices=choices)
         ui.update_select("rl_anno", choices=choices)
         ui.update_select("region_select_rl", choices=choices)
         ui.update_select("slide_select_rl", choices=choices)
@@ -843,13 +864,6 @@ def server(input, output, session):
         # Return them as one TagList so each annotation is its own card
         return ui.TagList(*container)
 
-
-    @reactive.Effect
-    def update_select_input_anno_nn():
-        choices = obs_names.get()
-        ui.update_select("nn_anno", choices=choices)     
-        return
-
     @reactive.effect
     def update_select_label_nn():
         adata = ad.AnnData(obs=obs_data.get())
@@ -857,6 +871,11 @@ def server(input, output, session):
             selected_anno = input.nn_anno()
             labels = adata.obs[selected_anno].unique().tolist()
             ui.update_select("nn_anno_label", choices=labels)
+    
+    @reactive.effect
+    def update_select_df_nn():
+        df_names = obsm_names.get()
+        ui.update_select("nn_spatial", choices=df_names)
             
     region_ui_initialized = reactive.Value(False)
 
@@ -2088,20 +2107,25 @@ def server(input, output, session):
         adata = adata_main.get()
         annotation = input.nn_anno()
         label = str(input.nn_anno_label())
+        if input.nn_plot_style() == 'numeric':
+            plot_type = input.nn_plot_type_n()
+        else:
+            plot_type = input.nn_plot_type_d()
+        if input.nn_stratify():
+            stratify_by = input.nn_strat_select()
+        else:
+            stratify_by = None
         if annotation in adata.obs.columns:
             adata.obs[annotation] = adata.obs[annotation].astype(str)
 
-        spac.spatial_analysis.calculate_nearest_neighbor(adata, annotation, spatial_associated_table='spatial', 
-                                                         imageid=None, label='spatial_distance', verbose=True)
+        spac.spatial_analysis.calculate_nearest_neighbor(adata, annotation, spatial_associated_table=input.nn_spatial(), 
+                                                         imageid=stratify_by, label='spatial_distance', verbose=True)
         if adata is not None:
-            if annotation != "Original":
-                    out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label, method='numeric')
-                    df = out['data']
-                    return out['fig']
-            else:
-                    out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label, method='numeric')
-                    df = out['data']
-                    return out['fig']
+            out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label,
+                                                                method=input.nn_plot_style(), log=input.nn_log(), facet_plot=True,
+                                                                plot_type=plot_type, stratify_by=stratify_by)
+            df = out['data']
+            return out['fig']
   
 
 
