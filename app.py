@@ -417,7 +417,7 @@ app_ui = ui.page_fluid(
                             ui.input_select("nn_anno", "Select an Annotation", choices=[]),
                             ui.input_select("nn_anno_label", "Select a Reference Phenotype", choices=[]),
                             ui.input_select("nn_spatial", "Select a Spatial Table", choices=[]),
-                            ui.input_checkbox("nn_stratify", "Stratify by annotation?", False),
+                            ui.input_checkbox("nn_stratify", "Stratify by Annotation?", False),
                             ui.panel_conditional(
                                 "input.nn_stratify === true",
                                 ui.input_select("nn_strat_select", "Select Annotation", choices=[]),
@@ -433,11 +433,14 @@ app_ui = ui.page_fluid(
                             ),
                             ui.input_checkbox("nn_log", "Apply Log to Distance Values", value=False),
                             #ui.input_checkbox("nn_facet", "Apply Facet Plots", value=False),
-                            ui.input_action_button("go_nn", "Render Plot", class_="btn-success")
+                            ui.input_action_button("go_nn", "Render Plot", class_="btn-success"),
+                            ui.div(
+                                {"style": "padding-top: 20px;"},
+                                ui.output_ui("download_button_ui_nn")
+                                ),
                         ),
                         ui.column(10,
-                            ui.output_plot("spac_nearest_neighbor", width="100%", height="80vh"),
-                            ui.output_text_verbatim("nearest_neighbor_profile")
+                            ui.output_plot("spac_nearest_neighbor", width="100%", height="80vh")
                         )
                     ),
                 ),
@@ -572,6 +575,7 @@ def server(input, output, session):
     df_histogram2 = reactive.Value(None)
     df_histogram1 = reactive.Value(None)
     df_ripley = reactive.Value(None)
+    df_nn = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -1092,7 +1096,7 @@ def server(input, output, session):
 
     histogram_ui_initialized = reactive.Value(False)
 
-    @session.download(filename="feautures_histogram_data.csv")
+    @render.download(filename="feautures_histogram_data.csv")
     def download_histogram1_df():
         df = df_histogram1.get()
         if df is not None:
@@ -1242,7 +1246,7 @@ def server(input, output, session):
         return None
 
 
-    @session.download(filename="boxplot_data.csv")
+    @render.download(filename="boxplot_data.csv")
     def download_boxplot():
         df = df_boxplot.get()
         if df is not None:
@@ -1401,7 +1405,7 @@ def server(input, output, session):
             return ui.download_button("download_histogram2_df", "Download Data", class_="btn-warning")
         return None
 
-    @session.download(filename="annotation_histogram_data.csv")
+    @render.download(filename="annotation_histogram_data.csv")
     def download_histogram2_df():
         df = df_histogram2.get()
         if df is not None:
@@ -1521,7 +1525,7 @@ def server(input, output, session):
             ui.remove_ui("#inserted-check1")
             heatmap_ui_initialized.set(False)
 
-    @session.download(filename="heatmap_data.csv")
+    @render.download(filename="heatmap_data.csv")
     def download_df():
         df = df_heatmap.get()
         if df is not None:
@@ -1588,7 +1592,7 @@ def server(input, output, session):
             return result['figure']
         return None
 
-    @session.download(filename="relational_data.csv")
+    @render.download(filename="relational_data.csv")
     def download_df_1():
         df = df_relational.get()
         if df is not None:
@@ -2124,11 +2128,25 @@ def server(input, output, session):
             out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label,
                                                                 method=input.nn_plot_style(), log=input.nn_log(), facet_plot=True,
                                                                 plot_type=plot_type, stratify_by=stratify_by)
-            df = out['data']
+            df_nn.set(out['data'])
             return out['fig']
   
+    @render.download(filename="nearest_neighbor_data.csv")
+    def download_df_nn():
+        df = df_nn.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
 
-
+    @render.ui
+    @reactive.event(input.go_nn, ignore_none=True)
+    def download_button_ui_nn():
+        if df_nn.get() is not None:
+            return ui.download_button("download_df_nn",
+                                      "Download Data", class_="btn-warning")
+        return None
 
     @output
     @render.plot
@@ -2185,7 +2203,7 @@ def server(input, output, session):
         df_ripley.set(df)
         return fig
 
-    @session.download(filename="ripley_plot_data.csv")
+    @render.download(filename="ripley_plot_data.csv")
     def download_df_rl():
         df = df_ripley.get()
         if df is not None:
