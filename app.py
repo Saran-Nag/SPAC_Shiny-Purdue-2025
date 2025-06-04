@@ -22,6 +22,7 @@ from screens.spatial import spatial_panel
 from screens.umap import umap_panel
 from screens.scatterplot import scatterplot_panel
 from screens.nearestneighbor import nearest_neighbor_panel
+from screens.ripleyL import ripleyL_panel
 
 # Util imports
 from utils.data_processing import load_data, get_annotation_label_counts
@@ -42,6 +43,7 @@ app_ui = ui.page_fluid(
         umap_panel(),
         scatterplot_panel(),
         nearest_neighbor_panel(),
+        ripleyL_panel(),
     )
 )
 
