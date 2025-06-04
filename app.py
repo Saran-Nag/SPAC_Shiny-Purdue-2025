@@ -97,6 +97,8 @@ def server(input, output, session):
     df_boxplot = reactive.Value(None)
     df_histogram2 = reactive.Value(None)
     df_histogram1 = reactive.Value(None)
+    df_ripley = reactive.Value(None)
+    df_nn = reactive.Value(None)
 
     @reactive.Effect
     def update_parts():
@@ -280,7 +282,11 @@ def server(input, output, session):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-
+        ui.update_select("nn_anno", choices=choices)   
+        ui.update_select("nn_strat_select", choices=choices)
+        ui.update_select("rl_anno", choices=choices)
+        ui.update_select("region_select_rl", choices=choices)
+        ui.update_select("slide_select_rl", choices=choices)
         return
 
     @reactive.Effect
@@ -319,7 +325,29 @@ def server(input, output, session):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
+    @reactive.Effect
+    def update_rl_selectize():
+        adata = adata_main.get()  # Reactive AnnData
+        label_counts =  get_annotation_label_counts(adata)
+        anno_name = input.rl_anno() # Selected annotation column
+        region_name = input.region_select_rl() # Selected region column
+        slide_name = input.slide_select_rl() # Selected slide column
 
+        if anno_name is None or anno_name not in label_counts:
+            return
+        if region_name is None or region_name not in label_counts:
+            return
+        if slide_name is None or slide_name not in label_counts:
+            return
+        pheno_label_list = list(map(str, label_counts[anno_name].keys()))
+        region_label_list =list(map(str, label_counts[region_name].keys())) 
+        slide_label_list =list(map(str, label_counts[slide_name].keys()))
+
+        if label_counts is not None:
+            ui.update_selectize("rl_label", selected=pheno_label_list[:2], choices=pheno_label_list)
+            ui.update_selectize("rl_region_labels", selected=region_label_list[0], choices=region_label_list)
+            ui.update_selectize("rl_slide_labels", choices=slide_label_list)
+            return
       
     @output
     @render.ui
@@ -363,13 +391,37 @@ def server(input, output, session):
         # Return them as one TagList so each annotation is its own card
         return ui.TagList(*container)
 
-
-    @reactive.Effect
-    def update_select_input_anno():
-        choices = obs_names.get()
-        ui.update_select("nn_anno", choices=choices)      
-        return
+    @reactive.effect
+    def update_select_label_nn():
+        adata = ad.AnnData(obs=obs_data.get())
+        if input.nn_anno():
+            selected_anno = input.nn_anno()
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_select("nn_anno_label", choices=labels)
     
+    @reactive.effect
+    def update_select_df_nn():
+        df_names = obsm_names.get()
+        ui.update_select("nn_spatial", choices=df_names)
+            
+    region_ui_initialized = reactive.Value(False)
+
+    @reactive.Calc
+    @render.text
+    def print_obsm_names():
+        obsm = obsm_names.get()
+        if not obsm:
+            return "Associated Tables: None"
+        if obsm is not None:
+            if len(obsm) > 1:
+                obsm_str = ", ".join(obsm)
+            else:
+                obsm_str = obsm[0] if obsm else ""
+            return "Associated Tables: " + obsm_str
+        else:
+            return "Empty"
+        return
+
 
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
@@ -567,7 +619,7 @@ def server(input, output, session):
 
     histogram_ui_initialized = reactive.Value(False)
 
-    @session.download(filename="feautures_histogram_data.csv")
+    @render.download(filename="feautures_histogram_data.csv")
     def download_histogram1_df():
         df = df_histogram1.get()
         if df is not None:
@@ -717,7 +769,7 @@ def server(input, output, session):
         return None
 
 
-    @session.download(filename="boxplot_data.csv")
+    @render.download(filename="boxplot_data.csv")
     def download_boxplot():
         df = df_boxplot.get()
         if df is not None:
@@ -876,7 +928,7 @@ def server(input, output, session):
             return ui.download_button("download_histogram2_df", "Download Data", class_="btn-warning")
         return None
 
-    @session.download(filename="annotation_histogram_data.csv")
+    @render.download(filename="annotation_histogram_data.csv")
     def download_histogram2_df():
         df = df_histogram2.get()
         if df is not None:
@@ -996,7 +1048,7 @@ def server(input, output, session):
             ui.remove_ui("#inserted-check1")
             heatmap_ui_initialized.set(False)
 
-    @session.download(filename="heatmap_data.csv")
+    @render.download(filename="heatmap_data.csv")
     def download_df():
         df = df_heatmap.get()
         if df is not None:
@@ -1063,7 +1115,7 @@ def server(input, output, session):
             return result['figure']
         return None
 
-    @session.download(filename="relational_data.csv")
+    @render.download(filename="relational_data.csv")
     def download_df_1():
         df = df_relational.get()
         if df is not None:
@@ -1091,12 +1143,22 @@ def server(input, output, session):
                     layer = None
                 else:
                     layer = input.umap_layer()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), feature=input.umap_rb_feat(), layer=layer, point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_feat()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat().upper()}", fontsize=12)
+                return fig
             elif input.umap_rb() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype(), annotation=input.umap_rb_anno(), point_size=point_size)
+                ax.set_title(f"{input.plottype().upper()}: {input.umap_rb_anno()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype().upper()} 1")
+                ax.set_ylabel(f"{input.plottype().upper()} 2")
+                return fig
         return None
+
 
     # Track the UI state
     umap_annotation_initialized = reactive.Value(False)
@@ -1112,7 +1174,7 @@ def server(input, output, session):
                 if not umap_annotation_initialized.get():
                     # Create the Annotation dropdown
                     dropdown = ui.input_select(
-                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get()
+                        "umap_rb_anno", "Select an Annotation", choices=obs_names.get(),
                     )
                     ui.insert_ui(
                         ui.div({"id": "inserted-rbdropdown_anno"}, dropdown),
@@ -1180,11 +1242,20 @@ def server(input, output, session):
                     layer2 = None
                 else:
                     layer2 = input.umap_layer2()
-                out = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
-                return out
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), feature=input.umap_rb_feat2(), layer=layer2, point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_feat2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                for color_ax in fig.axes:
+                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
+                        color_ax.set_ylabel(f"Colored by: {input.umap_rb_feat2()}", fontsize=12)
+                return fig
             elif input.umap_rb2() == "Annotation":
-                out1 = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
-                return out1
+                fig, ax = spac.visualization.dimensionality_reduction_plot(adata, method=input.plottype2(), annotation=input.umap_rb_anno2(), point_size=point_size_2)
+                ax.set_title(f"{input.plottype2().upper()}: {input.umap_rb_anno2()}", fontsize=14)
+                ax.set_xlabel(f"{input.plottype2().upper()} 1")
+                ax.set_ylabel(f"{input.plottype2().upper()} 2")
+                return fig
         return None
 
     # Track the UI state
@@ -1519,12 +1590,15 @@ def server(input, output, session):
 
     @reactive.Calc
     def get_color_values():
+        selected_feature = input.scatter_color()
+        if selected_feature is None:
+            return None
         adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()))
-        column_index = adata.var_names.get_loc(input.scatter_color())
-        color_values = adata.X[:, column_index]
-        return color_values
-
-
+        if selected_feature in adata.var_names:
+            column_index = adata.var_names.get_loc(selected_feature)
+            color_values = adata.X[:, column_index]
+            return color_values
+        return None 
 
     @output
     @render.plot
@@ -1533,11 +1607,23 @@ def server(input, output, session):
         x_points = get_scatterplot_coordinates_x()
         y_points = get_scatterplot_coordinates_y()
         btn = input.scatter_color_check()
+        x_label = input.scatter_x()
+        y_label = input.scatter_y()
+        title = f"Scatterplot: {x_label} vs {y_label}"
         if btn is False:
             fig, ax = spac.visualization.visualize_2D_scatter(x_points,y_points)
+            ax.set_title(title, fontsize=14)
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
             return ax
         elif btn is True:
             fig1, ax1 = spac.visualization.visualize_2D_scatter(x_points,y_points, labels=get_color_values())
+            ax1.set_title(title, fontsize=14)
+            ax1.set_xlabel(x_label)
+            ax1.set_ylabel(y_label)
+            for color in fig1.axes:
+                if hasattr(color, "get_ylabel") and color != ax1:
+                    color.set_ylabel(f"Colored by: {input.scatter_color()}")
             return ax1
 
 
@@ -1545,16 +1631,117 @@ def server(input, output, session):
     @render.plot
     @reactive.event(input.go_nn, ignore_none=True)
     def spac_nearest_neighbor():
-        adata = ad.AnnData(X=X_adata.get(), annotation = pd.DataFrame(obs_names.get()))
+        adata = adata_main.get()
+        annotation = input.nn_anno()
+        label = str(input.nn_anno_label())
+        if input.nn_plot_style() == 'numeric':
+            plot_type = input.nn_plot_type_n()
+        else:
+            plot_type = input.nn_plot_type_d()
+        if input.nn_stratify():
+            stratify_by = input.nn_strat_select()
+        else:
+            stratify_by = None
+        if annotation in adata.obs.columns:
+            adata.obs[annotation] = adata.obs[annotation].astype(str)
+
+        spac.spatial_analysis.calculate_nearest_neighbor(adata, annotation, spatial_associated_table=input.nn_spatial(), 
+                                                         imageid=stratify_by, label='spatial_distance', verbose=True)
         if adata is not None:
-            if input.nn_anno() != "Original":
-                    fig = spac.visualization.nearest_neighbor(adata, annotation)
-                    return fig
-            else:
-                    fig = spac.visualization.nearest_neighbor(adata, annotation)
-                    return fig
+            out = spac.visualization.visualize_nearest_neighbor(adata=adata, annotation=annotation, distance_from=label,
+                                                                method=input.nn_plot_style(), log=input.nn_log(), facet_plot=True,
+                                                                plot_type=plot_type, stratify_by=stratify_by)
+            df_nn.set(out['data'])
+            return out['fig']
   
+    @render.download(filename="nearest_neighbor_data.csv")
+    def download_df_nn():
+        df = df_nn.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_nn, ignore_none=True)
+    def download_button_ui_nn():
+        if df_nn.get() is not None:
+            return ui.download_button("download_df_nn",
+                                      "Download Data", class_="btn-warning")
+        return None
+
+    @output
+    @render.plot
+    @reactive.event(input.go_rl, ignore_none=True)
+    def spac_ripley_l_plot():
+        adata = ad.AnnData(X=X_data.get(), var=pd.DataFrame(var_data.get()), obsm=obsm_data.get(), obs=obs_data.get())
+        annotation = input.rl_anno()
+        if annotation in adata.obs.columns:
+            adata.obs[annotation] = adata.obs[annotation].astype(str)
+        phenotypes = list(map(str, input.rl_label()))
+        region_anno = None
+        n_simulations = 0
+        seed = None
+        region_labels = None
+        distances = np.linspace(0, 500, 100).tolist()
+
+        if input.region_check_rl():
+            region_anno = input.region_select_rl()
+            if region_anno in adata.obs.columns:
+                adata.obs[region_anno] = adata.obs[region_anno].astype(str)
+            region_labels = input.rl_region_labels()
+        if input.sim_check_rl():
+            n_simulations = input.num_sim_rl()
+            seed = input.seed_rl()
+        if input.slide_check_rl():
+            slide_anno = input.slide_select_rl()
+            slide_label = input.rl_slide_labels()
+            subset = adata.obs[adata.obs[slide_anno] == slide_label]
+            check_subset = subset[annotation].unique()
+            if set(phenotypes).issubset(set(check_subset)):
+                adata = adata[adata.obs[slide_anno] == slide_label].copy()
+            else:
+                return
+
+        # Calculate Ripley’s L statistic for spatial data in adata
+        spac.spatial_analysis.ripley_l(
+            adata,
+            annotation=annotation,
+            phenotypes=phenotypes,
+            regions=region_anno,
+            distances=distances,
+            n_simulations=n_simulations,
+            seed=seed,
+        )
+
+        # Plot Rupley L Data
+        fig, df = spac.visualization.plot_ripley_l(
+            adata,
+            phenotypes=phenotypes,
+            regions=region_labels,
+            sims=input.sim_check_rl(),
+            return_df=True,
+        )
+        df_ripley.set(df)
+        return fig
+
+    @render.download(filename="ripley_plot_data.csv")
+    def download_df_rl():
+        df = df_ripley.get()
+        if df is not None:
+            csv_string = df.to_csv(index=False)
+            csv_bytes = csv_string.encode("utf-8")
+            return csv_bytes, "text/csv"
+        return None
+
+    @render.ui
+    @reactive.event(input.go_rl, ignore_none=True)
+    def download_button_ui_rl():
+        if df_ripley.get() is not None:
+            return ui.download_button("download_df_rl",
+                                      "Download Data", class_="btn-warning")
+        return None
+
 
 app = App(app_ui, server)
-
-
