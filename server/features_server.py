@@ -6,6 +6,10 @@ import spac.visualization
 
 
 def features_server(input, output, session, shared):
+    def on_layer_check():
+        return input.h1_layer() if input.h1_layer() != "Original" else None
+
+
     @output
     @render.plot
     @reactive.event(input.go_h1, ignore_none=True)
@@ -17,119 +21,38 @@ def features_server(input, output, session, shared):
             layers=shared['layers_data'].get(), 
             dtype=shared['X_data'].get().dtype
         )
+
+        if adata is None:
+            return None
+
+        feature = input.h1_feat()
+        rotation = input.feat_slider()
         btn_log_x = input.h1_log_x()
         btn_log_y = input.h1_log_y()
+        layer = on_layer_check()
 
-        if adata is not None:
-            if input.h1_group_by_check() is not True:
-                if input.h1_layer() != "Original":
-                    fig1, ax, df = spac.visualization.histogram(
-                        adata, 
-                        feature=input.h1_feat(), 
-                        layer=input.h1_layer(), 
-                        x_log_scale=btn_log_x, 
-                        y_log_scale=btn_log_y
-                    ).values()
-                    ax.tick_params(
-                        axis='x', 
-                        rotation=input.feat_slider(), 
-                        labelsize=10
-                    )
-                    shared['df_histogram1'].set(df)
-                    return fig1
-                else:
-                    fig1, ax, df  = spac.visualization.histogram(
-                        adata, 
-                        feature=input.h1_feat(), 
-                        x_log_scale=btn_log_x, 
-                        y_log_scale=btn_log_y
-                    ).values()
-                    ax.tick_params(
-                        axis='x', 
-                        rotation=input.feat_slider(), 
-                        labelsize=10
-                    )
-                    shared['df_histogram1'].set(df)
-                    return fig1
+        kwargs = {
+            "adata": adata,
+            "feature": feature,
+            "layer": layer,
+            "x_log_scale": btn_log_x,
+            "y_log_scale": btn_log_y,
+        }
 
-            if input.h1_group_by_check() is not False:
-                if input.h1_layer() != "Original":
-                    if input.h1_together_check() is  not False:
-                        fig1, ax, df  = spac.visualization.histogram(
-                            adata, 
-                            feature=input.h1_feat(), 
-                            layer=input.h1_layer(), 
-                            group_by=input.h1_anno(), 
-                            together=input.h1_together_check(), x_log_scale=btn_log_x, 
-                            y_log_scale=btn_log_y, 
-                            multiple=input.h1_together_drop()
-                        ).values()
-                        ax.tick_params(
-                            axis='x', 
-                            rotation=input.feat_slider(), 
-                            labelsize=10
-                        )
-                        shared['df_histogram1'].set(df)
-                        return fig1
-                    else:
-                        fig1, ax, df  = spac.visualization.histogram(
-                            adata, 
-                            feature=input.h1_feat(), 
-                            layer=input.h1_layer(), 
-                            group_by=input.h1_anno(), 
-                            together=input.h1_together_check(), x_log_scale=btn_log_x, 
-                            y_log_scale=btn_log_y
-                        ).values()
-                        axes = (
-                            ax if isinstance(ax, (list, np.ndarray))
-                            else [ax]
-                        )
-                        for ax in axes:
-                            ax.tick_params(
-                                axis='x', 
-                                rotation=input.feat_slider(), 
-                                labelsize=10
-                            )
-                            shared['df_histogram1'].set(df)
-                        return fig1
-                else:
-                    if input.h1_together_check() is  not False:
-                        fig1, ax, df  = spac.visualization.histogram(
-                            adata, 
-                            feature=input.h1_feat(), 
-                            group_by=input.h1_anno(), 
-                            together=input.h1_together_check(), x_log_scale=btn_log_x, 
-                            y_log_scale=btn_log_y, 
-                            multiple=input.h1_together_drop()
-                        ).values()
-                        ax.tick_params(
-                            axis='x', 
-                            rotation=input.feat_slider(), 
-                            labelsize=10
-                        )
-                        shared['df_histogram1'].set(df)
-                        return fig1
-                    else:
-                        fig1, ax, df  = spac.visualization.histogram(
-                            adata, 
-                            feature=input.h1_feat(), 
-                            group_by=input.h1_anno(), 
-                            together=input.h1_together_check(), x_log_scale=btn_log_x, 
-                            y_log_scale=btn_log_y
-                        ).values()
-                        axes = (
-                            ax if isinstance(ax, (list, np.ndarray)) 
-                            else [ax]
-                        )
-                        for ax in axes:
-                            ax.tick_params(
-                                axis='x', 
-                                rotation=input.feat_slider(), 
-                                labelsize=10
-                            )
-                            shared['df_histogram1'].set(df)
-                        return fig1
-        return None
+        if input.h1_group_by_check():
+            kwargs["group_by"] = input.h1_anno()
+            kwargs["together"] = input.h1_together_check()
+            if input.h1_together_check():
+                kwargs["multiple"] = input.h1_together_drop()
+        
+        fig1, ax, df = spac.visualization.histogram(**kwargs).values()
+
+        axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
+        for a in axes:
+            a.tick_params(axis='x', rotation=rotation, labelsize=10)
+
+        shared['df_histogram1'].set(df)
+        return fig1
 
     histogram_ui_initialized = reactive.Value(False)
 
