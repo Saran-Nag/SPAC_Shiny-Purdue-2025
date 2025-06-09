@@ -10,54 +10,48 @@ def umap_server(input, output, session, shared):
     @reactive.event(input.go_umap1, ignore_none=True)
     def spac_UMAP():
         adata = ad.AnnData(
-            X=shared['X_data'].get(), 
-            var=pd.DataFrame(shared['var_data'].get()), 
-            obsm=shared['obsm_data'].get(), 
-            obs=shared['obs_data'].get(), 
-            dtype=shared['X_data'].get().dtype, 
+            X=shared['X_data'].get(),
+            var=pd.DataFrame(shared['var_data'].get()),
+            obsm=shared['obsm_data'].get(),
+            obs=shared['obs_data'].get(),
+            dtype=shared['X_data'].get().dtype,
             layers=shared['layers_data'].get()
         )
-        point_size=input.umap_slider_1()
-        if adata is not None:
-            if input.umap_rb() == "Feature":
-                if input.umap_layer() == "Original":
-                    layer = None
-                else:
-                    layer = input.umap_layer()
-                fig, ax = spac.visualization.dimensionality_reduction_plot(
-                    adata, 
-                    method=input.plottype(), 
-                    feature=input.umap_rb_feat(), 
-                    layer=layer, 
-                    point_size=point_size
-                )
-                ax.set_title(
-                    f"{input.plottype().upper()}: {input.umap_rb_feat()}",
-                    fontsize=14
-                )
-                ax.set_xlabel(f"{input.plottype().upper()} 1")
-                ax.set_ylabel(f"{input.plottype().upper()} 2")
-                for color_ax in fig.axes:
-                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
-                        color_ax.set_ylabel(
-                            f"Colored by: {input.umap_rb_feat().upper()}",
-                            fontsize=12
-                        )
-                return fig
-            elif input.umap_rb() == "Annotation":
-                fig, ax = spac.visualization.dimensionality_reduction_plot(
-                    adata, 
-                    method=input.plottype(), 
-                    annotation=input.umap_rb_anno(), 
-                    point_size=point_size
-                )
-                ax.set_title(
-                    f"{input.plottype().upper()}: {input.umap_rb_anno()}",
-                    fontsize=14
-                )
-                ax.set_xlabel(f"{input.plottype().upper()} 1")
-                ax.set_ylabel(f"{input.plottype().upper()} 2")
-                return fig
+
+        if adata is None:
+            return None
+
+        method = input.plottype()
+        point_size = input.umap_slider_1()
+        mode = input.umap_rb()
+
+        if mode == "Feature":
+            feature = input.umap_rb_feat()
+            layer = None if input.umap_layer() == "Original" else input.umap_layer()
+            fig, ax = spac.visualization.dimensionality_reduction_plot(
+                adata, method=method, feature=feature, layer=layer, point_size=point_size
+            )
+            ax.set_title(f"{method.upper()}: {feature}", fontsize=14)
+            ax.set_xlabel(f"{method.upper()} 1")
+            ax.set_ylabel(f"{method.upper()} 2")
+
+            for extra_ax in fig.axes:
+                if hasattr(extra_ax, "get_ylabel") and extra_ax != ax:
+                    extra_ax.set_ylabel(f"Colored by: {feature.upper()}", fontsize=12)
+
+            return fig
+
+        elif mode == "Annotation":
+            annotation = input.umap_rb_anno()
+            fig, ax = spac.visualization.dimensionality_reduction_plot(
+                adata, method=method, annotation=annotation, point_size=point_size
+            )
+            ax.set_title(f"{method.upper()}: {annotation}", fontsize=14)
+            ax.set_xlabel(f"{method.upper()} 1")
+            ax.set_ylabel(f"{method.upper()} 2")
+
+            return fig
+
         return None
 
     # Track the UI state
@@ -141,53 +135,48 @@ def umap_server(input, output, session, shared):
     @reactive.event(input.go_umap2, ignore_none=True)
     def spac_UMAP2():
         adata = ad.AnnData(
-            X=shared['X_data'].get(), 
-            var=pd.DataFrame(shared['var_data'].get()), 
-            obsm=shared['obsm_data'].get(), 
-            obs=shared['obs_data'].get(), 
-            dtype=shared['X_data'].get().dtype, 
+            X=shared['X_data'].get(),
+            var=pd.DataFrame(shared['var_data'].get()),
+            obsm=shared['obsm_data'].get(),
+            obs=shared['obs_data'].get(),
+            dtype=shared['X_data'].get().dtype,
             layers=shared['layers_data'].get()
         )
-        point_size_2=input.umap_slider_2()
-        if adata is not None:
-            if input.umap_rb2() == "Feature":
-                if input.umap_layer2() == "Original":
-                    layer2 = None
-                else:
-                    layer2 = input.umap_layer2()
-                fig, ax = spac.visualization.dimensionality_reduction_plot(
-                    adata, 
-                    method=input.plottype2(), 
-                    feature=input.umap_rb_feat2(), 
-                    layer=layer2, 
-                    point_size=point_size_2
-                )
-                ax.set_title(
-                    f"{input.plottype2().upper()}: {input.umap_rb_feat2()}",
-                    fontsize=14
-                )
-                ax.set_xlabel(f"{input.plottype2().upper()} 1")
-                ax.set_ylabel(f"{input.plottype2().upper()} 2")
-                for color_ax in fig.axes:
-                    if hasattr(color_ax, "get_ylabel") and color_ax != ax:
-                        color_ax.set_ylabel(
-                            f"Colored by: {input.umap_rb_feat2()}", 
-                            fontsize=12
-                        )
-                return fig
-            elif input.umap_rb2() == "Annotation":
-                fig, ax = spac.visualization.dimensionality_reduction_plot(
-                    adata, 
-                    method=input.plottype2(), 
-                    annotation=input.umap_rb_anno2(), 
-                    point_size=point_size_2
-                )
-                ax.set_title(
-                    f"{input.plottype2().upper()}: {input.umap_rb_anno2()}", fontsize=14
-                )
-                ax.set_xlabel(f"{input.plottype2().upper()} 1")
-                ax.set_ylabel(f"{input.plottype2().upper()} 2")
-                return fig
+
+        if adata is None:
+            return None
+
+        method = input.plottype2()
+        point_size = input.umap_slider_2()
+        mode = input.umap_rb2()
+
+        if mode == "Feature":
+            feature = input.umap_rb_feat2()
+            layer = None if input.umap_layer2() == "Original" else input.umap_layer2()
+            fig, ax = spac.visualization.dimensionality_reduction_plot(
+                adata, method=method, feature=feature, layer=layer, point_size=point_size
+            )
+            ax.set_title(f"{method.upper()}: {feature}", fontsize=14)
+            ax.set_xlabel(f"{method.upper()} 1")
+            ax.set_ylabel(f"{method.upper()} 2")
+
+            for extra_ax in fig.axes:
+                if hasattr(extra_ax, "get_ylabel") and extra_ax != ax:
+                    extra_ax.set_ylabel(f"Colored by: {feature}", fontsize=12)
+
+            return fig
+
+        elif mode == "Annotation":
+            annotation = input.umap_rb_anno2()
+            fig, ax = spac.visualization.dimensionality_reduction_plot(
+                adata, method=method, annotation=annotation, point_size=point_size
+            )
+            ax.set_title(f"{method.upper()}: {annotation}", fontsize=14)
+            ax.set_xlabel(f"{method.upper()} 1")
+            ax.set_ylabel(f"{method.upper()} 2")
+
+            return fig
+
         return None
 
     # Track the UI state
