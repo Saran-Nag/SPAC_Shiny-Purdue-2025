@@ -6,6 +6,21 @@ import spac.visualization
 
 
 def boxplot_server(input, output, session, shared):
+   # Helper functions for reusability
+    def on_outlier_check():
+        selected_choice = input.bp_outlier_check()
+        return None if selected_choice == "none" else selected_choice
+
+    def on_orient_check():
+        return "h" if input.bp_orient() else "v"
+
+    def on_layer_check():
+        return input.bp_layer() if input.bp_layer() != "Original" else None
+
+    def on_anno_check():
+        return input.bp_anno() if input.bp_anno() != "No Annotation" else None
+
+
     @output
     @render_widget
     @reactive.event(input.go_bp, ignore_none=True)
@@ -17,7 +32,6 @@ def boxplot_server(input, output, session, shared):
 
         if not input.bp_output_type():
             return None
-
         else: 
 
             adata = ad.AnnData(
@@ -28,75 +42,27 @@ def boxplot_server(input, output, session, shared):
                 dtype=shared['X_data'].get().dtype
             )
 
-            def on_outlier_check():
-                selected_choice = input.bp_outlier_check()
-                return None if selected_choice == "none" else selected_choice
-
-            def on_orient_check():
-                return "h" if input.bp_orient() else "v"
-
             # Proceed only if adata is valid
             if adata is not None and adata.var is not None:
 
-                # Four scenarios for layer/annotation
-                if (input.bp_layer() != "Original" and 
-                    input.bp_anno() != "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        annotation=input.bp_anno(), 
-                        layer=input.bp_layer(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="interactive"
-                    ).values()
-                elif (input.bp_layer() == "Original" and
-                      input.bp_anno() != "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        annotation=input.bp_anno(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="interactive"
-                    ).values()
-                elif (input.bp_layer() != "Original" and
-                      input.bp_anno() == "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        layer=input.bp_layer(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="interactive"
-                    ).values()
-                # input.bp_layer() == "Original" and 
-                # input.bp_anno() == "No Annotation"
-                else:
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata,
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="interactive"
-                    ).values()
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata, 
+                    annotation=on_anno_check(), 
+                    layer=on_layer_check(), 
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    figure_type="interactive"
+                ).values()
 
                 # Return the interactive Plotly figure object
                 shared['df_boxplot'].set(df)
                 print(type(fig))
                 return fig
+
         return None
 
 
@@ -127,7 +93,7 @@ def boxplot_server(input, output, session, shared):
     @reactive.event(input.go_bp, ignore_none=True)
     def boxplot_static():
         """
-        This function produces a static (PNG) boxplot image.
+        This function produces a static (Plotly) boxplot image.
         """
 
          # Only run this function if both conditions are met
@@ -145,68 +111,21 @@ def boxplot_server(input, output, session, shared):
                 dtype=shared['X_data'].get().dtype
             )
 
-            def on_outlier_check():
-                selected_choice = input.bp_outlier_check()
-                return None if selected_choice == "none" else selected_choice
-
-            def on_orient_check():
-                return "h" if input.bp_orient() else "v"
-
             # Proceed only if adata is valid
             if adata is not None and adata.var is not None:
                 
-                # Four scenarios for layer/annotation
-                if (input.bp_layer() != "Original" and
-                    input.bp_anno() != "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        annotation=input.bp_anno(), 
-                        layer=input.bp_layer(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="static"
-                    ).values()
-                elif (input.bp_layer() == "Original" and 
-                      input.bp_anno() != "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        annotation=input.bp_anno(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="static"
-                    ).values()
-                elif (input.bp_layer() != "Original" and 
-                      input.bp_anno() == "No Annotation"):
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata, 
-                        layer=input.bp_layer(), 
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="static"
-                    ).values()
-                else:  # input.bp_layer() == "Original" and input.bp_anno() == "No Annotation"
-                    fig, df = spac.visualization.boxplot_interactive(
-                        adata,
-                        features=list(input.bp_features()),
-                        showfliers=on_outlier_check(),
-                        log_scale=input.bp_log_scale(),
-                        orient=on_orient_check(),
-                        figure_height=3, 
-                        figure_width=4.8, 
-                        figure_type="static"
-                    ).values()
+                fig, df = spac.visualization.boxplot_interactive(
+                    adata, 
+                    annotation=on_anno_check(), 
+                    layer=on_layer_check(), 
+                    features=list(input.bp_features()),
+                    showfliers=on_outlier_check(),
+                    log_scale=input.bp_log_scale(),
+                    orient=on_orient_check(),
+                    figure_height=3, 
+                    figure_width=4.8, 
+                    figure_type="static"
+                ).values()
 
                 return fig
 
