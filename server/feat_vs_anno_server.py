@@ -6,6 +6,23 @@ import spac.visualization
 
 
 def feat_vs_anno_server(input, output, session, shared):
+    def on_layer_check():
+        return input.hm1_layer() if input.hm1_layer() != "Original" else None
+
+    def on_dendro_check():
+        '''
+        Check if dendrogram is enabled and return the appropriate values.
+        If dendrogram is enabled, 
+            return a tuple (annotation dendrogram, feature dendrogram).
+        If dendrogram is disabled, 
+            return (None, None) to indicate that no dendrogram is available.
+        '''
+        return (
+            (input.h2_anno_dendro(), input.h2_feat_dendro()) 
+            if input.dendogram() 
+            else (None, None)
+        )
+
     @output
     @render.plot
     @reactive.event(input.go_hm1, ignore_none=True)
@@ -23,46 +40,16 @@ def feat_vs_anno_server(input, output, session, shared):
             cmap = input.hm1_cmap()  # Get the selected color map from the dropdown 
             kwargs = {"vmin": vmin,"vmax": vmax,} 
 
-            if input.dendogram() is not True:
-                if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(
-                        adata, 
-                        annotation=input.hm1_anno(), 
-                        layer=input.hm1_layer(), 
-                        z_score=None, 
-                        **kwargs
-                    )
-                else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(
-                        adata, 
-                        annotation=input.hm1_anno(), 
-                        layer=None, 
-                        z_score=None, 
-                        **kwargs
-                    )
-            elif input.dendogram() is not False:
-                cluster_annotations = input.h2_anno_dendro()
-                cluster_features = input.h2_feat_dendro()
-                if input.hm1_layer() != "Original":
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(
-                        adata, 
-                        annotation=input.hm1_anno(), 
-                        layer=input.hm1_layer(), 
-                        z_score=None, 
-                        cluster_annotations=cluster_annotations,
-                        cluster_feature=cluster_features, 
-                        **kwargs
-                    )
-                else:
-                    df, fig, ax = spac.visualization.hierarchical_heatmap(
-                        adata, 
-                        annotation=input.hm1_anno(), 
-                        layer=None, 
-                        z_score=None, 
-                        cluster_annotations=cluster_annotations,
-                        cluster_feature=cluster_features, 
-                        **kwargs
-                    )
+            cluster_annotations, cluster_features = on_dendro_check()
+            df, fig, ax = spac.visualization.hierarchical_heatmap(
+                adata, 
+                annotation=input.hm1_anno(), 
+                layer=on_layer_check(), 
+                z_score=None, 
+                cluster_annotations=cluster_annotations,
+                cluster_feature=cluster_features, 
+                **kwargs
+            )
 
             # Only update if a non-default color map is selected
             if cmap != "viridis":  
