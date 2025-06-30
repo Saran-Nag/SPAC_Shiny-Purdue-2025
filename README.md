@@ -6,6 +6,8 @@ SPAC_Shiny is the The Shiny Interactive Realtime Dashboard for SPAC, designed to
 
 This project involved a collaborative effort between the Frederick National Laboratory for Cancer Research (FNL), Purdue University, and The Data Mine project. Our team worked closely with FNL throughout the project, coordinating efforts to significantly enhance the functionality and performance of the SPAC library.
 
+## Key Features & Enhancements
+
 ### Front-End Interface Expansion
 We dramatically expanded the functionality of the front-end interface, adding nearly **50 new UI features**. These enhancements include:
 *   **Customization of parameter options:** Allowing users to fine-tune visualization settings.
