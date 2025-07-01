@@ -9,9 +9,7 @@ This project involved a collaborative effort between the Frederick National Labo
 ## User Experience
 
 A look at the redesigned SPAC_SHINY dashboard, highlighting new features and enhanced interactivity:
-![SPAC_SHINY New UI](![image](https://github.com/user-attachments/assets/18a77e72-9758-497f-8e72-9555ce328b63)
-)
-
+![SPAC_SHINY New UI](https://github.com/user-attachments/assets/e5b42da3-0af6-4439-bd27-4a0bba71d04d)
 
 ## Key Features & Enhancements
 
