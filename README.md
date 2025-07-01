@@ -47,6 +47,7 @@ This project was a success thanks to the invaluable collaboration and support fr
 *   **Frederick National Laboratory for Cancer Research (FNL):** For their guidance, expertise, and close coordination throughout the project. Special thanks to our FNL mentor, George Zaki.
 *   **Purdue University:** For facilitating this research and development effort.
 *   **The Data Mine Project at Purdue University:** For providing the framework and resources for this collaborative student-led initiative.
+*   **Purdue Institute for Cancer Research:** For facilitating collaboration between Purdue University and the Frederick National Laboratory for Cancer Research
 *   **Project Team Members:**
     *   Aileen Chow
     *   Ahmad Abdallah
@@ -59,6 +60,10 @@ This project was a success thanks to the invaluable collaboration and support fr
     *   Ruhi Sharmin
     *   Sam Ying
     *   Shamita Yediapalli
+    *   Anthony Cusimano
+    *   Suriya Selvarajan
+    *   Qianyue Wang
+    *   Andree Kolliegbo
 *   **Teaching Assistants (TAs) from Purdue's Data Mine:**
     *   Alex Liu
     *   Omar Eldaghar
