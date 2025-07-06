@@ -1,8 +1,9 @@
 # SPAC_Shiny – Windows Installation for Modularize Branch
 
+
 ## Branch
 
-This setup guide is tailored for the `modularize` branch.
+This setup guide is for the `modularize` branch.
 
 ---
 
@@ -13,7 +14,7 @@ This setup guide is tailored for the `modularize` branch.
 - [Git for Windows](https://git-scm.com/download/win)
 - [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 - [Visual Studio Code](https://code.visualstudio.com/) (optional)
-- [Ubuntu] (wsl --install)
+- [wsl --install](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 ### Steps
 
@@ -43,5 +44,7 @@ This setup guide is tailored for the `modularize` branch.
 
 5. **Launch the app**
     ```bash
-    python.app.py
-    http://127.0.0.1:8000 
+    python app.py
+
+    Visit http://127.0.0.1:8000 in order to fully access the local web server
+    
