@@ -14,7 +14,7 @@ This setup guide is for the `modularize` branch.
 - [Git for Windows](https://git-scm.com/download/win)
 - [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
 - [Visual Studio Code](https://code.visualstudio.com/) (optional)
-- [wsl --install](https://learn.microsoft.com/en-us/windows/wsl/install)
+- [Ubuntu](https://ubuntu.com/download)
 
 ### Steps
 
