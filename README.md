@@ -1,6 +1,6 @@
-# 🧬 SPAC_Shiny – Windows Installation for Modularize Branch
+# SPAC_Shiny – Windows Installation for Modularize Branch
 
-## 📁 Branch
+## Branch
 
 This setup guide is tailored for the `modularize` branch.
 
@@ -33,6 +33,7 @@ This setup guide is tailored for the `modularize` branch.
     conda activate spac_env_3119
 
 4. **Install dependencies**
+    ```bash
     pip install --upgrade pip wheel
     pip install scikit-learn==1.3.2 --only-binary :all:
     pip install llvmlite==0.41.1 --only-binary :all:
@@ -41,7 +42,6 @@ This setup guide is tailored for the `modularize` branch.
 
 
 5. **Launch the app**
+    ```bash
     python.app.py
-    Type http://127.0.0.1:8000 to access app on local web browser
-    
-
+    http://127.0.0.1:8000 
