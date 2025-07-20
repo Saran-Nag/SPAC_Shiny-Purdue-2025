@@ -13,45 +13,38 @@ Optional: GitHub CLI or access tokens for authentication.
 ### 1. Setup your Workspace 
 
 ```bash
-mkdir -p ~/summer2025
-cd ~/summer2025
+mkdir -p ~/SPAC_Workplace
+cd ~/SPAC_Workplace
 ```
 
 ### 2. Cloning the SPAC Shiny repository
 
-After installing Git for Windows, clone the modularize branch to ensure the latest version of the app is available. Then switch the updated branch 
+After installing Git for Windows, clone the main branch to ensure the latest version of the app is available. 
 
 ```bash
 git clone https://github.com/Summer2025-SPAC/SPAC_Shiny 
 cd SPAC_Shiny 
-git checkout keyerror_fix 
+git checkout main
 ```
 
 ### 3. Creating the Conda environment
 
-Using miniconda, stop any current environment from running and create a virutal environment called spac_env_3119 using python version 3.11.9. Use the next command to activate the environment.
+Install the dependencies from the environment.yml file. Ensure python=3.9.13
 
 ```bash
-conda deactivate
-conda create -n spacy_viz_py39_wsl python=3.9.13 -y
-conda activate spacy_viz_py39_wsl
+conda env create -f environment.yml
+conda activate shiny
 ```
 
-### 4. Installling dependencies
+This will install all dependencies listed in the file and create the environment with the name specified inside. This will also activate the environment.
 
-Install the dependencies from the requirements.txt file. Ensure python=3.9.13
-
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Open VS Code in WSL
+### 4. Open VS Code in WSL
 
 ```bash
 code ./
 ```
 
-### 6. Run the app.
+### 5. Run the app.
 Use this command to run the SPAC app in the local browser.
 
 ```bash
