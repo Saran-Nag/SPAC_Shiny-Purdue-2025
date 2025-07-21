@@ -36,11 +36,43 @@ def feat_vs_anno_ui():
                             max=90, 
                             value=25
                         ),
+                        ui.input_slider(
+                            "hm_y_label_rotation", 
+                            "Rotate Y Axis Labels", 
+                            min=0, 
+                            max=90, 
+                            value=25
+                        ),
+
+                        ui.input_slider(
+                            "axis_label_fontsize",
+                            "Axis Label Font Size",
+                            min=3,
+                            max=24,
+                            value=10
+                        ),
+                        
                         ui.input_checkbox(
                             "dendogram", 
                             "Include Dendrogram", 
                             False
                         ),
+                        
+                        ui.input_checkbox(
+                            "enable_abbreviation",
+                            "Abbreviate Axis Labels",
+                            value=False
+                        ),
+                        
+                        ui.input_slider(
+                            "label_char_limit",
+                            "Max Characters per Label",
+                            min=2,
+                            max=20,
+                            value=6
+                        ),
+
+
                         ui.div(id="main-hm1_check"),
                         ui.div(id="main-hm2_check"),
                         ui.div(id="main-min_num"),

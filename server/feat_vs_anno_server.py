@@ -5,6 +5,8 @@ import pandas as pd
 import spac.visualization
 
 
+
+
 def feat_vs_anno_server(input, output, session, shared):
     def on_layer_check():
         return input.hm1_layer() if input.hm1_layer() != "Original" else None
@@ -34,38 +36,75 @@ def feat_vs_anno_server(input, output, session, shared):
             layers=shared['layers_data'].get(), 
             dtype=shared['X_data'].get().dtype
         )
+
         if adata is not None:
             vmin = input.min_select()
-            vmax = input.max_select()  
-            cmap = input.hm1_cmap()  # Get the selected color map from the dropdown 
-            kwargs = {"vmin": vmin,"vmax": vmax,} 
+            vmax = input.max_select()
+            cmap = input.hm1_cmap()
+            fontsize = input.axis_label_fontsize()
 
+            kwargs = {"vmin": vmin, "vmax": vmax}
             cluster_annotations, cluster_features = on_dendro_check()
-            df, fig, ax = spac.visualization.hierarchical_heatmap(
-                adata, 
-                annotation=input.hm1_anno(), 
-                layer=on_layer_check(), 
-                z_score=None, 
-                cluster_annotations=cluster_annotations,
-                cluster_feature=cluster_features, 
-                **kwargs
-            )
 
-            # Only update if a non-default color map is selected
-            if cmap != "viridis":  
+            try:
+                df, fig, ax = spac.visualization.hierarchical_heatmap(
+                    adata,
+                    annotation=input.hm1_anno(),
+                    layer=on_layer_check(),
+                    z_score=None,
+                    cluster_annotations=cluster_annotations,
+                    cluster_feature=cluster_features,
+                    **kwargs
+                )
+            except Exception as e:
+                ("Heatmap generation failed:", e)
+                return None
+
+            if fig is None or not hasattr(fig, "ax_heatmap"):
+                print("Invalid figure structure.")
+                return None
+
+            if cmap != "viridis":
                 fig.ax_heatmap.collections[0].set_cmap(cmap)
 
             shared['df_heatmap'].set(df)
-            
-            # Rotate x-axis labels
+
+            # 🔄 Rotate and style axis labels
             fig.ax_heatmap.set_xticklabels(
                 fig.ax_heatmap.get_xticklabels(),
-                rotation=input.hm_x_label_rotation(),  # degrees
+                rotation=input.hm_x_label_rotation(),
                 horizontalalignment='right'
             )
-            # fig is a seaborn.matrix.ClusterGrid
-            fig.fig.subplots_adjust(bottom=0.4)
-            fig.fig.subplots_adjust(left=0.1)
+            fig.ax_heatmap.set_yticklabels(
+                fig.ax_heatmap.get_yticklabels(),
+                rotation=input.hm_y_label_rotation(),
+                verticalalignment='center'
+            )
+
+            # Abbreviate tick labels
+            def abbreviate_labels(labels, limit):
+                return [label.get_text()[:limit] if label.get_text() else "" for label in labels]
+            if input.enable_abbreviation():
+                limit = input.label_char_limit()
+
+                abbreviated_xticks = abbreviate_labels(fig.ax_heatmap.get_xticklabels(), limit)
+                fig.ax_heatmap.set_xticklabels(abbreviated_xticks, rotation=input.hm_x_label_rotation())
+
+                abbreviated_yticks = abbreviate_labels(fig.ax_heatmap.get_yticklabels(), limit)
+                fig.ax_heatmap.set_yticklabels(abbreviated_yticks, rotation=input.hm_y_label_rotation())
+
+            # Apply font styling after label rotation
+            for label in fig.ax_heatmap.get_xticklabels():
+                label.set_fontsize(fontsize)
+                label.set_fontfamily("DejaVu Sans")  
+                
+            for label in fig.ax_heatmap.get_yticklabels():
+                label.set_fontsize(fontsize)
+                label.set_fontfamily("DejaVu Sans")  
+
+            # Layout adjustments
+            fig.fig.subplots_adjust(bottom=0.4, left=0.1)
+
             return fig
 
         return None
