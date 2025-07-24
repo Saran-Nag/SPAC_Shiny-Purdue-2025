@@ -1,58 +1,70 @@
-# SPAC Shiny: Windows Installation Guide
+# SPAC_Shiny
 
-The SPAC Shiny App is a web-based dashboard that allows researchers to analyze single-cell data. This dahboard contains a user friendly interface with a customizable graphs, along with a modular pipeline for examining images. Use this installation guide for WSL environments to setup the SPAC Shiny dashboard.
+SPAC_Shiny is the The Shiny Interactive Realtime Dashboard for SPAC, designed to empower researchers with intuitive, dynamic, and customizable visualization tools for spatial single-cell datasets derived from cancerous tumors. Built using the Shiny platform, SPAC_SHINY streamlines the exploration and analysis of complex biological data through a user-friendly dashboard interface.
 
-This setup guide is for the `modularize` branch.
+## Project Overview and Contributions
 
+This project involved a collaborative effort between the Frederick National Laboratory for Cancer Research (FNL), Purdue University, and The Data Mine project. Our team worked closely with FNL throughout the project, coordinating efforts to significantly enhance the functionality and performance of the SPAC library.
 
-## Windows Installation using Ubuntu
+## User Experience
 
-### Prerequisites
-Git for Windows, Miniconda, Vscode, and Ubuntu are all used to setup and launch this app.
+A look at the redesigned SPAC_SHINY dashboard, highlighting new features and enhanced interactivity:
+![SPAC_SHINY New UI](https://github.com/user-attachments/assets/e5b42da3-0af6-4439-bd27-4a0bba71d04d)
 
-- [Git for Windows](https://git-scm.com/download/win)
-- [Miniconda (Python 3.11+)](https://docs.conda.io/en/latest/miniconda.html)  
-- [Ubuntu](https://ubuntu.com/download)
-- [Visual Studio Code](https://code.visualstudio.com/) (optional)
+## Key Features & Enhancements
 
-### Steps
+### Front-End Interface Expansion
+We dramatically expanded the functionality of the front-end interface, adding nearly **50 new UI features**. These enhancements include:
+*   **Customization of parameter options:** Allowing users to fine-tune visualization settings.
+*   **UI elements for adjusting styling:** Providing control over the aesthetic elements of generated plots.
+*   **Novel features for flexible subsetting and data wrangling:** Enabling more dynamic data exploration and display within the UI.
 
-1. **Access Ubuntu**
+### Optimization of SPAC Visualizations
+A major focus was on characterizing and optimizing the run times of SPAC visualizations. By refactoring existing functions to utilize optimal computational methods, we achieved substantial performance gains:
+*   **Characterizing Visualization Run Times:** Thorough analysis was conducted to pinpoint performance bottlenecks.
+*   **Refactoring for Efficiency:** Existing visualization functions were re-engineered for improved speed.
 
-    In the terminal, open Ubuntu usin this command.
-    ```bash
-    wsl --install
-2. **Clone the repository**
-   
-   After installing Git for Windows, clone the modularize branch to ensure the latest version of the app is available.
-   ```bash
-   git clone --branch modularize https://github.com/FNLCR-DMAP/SPAC_Shiny.git
-   cd SPAC_Shiny
-3. **Create and activate environment**
+**Optimization Results:**
+We observed significant improvements in the performance of key visualization functions:
 
-    Using miniconda, create a virutal environment called spac_env_3119 using python version 3.11.9. Use the next command to activate the environment.
-    ```bash
-    conda create -n spac_env_3119 python=3.11.9
-    conda activate spac_env_3119
-4. **Install dependencies**
+| Visualization         | Dataset Size           | Original Implementation | New Implementation | Efficiency Increase |
+| :-------------------- | :--------------------- | :---------------------- | :----------------- | :------------------ |
+| Boxplot               | 10 Million cells with annotations | 20.91 seconds           | 2.28 seconds       | **917%**            |
+| Histogram             | 10 Million cells with annotations | 1.21 seconds            | 0.17 seconds       | **712%**            |
 
-    Use the upgrade command to ensure you are using the latest version of pip. Then install scikit learn and llvmlite with the command. This forces pip to use precompiled binary wheels instead of building from source — which avoids messy compiler errors, especially on Windows or WSL setups.
-    
-    ```bash
-    pip install --upgrade pip wheel
-    pip install scikit-learn==1.3.2 --only-binary :all:
-    pip install llvmlite==0.41.1 --only-binary :all:
-    pip install shiny scanpy
-    pip install --no-deps -r requirements.txt
-5. **Launch the app**
+These optimizations resulted in a nearly **10x speedup** for existing boxplot and histogram visualization functions.
 
-    Launch the app using python app.py. 
-    ```bash
-    python app.py
-    ```
+### Implementation of Clustering Algorithms
+To enhance the analytical capabilities of SPAC, we integrated new clustering algorithms into the Python package:
+*   **K-Nearest Neighbors**
+*   **K-Means**
 
-    Visit http://127.0.0.1:8000 in order to fully access the local web server. If the local server is not working,  try  
-    ```bash
-    shiny run --reload app.py
-    ```
-    This starts the Shiny server using the CLI tool. 
+## Acknowledgements and Credits
+
+This project was a success thanks to the invaluable collaboration and support from several key institutions and individuals:
+
+*   **Frederick National Laboratory for Cancer Research (FNL):** For their guidance, expertise, and close coordination throughout the project. Special thanks to our FNL mentor, George Zaki.
+*   **Purdue University:** For facilitating this research and development effort.
+*   **The Data Mine Project at Purdue University:** For providing the framework and resources for this collaborative student-led initiative.
+*   **Purdue Institute for Cancer Research:** For facilitating collaboration between Purdue University and the Frederick National Laboratory for Cancer Research
+*   **Project Team Members:**
+    *   Aileen Chow
+    *   Ahmad Abdallah
+    *   Arshnoor Randhawa
+    *   Ella Delvecchio
+    *   Jiazhen Li
+    *   Liza Shchehlik
+    *   Megan Lawson
+    *   Mustapha Braimoh
+    *   Ruhi Sharmin
+    *   Sam Ying
+    *   Shamita Yediapalli
+    *   Anthony Cusimano
+    *   Suriya Selvarajan
+    *   Qianyue Wang
+    *   Andree Kolliegbo
+*   **Teaching Assistants (TAs) from Purdue's Data Mine:**
+    *   Alex Liu
+    *   Omar Eldaghar
+    *   Thomas Sheeley
+*   **Additional Support:** Kang Liu and Rui He, and the entire Data Mine staff.

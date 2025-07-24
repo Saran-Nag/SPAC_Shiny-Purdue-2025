@@ -137,7 +137,8 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.effect
     def update_select_label_nn():
-        adata = ad.AnnData(obs=shared['obs_data'].get())
+        with reactive.isolate():
+            adata = ad.AnnData(obs=shared['obs_data'].get())
         if input.nn_anno():
             selected_anno = input.nn_anno()
             labels = adata.obs[selected_anno].unique().tolist()
