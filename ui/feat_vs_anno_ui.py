@@ -54,11 +54,6 @@ def feat_vs_anno_ui():
                             value=10
                         ),
                         
-                        ui.input_checkbox(
-                            "dendogram", 
-                            "Include Dendrogram", 
-                            False
-                        ),
                         
                         ui.input_checkbox(
                             "enable_abbreviation",
@@ -66,24 +61,27 @@ def feat_vs_anno_ui():
                             value=False
                         ),
                         
-                        ui.input_slider(
-                            "label_char_limit",
-                            "Max Characters per Label",
-                            min=2,
-                            max=20,
-                            value=6
+                        ui.div(id="main-hm1_check"), 
+
+                        ui.input_checkbox(
+                            "dendogram", 
+                            "Include Dendrogram", 
+                            False
                         ),
-
-
-                        ui.div(id="main-hm1_check"),
+                         
                         ui.div(id="main-hm2_check"),
                         ui.div(id="main-min_num"),
                         ui.div(id="main-max_num"),
+                        # Grouped buttons with spacing
+                        
                         ui.input_action_button(
-                            "go_hm1", 
-                            "Render Plot", 
+                            "go_hm1",
+                            "Render Plot",
                             class_="btn-success"
                         ),
+                            
+
+                        
                         ui.div(
                             {"style": "padding-top: 20px;"},
                             ui.output_ui("download_button_ui")
