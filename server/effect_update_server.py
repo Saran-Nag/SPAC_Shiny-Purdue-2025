@@ -137,16 +137,12 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.effect
     def update_select_label_nn():
-        adata = ad.AnnData(obs=shared['obs_data'].get())
+        with reactive.isolate():
+            adata = ad.AnnData(obs=shared['obs_data'].get())
         if input.nn_anno():
             selected_anno = input.nn_anno()
-            # Check if the column exists
-            if selected_anno in adata.obs.columns: 
-                labels = adata.obs[selected_anno].unique().tolist()
-                ui.update_select("nn_anno_label", choices=labels)
-            else:
-                print(f"Warning: Annotation '{selected_anno}' not found in the dataset.")
-                ui.update_select("nn_anno_label", choices=[])
+            labels = adata.obs[selected_anno].unique().tolist()
+            ui.update_select("nn_anno_label", choices=labels)
 
     @reactive.effect
     def update_select_df_nn():
