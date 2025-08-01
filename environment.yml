@@ -5,7 +5,7 @@ channels:
   - leej3
   - https://fnlcr-dmap.github.io/scimap/
 dependencies:
-  - python=3.10
+  - python=3.9.13
   - numpy=1.26.4
   - pandas=1.5.3
   - anndata=0.10.9
