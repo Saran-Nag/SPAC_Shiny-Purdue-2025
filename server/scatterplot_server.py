@@ -2,7 +2,8 @@ from shiny import ui, render, reactive
 import anndata as ad
 import pandas as pd
 import spac.visualization
-
+from utils.datashader_utils import scatter_heatmap
+import matplotlib.pyplot as plt
 
 def scatterplot_server(input, output, session, shared):
     @reactive.Calc
@@ -120,10 +121,21 @@ def scatterplot_server(input, output, session, shared):
         x = get_scatterplot_coordinates_x()
         y = get_scatterplot_coordinates_y()
         color_enabled = input.scatter_color_check()
+        heatmap_mode = input.scatter_heatmap_mode()
         x_label = input.scatter_x()
         y_label = input.scatter_y()
         title = f"Scatterplot: {x_label} vs {y_label}"
 
+        if heatmap_mode:
+            color = get_color_values() if color_enabled else None
+            img = scatter_heatmap(x, y, color)
+            fig, ax = plt.subplots(figsize=(8, 6))
+            ax.imshow(img, aspect='auto')
+            ax.set_title(title, fontsize=14)
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
+            ax.axis('on')  # Show axes
+            return fig
         if color_enabled:
             fig, ax = spac.visualization.visualize_2D_scatter(
                 x, y, labels=get_color_values()
