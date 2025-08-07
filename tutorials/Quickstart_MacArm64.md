@@ -83,4 +83,4 @@
 
     ```sh
     shiny run app.py
-    ```git rm -r --cached __pycache__/
+    ```
