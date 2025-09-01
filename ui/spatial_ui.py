@@ -40,6 +40,14 @@ def spatial_ui():
                             max=30,
                             value=12
                         ),
+                        # Added...
+                        ui.input_slider(
+                            "spatial_font_size",
+                            "Font Size",
+                            min=5,
+                            max=30,
+                            value=12
+                        ),
                         ui.input_checkbox(
                             "slide_select_check",
                             "Stratify by Slide",
@@ -72,4 +80,3 @@ def spatial_ui():
             )
         )
     )
-

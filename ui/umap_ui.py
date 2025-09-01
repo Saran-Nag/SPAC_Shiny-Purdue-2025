@@ -32,6 +32,7 @@ def umap_ui():
                             value=3,
                             step=0.1
                         ),
+                        # Added...
                         ui.input_slider(
                             "umap_font_size_1",
                             "Font Size",
@@ -73,6 +74,7 @@ def umap_ui():
                             value=3,
                             step=0.1
                         ),
+                        # Added missing font size slider for the second plot
                         ui.input_slider(
                             "umap_font_size_2",
                             "Font Size",
@@ -95,4 +97,3 @@ def umap_ui():
             )
         )
     )
-
