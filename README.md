@@ -63,6 +63,9 @@ This project was a success thanks to the invaluable collaboration and support fr
     *   Suriya Selvarajan
     *   Qianyue Wang
     *   Andree Kolliegbo
+    *   Sungmin Lee
+    *   Saran Nagubandi
+    *   Noah Lee
     *   Boqiang Zhang
 *   **Teaching Assistants (TAs) from Purdue's Data Mine:**
     *   Alex Liu
