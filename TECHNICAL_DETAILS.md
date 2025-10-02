@@ -74,6 +74,7 @@ These tools are integral to the "scverse" ecosystem, ensuring compatibility with
     *   Andree Kolliegbo
     *   Boqiang Zhang
     *   Sungmin Lee
+    *   Saran Nagubandi
 
 *   **Teaching Assistants from Purdue's Data Mine:**
     *   Alex Liu
