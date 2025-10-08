@@ -32,16 +32,7 @@ from server import (
 )
 
 # Util imports
-from utils.data_processing import load_data
-
-
-def read_html_file(filepath):
-    """Read HTML file content"""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            return file.read()
-    except FileNotFoundError:
-        return ""
+from utils.data_processing import load_data, read_html_file
 
 
 # Read header and footer HTML content

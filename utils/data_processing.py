@@ -6,6 +6,15 @@ This module contains functions for loading and processing data for the SPAC Shin
 import anndata as ad
 import pandas as pd
 
+
+def read_html_file(filepath):
+    """Read HTML file content"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        return ""
+
 def load_data(file_path):
     """
     Load data from a specified file path. Supports .h5ad and .pickle formats.
