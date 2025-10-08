@@ -12,7 +12,6 @@ from ui import (
     spatial_ui,
     umap_ui,
     scatterplot_ui,
-    nearest_neighbor_ui,
     ripleyL_ui
 )   
 
@@ -28,7 +27,6 @@ from server import (
     spatial_server,
     umap_server,
     scatterplot_server,
-    nearest_neighbor_server,
     ripleyL_server
 )
 
@@ -50,7 +48,6 @@ app_ui = ui.page_fluid(
         spatial_ui(),
         umap_ui(),
         scatterplot_ui(),
-        nearest_neighbor_ui(),
         ripleyL_ui(),
     )
 )
@@ -65,10 +62,10 @@ def server(input, output, session):
 
     data_keys = [
         "X_data", 
-        "obs_data", #AKA Annotations
+        "obs_data",  # AKA Annotations
         "obsm_data",
         "layers_data",
-        "var_data", #AKA Features
+        "var_data",  # AKA Features
         "uns_data",
         "shape_data",
         "obs_names",
@@ -81,14 +78,13 @@ def server(input, output, session):
         "df_boxplot",
         "df_histogram2",
         "df_histogram1",
-        "df_ripley",
-        "df_nn"
+        "df_ripley"
     ]
 
     shared = {
         "preloaded_data": preloaded_data,  # Preloaded data for initial load
-        "data_loaded": data_loaded, # Reactive to track if data is loaded
-        "adata_main": adata_main, # Main anndata object
+        "data_loaded": data_loaded,  # Reactive to track if data is loaded
+        "adata_main": adata_main,  # Main anndata object
     }
 
     # Dynamically create the reactive values for parts of the anndata object
@@ -116,8 +112,6 @@ def server(input, output, session):
     umap_server(input, output, session, shared)
 
     scatterplot_server(input, output, session, shared)
-
-    nearest_neighbor_server(input, output, session, shared)
 
     ripleyL_server(input, output, session, shared)
 
