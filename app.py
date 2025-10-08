@@ -1,4 +1,5 @@
 from shiny import App, ui, reactive
+import os
 
 
 # Screen imports
@@ -34,10 +35,28 @@ from server import (
 from utils.data_processing import load_data
 
 
+def read_html_file(filepath):
+    """Read HTML file content"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        return ""
+
+
+# Read header and footer HTML content
+header_html = read_html_file("header.html")
+footer_html = read_html_file("footer.html")
+
 file_path = "dev_example.pickle"  # Path to your preloaded .pickle file
 preloaded_data = load_data(file_path)  # Initialize as None
 
+
 app_ui = ui.page_fluid(
+    # Include header HTML
+    ui.HTML(header_html),
+    
+    # Main application content
     ui.navset_card_tab(
         data_input_ui(),
         annotations_ui(),
@@ -49,8 +68,12 @@ app_ui = ui.page_fluid(
         umap_ui(),
         scatterplot_ui(),
         ripleyL_ui(),
-    )
+    ),
+    
+    # Include footer HTML
+    ui.HTML(footer_html)
 )
+
 
 def server(input, output, session):
 
@@ -116,4 +139,6 @@ def server(input, output, session):
     ripleyL_server(input, output, session, shared)
 
 
-app = App(app_ui, server)
+# Create the app with static file serving for www directory
+static_path = os.path.join(os.path.dirname(__file__), "www")
+app = App(app_ui, server, static_assets=static_path)
