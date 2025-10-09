@@ -187,3 +187,80 @@ def data_input_server(input, output, session, shared):
         else:
             return "Empty"
         return
+
+    # Formatted UI outputs for better display
+    @reactive.Calc
+    @render.ui
+    def formatted_obs_names():
+        from shiny import ui
+        obs = shared['obs_names'].get()
+        if not obs:
+            return ui.div("No annotations available", class_="text-muted")
+        if obs is not None and len(obs) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in obs
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_obsm_names():
+        from shiny import ui
+        obsm = shared['obsm_names'].get()
+        if not obsm:
+            return ui.div("No associated tables available", class_="text-muted")
+        if obsm is not None and len(obsm) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in obsm
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_layers_names():
+        from shiny import ui
+        layers = shared['layers_names'].get()
+        if not layers:
+            return ui.div("No tables available", class_="text-muted")
+        if layers is not None and len(layers) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in layers
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_uns_names():
+        from shiny import ui
+        uns = shared['uns_names'].get()
+        if not uns:
+            return ui.div("No unstructured data available", class_="text-muted")
+        if uns is not None and len(uns) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in uns
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")

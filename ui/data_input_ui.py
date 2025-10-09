@@ -70,7 +70,7 @@ def data_input_ui():
             }
             .stats-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
                 gap: 1rem;
                 margin: 1.5rem 0;
             }
@@ -85,6 +85,40 @@ def data_input_ui():
                 border: 1px solid #e9ecef;
                 border-radius: 0.75rem;
                 margin-top: 1.5rem;
+            }
+            .metric-list {
+                background: #f8f9fa;
+                border-radius: 0.375rem;
+                padding: 0.75rem;
+                font-family: 'Segoe UI', 'Arial', sans-serif;
+                font-size: 0.8rem;
+                line-height: 1.3;
+                color: #495057;
+                max-height: 120px;
+                overflow-y: auto;
+            }
+            .metric-item {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 0.25rem;
+                word-break: break-word;
+                hyphens: auto;
+            }
+            .metric-bullet {
+                color: #6c757d;
+                margin-right: 0.5rem;
+                flex-shrink: 0;
+                line-height: 1.3;
+            }
+            .metric-text {
+                flex: 1;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+            }
+            .metric-title {
+                font-size: 0.9rem !important;
+                font-weight: 600 !important;
+                margin-bottom: 0.5rem !important;
             }
         """)),
         ui.div(
@@ -128,8 +162,13 @@ def data_input_ui():
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("📊", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Cells & Features", {"class": "mb-0 fw-semibold text-primary"})
+                                ),
+                                ui.div({"class": "metric-output text-center"},
                                     ui.output_text("print_rows")
                                 )
                             )
@@ -137,8 +176,13 @@ def data_input_ui():
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("🧬", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Data Matrix", {"class": "mb-0 fw-semibold text-primary"})
+                                ),
+                                ui.div({"class": "metric-output text-center"},
                                     ui.output_text("print_columns")
                                 )
                             )
@@ -146,36 +190,56 @@ def data_input_ui():
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
-                                    ui.output_text("print_obs_names")
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("🏷️", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Annotations", {"class": "mb-0 fw-semibold text-success"})
+                                ),
+                                ui.div({"class": "metric-list"},
+                                    ui.output_ui("formatted_obs_names")
                                 )
                             )
                         ),
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
-                                    ui.output_text("print_obsm_names")
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("📋", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Associated Tables", {"class": "mb-0 fw-semibold text-info"})
+                                ),
+                                ui.div({"class": "metric-list"},
+                                    ui.output_ui("formatted_obsm_names")
                                 )
                             )
                         ),
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
-                                    ui.output_text("print_layers_names")
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("📊", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Tables", {"class": "mb-0 fw-semibold text-warning"})
+                                ),
+                                ui.div({"class": "metric-list"},
+                                    ui.output_ui("formatted_layers_names")
                                 )
                             )
                         ),
                         ui.div(
                             {"class": "card metric-card"},
                             ui.div(
-                                {"class": "card-body text-center"},
-                                ui.div({"class": "metric-output"},
-                                    ui.output_text("print_uns_names")
+                                {"class": "card-body"},
+                                ui.div(
+                                    {"class": "d-flex align-items-center mb-2"},
+                                    ui.span("🗃️", {"class": "me-2", "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Unstructured Data", {"class": "mb-0 fw-semibold text-secondary"})
+                                ),
+                                ui.div({"class": "metric-list"},
+                                    ui.output_ui("formatted_uns_names")
                                 )
                             )
                         )
