@@ -242,6 +242,69 @@ def getting_started_ui():
                 )
             ),
             
+            # SPAC Terminology Section
+            ui.div(
+                {"class": "row mb-5"},
+                ui.div(
+                    {"class": "col-12"},
+                    ui.h2("📚 SPAC Terminology", {"class": "text-center mb-4"}),
+                    ui.div(
+                        {"class": "card shadow-sm"},
+                        ui.div(
+                            {"class": "card-body"},
+                            ui.p("SPAC uses general terminology to simplify technical terms from the AnnData object for less technical users. Here is a quick guide:", 
+                                 {"class": "lead mb-4"}),
+                            ui.div(
+                                {"class": "row"},
+                                ui.div(
+                                    {"class": "col-md-6"},
+                                    ui.tags.ul(
+                                        ui.tags.li([
+                                            ui.tags.strong("Cells: "), 
+                                            "Rows in the X matrix of AnnData."
+                                        ], {"class": "mb-2"}),
+                                        ui.tags.li([
+                                            ui.tags.strong("Features: "), 
+                                            "Columns in the X matrix of AnnData, representing gene expression or antibody intensity."
+                                        ], {"class": "mb-2"}),
+                                        ui.tags.li([
+                                            ui.tags.strong("Tables: "), 
+                                            "Originally called layers in AnnData, these represent transformed features."
+                                        ], {"class": "mb-2"}),
+                                        {"class": "list-unstyled"}
+                                    )
+                                ),
+                                ui.div(
+                                    {"class": "col-md-6"},
+                                    ui.tags.ul(
+                                        ui.tags.li([
+                                            ui.tags.strong("Associated Tables: "), 
+                                            "Corresponds to .obsm in AnnData and can store spatial coordinates, UMAP embeddings, etc."
+                                        ], {"class": "mb-2"}),
+                                        ui.tags.li([
+                                            ui.tags.strong("Annotations: "), 
+                                            "Corresponds to .obs in AnnData and can store cell phenotypes, experiment names, slide IDs, etc."
+                                        ], {"class": "mb-2"}),
+                                        {"class": "list-unstyled"}
+                                    )
+                                )
+                            ),
+                            ui.div(
+                                {"class": "text-center mt-3 pt-3 border-top"},
+                                ui.p([
+                                    "For more in-depth explanations, visit our ",
+                                    ui.a("GitHub page", 
+                                         href="https://github.com/FNLCR-DMAP/spac_datamine/blob/main/CONTRIBUTING.md", 
+                                         target="_blank",
+                                         class_="text-decoration-none"),
+                                    "."
+                                ], {"class": "mb-0"})
+                            )
+                        )
+                    )
+                )
+            ),
+            
             # Tips Section
             ui.div(
                 {"class": "row"},
