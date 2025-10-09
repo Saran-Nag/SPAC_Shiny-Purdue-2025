@@ -98,8 +98,8 @@ def effect_update_server(input, output, session, shared):
     def annotation_labels_display():
         """
         1) Retrieve ALL annotations (via get_annotation_label_counts).
-        2) Within each annotation, keep only the top 5 labels (sorted by count).
-        3) Display them in separate cards, each card listing the top 5 labels.
+        2) Within each annotation, keep only the top 10 labels (sorted by count).
+        3) Display them in a responsive grid of small tables for better space.
         """
         adata = shared['adata_main'].get()  # your reactive AnnData
         annotation_counts = get_annotation_label_counts(adata)
@@ -108,32 +108,129 @@ def effect_update_server(input, output, session, shared):
         if not annotation_counts:
             return ui.tags.div("No annotations or data found.")
 
-        # Build a list of annotation cards
+        # Build a responsive grid of annotation tables
         container = []
         for annotation_name, label_counts_dict in annotation_counts.items():
-            # Sort labels by count (descending) and take top 5
+            # Sort labels by count (descending) and take top 10
             sorted_label_counts = sorted(
                 label_counts_dict.items(),
                 key=lambda x: x[1],
                 reverse=True
             )[:10]
 
-            # Build bullet points of "Label (count cells)"
-            list_items = [
-                ui.tags.li(f"{label} ({count} cells)")
-                for label, count in sorted_label_counts
-            ]
+            # Build table rows
+            table_rows = []
+            for label, count in sorted_label_counts:
+                table_rows.append(
+                    ui.tags.tr(
+                        ui.tags.td(label, {"class": "label-name"}),
+                        ui.tags.td(f"{count:,}", {"class": "text-end fw-bold"})
+                    )
+                )
 
-            # Wrap it in a card for this annotation
-            annotation_card = ui.card(
-                ui.h5(annotation_name),
-                ui.tags.ul(*list_items),
-                style="margin-bottom: 15px;"
+            # Create a compact table for this annotation
+            annotation_table = ui.div(
+                {"class": "col-lg-4 col-md-6 col-sm-12 mb-3"},
+                ui.div(
+                    {"class": "annotation-table-card h-100"},
+                    ui.div(
+                        {"class": "table-header"},
+                        ui.h6(
+                            annotation_name,
+                            {"class": "mb-0 text-primary fw-bold"}
+                        )
+                    ),
+                    ui.div(
+                        {"class": "table-responsive"},
+                        ui.tags.table(
+                            {"class": "table table-sm table-hover mb-0"},
+                            ui.tags.thead(
+                                ui.tags.tr(
+                                    ui.tags.th(
+                                        "Label",
+                                        {"class": "label-header"}
+                                    ),
+                                    ui.tags.th(
+                                        "Cells",
+                                        {"class": "text-end count-header"}
+                                    )
+                                )
+                            ),
+                            ui.tags.tbody(*table_rows)
+                        )
+                    )
+                )
             )
-            container.append(annotation_card)
+            container.append(annotation_table)
 
-        # Return them as one TagList so each annotation is its own card
-        return ui.TagList(*container)
+        # Return the tables in a responsive row
+        return ui.div(
+            {"class": "row annotation-tables"},
+            *container,
+            ui.tags.style("""
+                .annotation-table-card {
+                    border: 1px solid #e9ecef;
+                    border-radius: 0.5rem;
+                    padding: 0;
+                    background: white;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                    transition: box-shadow 0.2s ease;
+                }
+                
+                .annotation-table-card:hover {
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+                }
+                
+                .table-header {
+                    padding: 0.75rem 1rem;
+                    background: linear-gradient(135deg, #f8f9fa 0%,
+                                                 #e9ecef 100%);
+                    border-bottom: 1px solid #dee2e6;
+                    border-radius: 0.5rem 0.5rem 0 0;
+                }
+                
+                .annotation-tables .table {
+                    font-size: 0.85rem;
+                    margin-bottom: 0;
+                }
+                
+                .annotation-tables .table th {
+                    background-color: #f8f9fa;
+                    border-bottom: 2px solid #dee2e6;
+                    font-weight: 600;
+                    font-size: 0.8rem;
+                    padding: 0.5rem 0.75rem;
+                }
+                
+                .annotation-tables .table td {
+                    padding: 0.4rem 0.75rem;
+                    vertical-align: middle;
+                }
+                
+                .label-name {
+                    font-weight: 500;
+                    color: #495057;
+                }
+                
+                .annotation-tables .table tbody tr:hover {
+                    background-color: #f1f3f4;
+                }
+                
+                .label-header {
+                    color: #6c757d;
+                }
+                
+                .count-header {
+                    color: #6c757d;
+                }
+                
+                @media (max-width: 768px) {
+                    .annotation-tables .col-lg-4 {
+                        margin-bottom: 1rem;
+                    }
+                }
+            """)
+        )
 
     @reactive.effect
     def update_select_label_nn():
@@ -148,8 +245,6 @@ def effect_update_server(input, output, session, shared):
     def update_select_df_nn():
         df_names = shared['obsm_names'].get()
         ui.update_select("nn_spatial", choices=df_names)
-            
-    region_ui_initialized = reactive.Value(False)
 
     @reactive.Calc
     @render.text
