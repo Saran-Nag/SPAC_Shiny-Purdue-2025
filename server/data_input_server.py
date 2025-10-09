@@ -25,8 +25,8 @@ def data_input_server(input, output, session, shared):
                 else:
                     shared['adata_main'].set(ad.read(file_path))
             # Set to True if a file is successfully uploaded
-            shared['data_loaded'].set(True)  
-    
+            shared['data_loaded'].set(True)
+
     @reactive.Effect
     def update_parts():
         print("Updating Parts")
@@ -169,9 +169,9 @@ def data_input_server(input, output, session, shared):
     def print_rows():
         shape = shared['shape_data'].get()
         if not shape:
-            return "Number of Cells: None"
+            return "None"
         if shape is not None:
-            return "Number of Cells: " + str(shape[0])
+            return str(shape[0])
         else:
             return "Empty"
         return
@@ -181,9 +181,9 @@ def data_input_server(input, output, session, shared):
     def print_columns():
         shape = shared['shape_data'].get()
         if not shape:
-            return "Number of Features: None"
+            return "None"
         if shape is not None:
-            return "Number of Features: " + str(shape[1])
+            return  str(shape[1])
         else:
             return "Empty"
         return

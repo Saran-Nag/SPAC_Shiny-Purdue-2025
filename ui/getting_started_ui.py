@@ -3,7 +3,7 @@ from utils.data_processing import read_markdown_file
 
 def getting_started_ui():
     """UI for the Getting Started tab - landing page with tutorial content"""
-    
+
     return ui.nav_panel(
         "Getting Started",
         ui.tags.style("""
@@ -67,18 +67,18 @@ def getting_started_ui():
                 color: #6c757d !important;
             }
         """),
-        
+
         ui.div(
             {"class": "container-fluid p-4"},
-            
+
             # Hero Section
             ui.div(
                 {"class": "hero-section text-center"},
                 ui.div(
                     {"class": "container"},
                     ui.h1("Welcome to SPAC", {"class": "gentle-title mb-3"}),
-                    ui.h2("Spatial Analysis of Cellular Data", {"class": "gentle-subtitle mb-4"}),
-                    ui.p("An interactive dashboard for spatial single-cell analysis with 10x performance improvements", 
+                    ui.h2("Analyis of Spatial Single Cell Datasets", {"class": "gentle-subtitle mb-4"}),
+                    ui.p("An interactive dashboard for spatial single-cell analysis with 10x performance improvements",
                          {"class": "lead mb-4"}),
                     ui.div(
                         {"class": "row justify-content-center"},
@@ -103,34 +103,34 @@ def getting_started_ui():
                             ui.div(
                                 {"class": "stats-card-alt"},
                                 ui.h3("8+", {"class": "fw-bold mb-0"}),
-                                ui.p("Analysis Tools", {"class": "mb-0 small"})
+                                ui.p("Analysis and Visualization Tools", {"class": "mb-0 small"})
                             )
                         )
                     )
                 )
             ),
-            
+
             # Quick Start Section
             ui.div(
                 {"class": "row mb-5"},
                 ui.div(
                     {"class": "col-12"},
-                    ui.h2("🚀 Quick Start Guide", {"class": "text-center mb-4"}),
+                    ui.h2("Quick Start Guide", {"class": "text-center mb-4"}),
                     ui.div(
                         {"class": "quick-start-grid"},
-                        
+
                         # Step 1
                         ui.div(
                             {"class": "workflow-step"},
                             ui.h5("📁 1. Load Your Data", {"class": "fw-bold text-primary mb-2"}),
                             ui.tags.ul(
                                 ui.tags.li("Navigate to the Data Input tab"),
-                                ui.tags.li("Upload .h5ad or .pickle files"),
+                                ui.tags.li("Upload .h5ad or .pickle anndata"),
                                 ui.tags.li("Sample data pre-loaded for demo"),
                                 class_="mb-0"
                             )
                         ),
-                        
+
                         # Step 2
                         ui.div(
                             {"class": "workflow-step"},
@@ -142,19 +142,19 @@ def getting_started_ui():
                                 class_="mb-0"
                             )
                         ),
-                        
+
                         # Step 3
                         ui.div(
                             {"class": "workflow-step"},
                             ui.h5("📊 3. Analyze Features", {"class": "fw-bold text-primary mb-2"}),
                             ui.tags.ul(
-                                ui.tags.li("Explore gene expression patterns"),
+                                ui.tags.li("Explore protein expression patterns"),
                                 ui.tags.li("Create statistical visualizations"),
                                 ui.tags.li("Compare features across conditions"),
                                 class_="mb-0"
                             )
                         ),
-                        
+
                         # Step 4
                         ui.div(
                             {"class": "workflow-step"},
@@ -169,7 +169,7 @@ def getting_started_ui():
                     )
                 )
             ),
-            
+
             # Features Section
             ui.div(
                 {"class": "row mb-5"},
@@ -178,7 +178,7 @@ def getting_started_ui():
                     ui.h2("✨ Key Features", {"class": "text-center mb-4"}),
                     ui.div(
                         {"class": "row"},
-                        
+
                         # Spatial Analysis
                         ui.div(
                             {"class": "col-lg-3 col-md-6 mb-4"},
@@ -193,7 +193,7 @@ def getting_started_ui():
                                 )
                             )
                         ),
-                        
+
                         # Performance
                         ui.div(
                             {"class": "col-lg-3 col-md-6 mb-4"},
@@ -208,7 +208,7 @@ def getting_started_ui():
                                 )
                             )
                         ),
-                        
+
                         # Visualizations
                         ui.div(
                             {"class": "col-lg-3 col-md-6 mb-4"},
@@ -223,7 +223,7 @@ def getting_started_ui():
                                 )
                             )
                         ),
-                        
+
                         # Data Formats
                         ui.div(
                             {"class": "col-lg-3 col-md-6 mb-4"},
@@ -241,7 +241,7 @@ def getting_started_ui():
                     )
                 )
             ),
-            
+
             # SPAC Terminology Section
             ui.div(
                 {"class": "row mb-5"},
@@ -252,24 +252,33 @@ def getting_started_ui():
                         {"class": "card shadow-sm"},
                         ui.div(
                             {"class": "card-body"},
-                            ui.p("SPAC uses general terminology to simplify technical terms from the AnnData object for less technical users. Here is a quick guide:", 
-                                 {"class": "lead mb-4"}),
+                            ui.p(
+                                "SPAC uses simple, everyday terms to make spatial "
+                                "single-cell analysis accessible without technical jargon."
+                                "Here's what each term means:",
+                                {"class": "lead mb-4"}
+                            ),
                             ui.div(
                                 {"class": "row"},
                                 ui.div(
                                     {"class": "col-md-6"},
                                     ui.tags.ul(
                                         ui.tags.li([
-                                            ui.tags.strong("Cells: "), 
-                                            "Rows in the X matrix of AnnData."
+                                            ui.tags.strong("Cells: "),
+                                            "Individual biological cells in your "
+                                            "sample - the basic units you're studying."
                                         ], {"class": "mb-2"}),
                                         ui.tags.li([
-                                            ui.tags.strong("Features: "), 
-                                            "Columns in the X matrix of AnnData, representing gene expression or antibody intensity."
+                                            ui.tags.strong("Features: "),
+                                            "The proteins, genes, or markers "
+                                            "measured in each cell - what makes "
+                                            "each cell unique."
                                         ], {"class": "mb-2"}),
                                         ui.tags.li([
-                                            ui.tags.strong("Tables: "), 
-                                            "Originally called layers in AnnData, these represent transformed features."
+                                            ui.tags.strong("Tables: "),
+                                            "Different ways of looking at your "
+                                            "feature data - like raw counts vs. "
+                                            "normalized values."
                                         ], {"class": "mb-2"}),
                                         {"class": "list-unstyled"}
                                     )
@@ -278,12 +287,16 @@ def getting_started_ui():
                                     {"class": "col-md-6"},
                                     ui.tags.ul(
                                         ui.tags.li([
-                                            ui.tags.strong("Associated Tables: "), 
-                                            "Corresponds to .obsm in AnnData and can store spatial coordinates, UMAP embeddings, etc."
+                                            ui.tags.strong("Associated Tables: "),
+                                            "Additional measurements like where "
+                                            "cells are located (spatial coordinates) "
+                                            "or how they cluster together (UMAP)."
                                         ], {"class": "mb-2"}),
                                         ui.tags.li([
-                                            ui.tags.strong("Annotations: "), 
-                                            "Corresponds to .obs in AnnData and can store cell phenotypes, experiment names, slide IDs, etc."
+                                            ui.tags.strong("Annotations: "),
+                                            "Labels and categories for your cells - "
+                                            "like cell types, treatment conditions, "
+                                            "or sample information."
                                         ], {"class": "mb-2"}),
                                         {"class": "list-unstyled"}
                                     )
@@ -292,9 +305,12 @@ def getting_started_ui():
                             ui.div(
                                 {"class": "text-center mt-3 pt-3 border-top"},
                                 ui.p([
-                                    "For more in-depth explanations, visit our ",
-                                    ui.a("GitHub page", 
-                                         href="https://github.com/FNLCR-DMAP/spac_datamine/blob/main/CONTRIBUTING.md", 
+                                    "For technical definitions and "
+                                    "implementation details, see our ",
+                                    ui.a("SPAC Terminology documentation",
+                                         href="https://github.com/FNLCR-DMAP/"
+                                              "SCSAWorkflow/blob/main/"
+                                              "CONTRIBUTING.md#spac-terminology",
                                          target="_blank",
                                          class_="text-decoration-none"),
                                     "."
@@ -304,7 +320,7 @@ def getting_started_ui():
                     )
                 )
             ),
-            
+
             # Tips Section
             ui.div(
                 {"class": "row"},
@@ -349,12 +365,7 @@ def getting_started_ui():
                     )
                 )
             ),
-            
+
             # Footer
-            ui.div(
-                {"class": "text-center mt-5 pt-4 border-top"},
-                ui.p("Built with ❤️ by the Frederick National Laboratory for Cancer Research and Purdue University",
-                     {"class": "text-muted"})
-            )
         )
     )
