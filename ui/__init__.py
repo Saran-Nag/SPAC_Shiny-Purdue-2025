@@ -1,3 +1,4 @@
+from .getting_started_ui import *
 from .data_input_ui import *
 from .annotations_ui import *
 from .features_ui import *

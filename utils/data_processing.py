@@ -15,6 +15,129 @@ def read_html_file(filepath):
     except FileNotFoundError:
         return ""
 
+
+def read_markdown_file(filepath):
+    """Read Markdown file content and convert to HTML"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            content = file.read()
+            
+            def process_inline_formatting(text):
+                """Process bold, italic, and code formatting"""
+                # Handle bold text **text**
+                import re
+                text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+                # Handle italic text *text*
+                text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+                # Handle inline code `code`
+                text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
+                return text
+            
+            lines = content.split('\n')
+            html_lines = []
+            in_ordered_list = False
+            in_unordered_list = False
+            
+            for line in lines:
+                original_line = line
+                line = line.strip()
+                
+                # Handle headers
+                if line.startswith('#### '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[5:])
+                    html_lines.append(f'<h4>{header_text}</h4>')
+                elif line.startswith('### '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[4:])
+                    html_lines.append(f'<h3>{header_text}</h3>')
+                elif line.startswith('## '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[3:])
+                    html_lines.append(f'<h2>{header_text}</h2>')
+                elif line.startswith('# '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[2:])
+                    html_lines.append(f'<h1>{header_text}</h1>')
+                
+                # Handle numbered lists (1. 2. 3. etc.)
+                elif line and line[0].isdigit() and '. ' in line:
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    if not in_ordered_list:
+                        html_lines.append('<ol>')
+                        in_ordered_list = True
+                    list_text = line.split('. ', 1)[1]
+                    formatted_text = process_inline_formatting(list_text)
+                    html_lines.append(f'<li>{formatted_text}</li>')
+                
+                # Handle bullet lists (- or *)
+                elif line.startswith('- ') or line.startswith('* '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if not in_unordered_list:
+                        html_lines.append('<ul>')
+                        in_unordered_list = True
+                    list_text = line[2:]
+                    formatted_text = process_inline_formatting(list_text)
+                    html_lines.append(f'<li>{formatted_text}</li>')
+                
+                # Handle empty lines
+                elif not line:
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    html_lines.append('<br>')
+                
+                # Handle regular paragraphs
+                else:
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    formatted_text = process_inline_formatting(line)
+                    html_lines.append(f'<p>{formatted_text}</p>')
+            
+            # Close any remaining lists
+            if in_ordered_list:
+                html_lines.append('</ol>')
+            if in_unordered_list:
+                html_lines.append('</ul>')
+            
+            return '\n'.join(html_lines)
+            
+    except FileNotFoundError:
+        return "<div class='alert alert-warning'>Content not found.</div>"
+    except Exception as e:
+        return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
+
 def load_data(file_path):
     """
     Load data from a specified file path. Supports .h5ad and .pickle formats.

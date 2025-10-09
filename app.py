@@ -4,6 +4,7 @@ import os
 
 # Screen imports
 from ui import (
+    getting_started_ui,
     data_input_ui,
     annotations_ui,
     features_ui,
@@ -18,6 +19,7 @@ from ui import (
 
 # Server imports
 from server import (
+    getting_started_server,
     data_input_server,
     effect_update_server,
     annotations_server,
@@ -49,6 +51,7 @@ app_ui = ui.page_fluid(
     
     # Main application content
     ui.navset_card_tab(
+        getting_started_ui(),
         data_input_ui(),
         annotations_ui(),
         features_ui(),
@@ -107,6 +110,8 @@ def server(input, output, session):
         shared[key] = reactive.Value(None)
 
     # Individual server components
+    getting_started_server(input, output, session, shared)
+    
     data_input_server(input, output, session, shared)
 
     effect_update_server(input, output, session, shared)
