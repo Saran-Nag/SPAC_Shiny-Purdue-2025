@@ -1,7 +1,7 @@
 # SPAC Shiny Docker Commands
 # Usage: make <command>
 
-.PHONY: help build run stop clean logs shell restart
+.PHONY: help build run run-dev stop clean logs shell restart deploy status
 
 # Default target
 help:
@@ -18,12 +18,14 @@ help:
 	@echo "  logs      - Show container logs"
 	@echo "  shell     - Open a shell inside the container"
 	@echo "  clean     - Remove container and image"
-	@echo "  compose   - Use docker-compose (recommended)"
+	@echo "  deploy    - Deploy to Posit Connect (appshare-dev)"
+	@echo "  status    - Show container status"
 	@echo ""
 	@echo "Quick start:"
-	@echo "  make compose    # Start with docker-compose"
+	@echo "  make run        # Build and run the container"
 	@echo "  make logs       # View logs"
 	@echo "  make stop       # Stop when done"
+	@echo "  make deploy     # Deploy to Posit Connect"
 	@echo ""
 	@echo "App will be available at: http://localhost:8001"
 
@@ -44,18 +46,13 @@ run-dev: build
 	@echo "App will be available at: http://localhost:8001"
 	docker run -d --name spac-shiny-app -p 8001:8000 -v $(PWD):/app spac-shiny
 
-# Use docker-compose (recommended)
-compose:
-	@echo "Starting SPAC Shiny with docker-compose..."
-	@echo "App will be available at: http://localhost:8001"
-	docker-compose up -d
+
 
 # Stop the container
 stop:
 	@echo "Stopping SPAC Shiny container..."
 	-docker stop spac-shiny-app
 	-docker rm spac-shiny-app
-	-docker-compose down
 
 # Restart the container
 restart: stop run
@@ -64,7 +61,7 @@ restart: stop run
 logs:
 	@echo "Showing SPAC Shiny logs..."
 	@echo "Press Ctrl+C to exit log view"
-	-docker logs -f spac-shiny-app || docker-compose logs -f
+	docker logs -f spac-shiny-app
 
 # Open a shell inside the running container
 shell:
@@ -76,6 +73,18 @@ clean: stop
 	@echo "Cleaning up SPAC Shiny Docker resources..."
 	-docker rmi spac-shiny
 	-docker system prune -f
+
+# Deploy to Posit Connect
+deploy:
+	@echo "Deploying SPAC Shiny to Posit Connect..."
+	@echo "Getting current commit hash for version tracking..."
+	$(eval COMMIT_HASH := $(shell git rev-parse --short HEAD))
+	@echo "Deploying version: $(COMMIT_HASH)"
+	rsconnect deploy shiny -n appshare-dev -t "SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))" -v -a 4d6cc93f-3829-4935-8987-8c169549dbff .
+	@echo ""
+	@echo "Deployment completed! Access your app at:"
+	@echo "Dashboard: https://appshare-dev.cancer.gov/connect/#/apps/4d6cc93f-3829-4935-8987-8c169549dbff/access"
+	@echo "Direct URL: https://appshare-dev.cancer.gov/content/4d6cc93f-3829-4935-8987-8c169549dbff/"
 
 # Check if container is running
 status:
