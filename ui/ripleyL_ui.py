@@ -1,4 +1,6 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
+
 
 def ripleyL_ui():
     # 11. Ripley L PANEL (Plot Ripley’s L statistic) --------
@@ -69,19 +71,21 @@ def ripleyL_ui():
                         ),
                         ui.panel_conditional(
                             "input.sim_check_rl === true",
-                            ui.input_slider(
+                            accessible_slider(
                                 "num_sim_rl",
                                 "Number of simulations",
-                                min=1,
-                                max=100,
-                                value=1
+                                min_val=1,
+                                max_val=100,
+                                value=1,
+                                step=1
                             ),
-                            ui.input_slider(
+                            accessible_slider(
                                 "seed_rl",
                                 "Seed for Simulation Reproducibility",
-                                min=0,
-                                max=100,
-                                value=42
+                                min_val=0,
+                                max_val=100,
+                                value=42,
+                                step=1
                             )
                         ),
                         ui.input_action_button(

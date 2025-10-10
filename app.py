@@ -35,6 +35,7 @@ from server import (
 
 # Util imports
 from utils.data_processing import load_data, read_html_file
+from utils.accessibility import accessible_navigation, apply_slider_accessibility_global
 
 
 # Read header and footer HTML content
@@ -48,6 +49,12 @@ preloaded_data = load_data(file_path)  # Initialize as None
 app_ui = ui.page_fluid(
     # Include header HTML
     ui.HTML(header_html),
+    
+    # Add navigation accessibility fixes
+    accessible_navigation(),
+    
+    # Add global slider accessibility fixes
+    apply_slider_accessibility_global(),
     
     # Main application content
     ui.navset_card_tab(
