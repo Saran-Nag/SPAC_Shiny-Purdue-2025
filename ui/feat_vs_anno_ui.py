@@ -35,7 +35,7 @@ def feat_vs_anno_ui():
                             "Rotate X Axis Labels (degrees)",
                             min_val=0,
                             max_val=90,
-                            value=25,
+                            value=50,
                             step=1
                         ),
                         ui.input_checkbox(

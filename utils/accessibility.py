@@ -273,8 +273,9 @@ def accessible_navigation():
             );
             
             navTabs.forEach(tab => {
-                // Remove negative tabindex to make tabs keyboard accessible
-                if (tab.getAttribute('tabindex') === '-1') {
+                // Ensure all tabs have explicit tabindex for keyboard accessibility
+                const currentTabindex = tab.getAttribute('tabindex');
+                if (currentTabindex === '-1' || currentTabindex === null || currentTabindex === '') {
                     tab.setAttribute('tabindex', '0');
                 }
                 
@@ -323,7 +324,7 @@ def accessible_navigation():
                         const target = mutation.target;
                         if (target.matches('.nav-link')) {
                             const currentTabindex = target.getAttribute('tabindex');
-                            if (currentTabindex === '-1' || currentTabindex === null) {
+                            if (currentTabindex === '-1' || currentTabindex === null || currentTabindex === '') {
                                 target.setAttribute('tabindex', '0');
                             }
                         }
@@ -354,17 +355,34 @@ def accessible_navigation():
             });
         }
         
+        // Immediate fix for existing elements
+        const immediateNavTabs = document.querySelectorAll('.nav-tabs .nav-link, .card-header .nav-link');
+        immediateNavTabs.forEach(tab => {
+            const currentTabindex = tab.getAttribute('tabindex');
+            if (currentTabindex === '-1' || currentTabindex === null || currentTabindex === '') {
+                tab.setAttribute('tabindex', '0');
+            }
+            if (!tab.hasAttribute('role')) {
+                tab.setAttribute('role', 'tab');
+            }
+        });
+        
+        // Run immediately if DOM is already ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fixNavigationAccessibility);
+        } else {
+            fixNavigationAccessibility();
+        }
+        
         // Apply navigation fixes with multiple timing attempts
+        setTimeout(fixNavigationAccessibility, 50);
         setTimeout(fixNavigationAccessibility, 100);
+        setTimeout(fixNavigationAccessibility, 200);
         setTimeout(fixNavigationAccessibility, 500);
         setTimeout(fixNavigationAccessibility, 1000);
         setTimeout(fixNavigationAccessibility, 2000);
-        setTimeout(fixNavigationAccessibility, 3000);
         
         // Set up continuous monitoring
-        setTimeout(setupNavigationObserver, 1000);
-        
-        // Also fix on any dynamic content changes
-        document.addEventListener('DOMContentLoaded', fixNavigationAccessibility);
+        setTimeout(setupNavigationObserver, 500);
         """
     )

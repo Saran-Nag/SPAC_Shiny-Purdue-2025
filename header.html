@@ -12,6 +12,7 @@ body { padding: 0; }
 
 .flag-text {
   display: flex;
+  align-items: center;
   font-size: .96rem;
   font-weight: 300;
   line-height: 1.2em;
@@ -20,15 +21,10 @@ body { padding: 0; }
   padding: 20px 0 20px 0;
 }
 
-.flag-text::before {
-  background-image: url(images/flag.png);
-  background-size: 21px 14px;
-  content: "";
-  display: block;
+.flag-text img {
   height: 14px;
+  width: 21px;
   margin-right: .75rem;
-  max-width: 21px;  
-  width: 100%;
 }
 
 .flag-header {
@@ -106,26 +102,26 @@ hr {
     font-size: 1.6rem;
 } 
 
-.fa-brands {
-  padding: 20px;
-  font-size: 30px;
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  text-decoration: none;
-  margin: 5px 10px 0 0;
-  border-radius: 50%;
-  background: #facd02;
-}
-
 .eventsreg-footer .social li {
     display: inline-block;
 }
 
-.fa-twitter, .fa-linkedin-in{
-    font-size: 1.8rem;
-    padding: 6px;
+.eventsreg-footer .social li a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: #facd02;
+    border-radius: 25px;
+    text-decoration: none;
     color: #03314b;
+    margin: 5px 10px 0 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.eventsreg-footer .social li a:hover {
+    background: #e6b800;
 }
 
 .eventsreg-footer .links li a {
@@ -184,7 +180,10 @@ hr {
 <!-- Flag Header -->
 <div class="flag-header">
   <div class="container">
-    <div class="flag-text">An official website of the United States government</div>
+    <div class="flag-text">
+      <img src="images/flag.png" alt="United States flag" />
+      An official website of the United States government
+    </div>
   </div>
 </div>
 <!-- End Flag Header -->

@@ -80,7 +80,8 @@ deploy:
 	@echo "Getting current commit hash for version tracking..."
 	$(eval COMMIT_HASH := $(shell git rev-parse --short HEAD))
 	@echo "Deploying version: $(COMMIT_HASH)"
-	rsconnect deploy shiny -n appshare-dev -t "SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))" -v -a 4d6cc93f-3829-4935-8987-8c169549dbff .
+	@echo "Sourcing bash profile and activating conda environment..."
+	bash -c "source ~/.bash_profile && cd $(PWD) && conda activate spac-shiny-3-9-16 && rsconnect deploy shiny -n appshare-dev -t 'SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))' -v -a 4d6cc93f-3829-4935-8987-8c169549dbff ."
 	@echo ""
 	@echo "Deployment completed! Access your app at:"
 	@echo "Dashboard: https://appshare-dev.cancer.gov/connect/#/apps/4d6cc93f-3829-4935-8987-8c169549dbff/access"
