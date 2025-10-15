@@ -32,11 +32,6 @@ def nearest_neighbor_ui():
                             
                             # Core functionality parameters
                             ui.input_select(
-                                "nn_annotation",
-                                "Annotation",
-                                choices=[]
-                            ),
-                            ui.input_select(
                                 "nn_source_label",
                                 "Source Anchor Cell Label",
                                 choices=[]

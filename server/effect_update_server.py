@@ -30,11 +30,32 @@ def effect_update_server(input, output, session, shared):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-        ui.update_select("nn_annotation", choices=choices)
         ui.update_select("nn_image_id", choices=["None"] + (choices or []))
         ui.update_select("rl_anno", choices=choices)
         ui.update_select("region_select_rl", choices=choices)
         ui.update_select("slide_select_rl", choices=choices)
+        return
+
+    @reactive.Effect
+    def update_nearest_neighbor_choices():
+        """Update nearest neighbor choices from spatial_distance columns."""
+        # Get spatial_distance columns from shared state
+        phenotype_choices = shared['spatial_distance_columns'].get()
+        
+        if phenotype_choices is not None and len(phenotype_choices) > 0:
+            # Update source label dropdown
+            ui.update_select("nn_source_label", choices=phenotype_choices)
+            
+            # Update target label dropdown
+            ui.update_selectize("nn_target_label", choices=phenotype_choices)
+            
+            # Set default source label to first available
+            ui.update_select("nn_source_label",
+                             selected=phenotype_choices[0])
+        else:
+            # Clear choices if no spatial_distance data available
+            ui.update_select("nn_source_label", choices=[])
+            ui.update_selectize("nn_target_label", choices=[])
         return
 
     @reactive.Effect
@@ -46,7 +67,7 @@ def effect_update_server(input, output, session, shared):
             ui.update_select("hm1_layer", choices=new_choices)
             ui.update_select("scatter_layer", choices=new_choices)
         return
-        
+
     @reactive.Effect
     def update_select_input_anno_bp():
         if shared['obs_names'].get() is not None:
@@ -68,7 +89,7 @@ def effect_update_server(input, output, session, shared):
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
-    
+
     @reactive.Effect
     def update_rl_selectize():
         adata = shared['adata_main'].get()  # Reactive AnnData
@@ -84,7 +105,7 @@ def effect_update_server(input, output, session, shared):
         if slide_name is None or slide_name not in label_counts:
             return
         pheno_label_list = list(map(str, label_counts[anno_name].keys()))
-        region_label_list =list(map(str, label_counts[region_name].keys())) 
+        region_label_list =list(map(str, label_counts[region_name].keys()))
         slide_label_list =list(map(str, label_counts[slide_name].keys()))
 
         if label_counts is not None:
@@ -176,11 +197,11 @@ def effect_update_server(input, output, session, shared):
                     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
                     transition: box-shadow 0.2s ease;
                 }
-                
+
                 .annotation-table-card:hover {
                     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
                 }
-                
+
                 .table-header {
                     padding: 0.75rem 1rem;
                     background: linear-gradient(135deg, #f8f9fa 0%,
@@ -188,12 +209,12 @@ def effect_update_server(input, output, session, shared):
                     border-bottom: 1px solid #dee2e6;
                     border-radius: 0.5rem 0.5rem 0 0;
                 }
-                
+
                 .annotation-tables .table {
                     font-size: 0.85rem;
                     margin-bottom: 0;
                 }
-                
+
                 .annotation-tables .table th {
                     background-color: #f8f9fa;
                     border-bottom: 2px solid #dee2e6;
@@ -201,29 +222,29 @@ def effect_update_server(input, output, session, shared):
                     font-size: 0.8rem;
                     padding: 0.5rem 0.75rem;
                 }
-                
+
                 .annotation-tables .table td {
                     padding: 0.4rem 0.75rem;
                     vertical-align: middle;
                 }
-                
+
                 .label-name {
                     font-weight: 500;
                     color: #495057;
                 }
-                
+
                 .annotation-tables .table tbody tr:hover {
                     background-color: #f1f3f4;
                 }
-                
+
                 .label-header {
                     color: #6c757d;
                 }
-                
+
                 .count-header {
                     color: #6c757d;
                 }
-                
+
                 @media (max-width: 768px) {
                     .annotation-tables .col-lg-4 {
                         margin-bottom: 1rem;

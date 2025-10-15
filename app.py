@@ -100,6 +100,7 @@ def server(input, output, session):
         "layers_names",
         "var_names",
         "uns_names",
+        "spatial_distance_columns",
         "df_heatmap",
         "df_relational",
         "df_boxplot",

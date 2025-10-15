@@ -89,6 +89,17 @@ def data_input_server(input, output, session, shared):
                 shared['uns_names'].set(list(adata.uns.keys()))
             else:
                 shared['uns_names'].set(None)
+
+                                    # Extract spatial_distance column names if available
+            if hasattr(adata, 'obsm') and 'spatial_distance' in adata.obsm:
+                distance_df = adata.obsm['spatial_distance']
+                if hasattr(distance_df, 'columns'):
+                    spatial_cols = list(distance_df.columns)
+                    shared['spatial_distance_columns'].set(spatial_cols)
+                else:
+                    shared['spatial_distance_columns'].set(None)
+            else:
+                shared['spatial_distance_columns'].set(None)
         else:
             shared['obs_data'].set(None)
             shared['obsm_data'].set(None)
@@ -101,6 +112,7 @@ def data_input_server(input, output, session, shared):
             shared['layers_names'].set(None)
             shared['var_names'].set(None)
             shared['uns_names'].set(None)
+            shared['spatial_distance_columns'].set(None)
 
 
     @reactive.Calc

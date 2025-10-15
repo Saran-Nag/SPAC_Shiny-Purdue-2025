@@ -5,9 +5,6 @@ This module handles the server-side logic for visualizing precomputed nearest
 neighbor distances using the visualize_nearest_neighbor_template functionality.
 """
 
-import sys
-from pathlib import Path
-
 from shiny import ui, render, reactive
 
 
@@ -92,22 +89,51 @@ def nearest_neighbor_server(input, output, session, shared):
             return None
 
         # Prepare parameters for visualization
-        annotation = input.nn_annotation()
         source_label = input.nn_source_label()
         target_labels = process_target_labels()
         image_id = get_image_id()
 
         # Validate inputs
-        if not annotation or not source_label:
+        if not source_label:
             return None
 
-        # Check if annotation exists in data
-        if annotation not in adata.obs.columns:
-            return None
+        # Auto-detect annotation column matching spatial_distance phenotypes
+        annotation = None
+        spatial_distance_key = input.nn_distance_table()
+        
+        # Check if spatial distance data is in obsm or uns
+        distance_df = None
+        if spatial_distance_key in adata.obsm:
+            distance_df = adata.obsm[spatial_distance_key]
+        elif spatial_distance_key in adata.uns:
+            distance_df = adata.uns[spatial_distance_key]
+        
+        if distance_df is not None and hasattr(distance_df, 'columns'):
+            spatial_phenotypes = set(distance_df.columns)
+            
+            # Find annotation column that contains matching phenotypes
+            for col in adata.obs.columns:
+                is_categorical = (adata.obs[col].dtype == 'object' or
+                                  adata.obs[col].dtype.name == 'category')
+                if is_categorical:
+                    obs_phenotypes = set(adata.obs[col].unique())
+                    # Check if there's significant overlap (80%+)
+                    overlap = spatial_phenotypes.intersection(
+                        obs_phenotypes)
+                    if len(overlap) >= len(spatial_phenotypes) * 0.8:
+                        annotation = col
+                        break
+            
+            if annotation is None:
+                # Fallback: use the first categorical column
+                for col in adata.obs.columns:
+                    is_obj = adata.obs[col].dtype == 'object'
+                    is_cat = adata.obs[col].dtype.name == 'category'
+                    if is_obj or is_cat:
+                        annotation = col
+                        break
 
-        # Check if source label exists in annotation
-        available_labels = adata.obs[annotation].unique()
-        if source_label not in available_labels:
+        if not annotation:
             return None
 
         try:
@@ -171,6 +197,9 @@ def nearest_neighbor_server(input, output, session, shared):
             else:
                 fig = figs
 
+            if fig is None:
+                return None
+
             # Apply figure configuration from UI inputs
             fig.set_size_inches(
                 input.nn_figure_width(),
@@ -180,7 +209,7 @@ def nearest_neighbor_server(input, output, session, shared):
 
             return fig
 
-        except Exception as e:
+        except Exception:
             # Log the error (in a production app, use proper logging)
             import traceback
             traceback.print_exc()
