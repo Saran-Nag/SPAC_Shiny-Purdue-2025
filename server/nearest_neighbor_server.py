@@ -99,7 +99,7 @@ def nearest_neighbor_server(input, output, session, shared):
 
         # Auto-detect annotation column matching spatial_distance phenotypes
         annotation = None
-        spatial_distance_key = input.nn_distance_table()
+        spatial_distance_key = "spatial_distance"  # Use hardcoded default
         
         # Check if spatial distance data is in obsm or uns
         distance_df = None
@@ -159,7 +159,7 @@ def nearest_neighbor_server(input, output, session, shared):
                 "ImageID": image_id or "None",
                 "Plot_Method": input.nn_plot_method(),
                 "Plot_Type": get_plot_type(),
-                "Nearest_Neighbor_Associated_Table": input.nn_distance_table(),
+                "Nearest_Neighbor_Associated_Table": "spatial_distance",
                 "Log_Scale": input.nn_log_scale(),
                 "Facet_Plot": input.nn_facet_plot(),
                 "X_Axis_Label_Rotation": input.nn_x_axis_rotation(),
