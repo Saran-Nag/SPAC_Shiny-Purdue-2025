@@ -58,3 +58,6 @@ rsconnect-python/
 # Temporary files
 *.tmp
 *.temp
+
+# Submodules/external repositories
+SCSAWorkflow/
