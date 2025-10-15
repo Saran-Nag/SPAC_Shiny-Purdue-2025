@@ -14,6 +14,7 @@ from ui import (
     spatial_ui,
     umap_ui,
     scatterplot_ui,
+    nearest_neighbor_ui,
     ripleyL_ui
 )   
 
@@ -30,6 +31,7 @@ from server import (
     spatial_server,
     umap_server,
     scatterplot_server,
+    nearest_neighbor_server,
     ripleyL_server
 )
 
@@ -68,6 +70,7 @@ app_ui = ui.page_fluid(
         spatial_ui(),
         umap_ui(),
         scatterplot_ui(),
+        nearest_neighbor_ui(),
         ripleyL_ui(),
     ),
     
@@ -85,7 +88,7 @@ def server(input, output, session):
     adata_main = reactive.Value(preloaded_data)  # Initialize with preloaded data
 
     data_keys = [
-        "X_data", 
+        "X_data",
         "obs_data",  # AKA Annotations
         "obsm_data",
         "layers_data",
@@ -102,6 +105,7 @@ def server(input, output, session):
         "df_boxplot",
         "df_histogram2",
         "df_histogram1",
+        "df_nn",
         "df_ripley"
     ]
 
@@ -138,6 +142,8 @@ def server(input, output, session):
     umap_server(input, output, session, shared)
 
     scatterplot_server(input, output, session, shared)
+
+    nearest_neighbor_server(input, output, session, shared)
 
     ripleyL_server(input, output, session, shared)
 

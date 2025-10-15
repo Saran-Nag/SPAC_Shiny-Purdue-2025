@@ -30,8 +30,8 @@ def effect_update_server(input, output, session, shared):
         ui.update_select("rhm_anno1", choices=choices)
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
-        ui.update_select("nn_anno", choices=choices)   
-        ui.update_select("nn_strat_select", choices=choices)
+        ui.update_select("nn_annotation", choices=choices)
+        ui.update_select("nn_image_id", choices=["None"] + (choices or []))
         ui.update_select("rl_anno", choices=choices)
         ui.update_select("region_select_rl", choices=choices)
         ui.update_select("slide_select_rl", choices=choices)
@@ -234,17 +234,16 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.effect
     def update_select_label_nn():
+        """Update source and target label dropdowns for nearest neighbor."""
         with reactive.isolate():
             adata = ad.AnnData(obs=shared['obs_data'].get())
-        if input.nn_anno():
-            selected_anno = input.nn_anno()
-            labels = adata.obs[selected_anno].unique().tolist()
-            ui.update_select("nn_anno_label", choices=labels)
-
-    @reactive.effect
-    def update_select_df_nn():
-        df_names = shared['obsm_names'].get()
-        ui.update_select("nn_spatial", choices=df_names)
+        if input.nn_annotation():
+            selected_anno = input.nn_annotation()
+            if selected_anno in adata.obs.columns:
+                labels = adata.obs[selected_anno].unique().tolist()
+                labels = [str(label) for label in labels]  # Convert to strings
+                ui.update_select("nn_source_label", choices=labels)
+                ui.update_selectize("nn_target_label", choices=labels)
 
     @reactive.Calc
     @render.text

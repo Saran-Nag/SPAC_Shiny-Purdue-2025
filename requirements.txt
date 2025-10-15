@@ -52,4 +52,5 @@ zipp==3.19.2
 tifffile
 shapely==2.0.7
 sag-py-execution-time-decorator @ git+https://github.com/SamhammerAG/sag_py_execution_time_decorator.git@976c9683d561aadc0166495117c42cc1762633d7
-spac @ git+https://github.com/FNLCR-DMAP/SCSAWorkflow.git@76f381316acd57ff9fbe3e5bea4e37b0a9ae3dd9#egg=spac
+# SPAC package pinned to specific commit for template compatibility (dev branch as of 2025-10-15)
+spac @ git+https://github.com/FNLCR-DMAP/SCSAWorkflow.git@49a6479d3083070064a6218f34125b5e86ad8e46#egg=spac
