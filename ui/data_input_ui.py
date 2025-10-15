@@ -1,138 +1,26 @@
 from shiny import ui
+from utils.styling import (
+    create_data_input_head,
+    hero_section_class,
+    metric_card_class,
+    control_card_class,
+    action_buttons_class,
+    stats_grid_class,
+    metric_list_class
+)
 
 
 def data_input_ui():
     # 1. DATA INPUT PANEL -----------------------------------
     return ui.nav_panel("Data Input",
-        # Enhanced CSS for modern, appealing design
-        ui.tags.head(ui.tags.style("""
-            .shiny-file-input-progress {
-                height: 30px !important;
-                line-height: 30px !important;
-            }
-            .progress-bar {
-                height: 30px !important;
-                line-height: 30px !important;
-                font-size: 16px !important;
-            }
-            .progress-bar span {
-                white-space: nowrap;
-                overflow: visible;
-            }
-            .metric-output {
-                font-size: 18px;
-                font-weight: 500;
-                color: #495057;
-            }
-            .data-input-hero {
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border: 1px solid #dee2e6;
-                border-radius: 1rem;
-                padding: 2.5rem 2rem;
-                margin-bottom: 1.5rem;
-                text-align: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            }
-            .data-input-title {
-                font-size: 1.8rem;
-                font-weight: 500;
-                color: #343a40;
-                margin-bottom: 0.75rem;
-                letter-spacing: -0.02em;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.5rem;
-            }
-            .metric-card {
-                transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-                border: 1px solid #e9ecef;
-                border-radius: 0.5rem;
-                background: #ffffff;
-            }
-            .metric-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-            .upload-area {
-                border: 2px dashed #dee2e6;
-                border-radius: 0.75rem;
-                padding: 2rem;
-                background: #f8f9fa;
-                transition: all 0.3s ease;
-            }
-            .upload-area:hover {
-                border-color: #6c757d;
-                background: #e9ecef;
-            }
-            .control-card {
-                background: #ffffff;
-                border: 1px solid #e9ecef;
-                border-radius: 0.75rem;
-                transition: box-shadow 0.2s ease-in-out;
-            }
-            .control-card:hover {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            }
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 1rem;
-                margin: 1.5rem 0;
-            }
-            .action-buttons {
-                display: flex;
-                gap: 0.75rem;
-                flex-wrap: wrap;
-                margin: 1rem 0;
-            }
-            .summary-card {
-                background: #ffffff;
-                border: 1px solid #e9ecef;
-                border-radius: 0.75rem;
-                margin-top: 1.5rem;
-            }
-            .metric-list {
-                background: #f8f9fa;
-                border-radius: 0.375rem;
-                padding: 0.75rem;
-                font-family: 'Segoe UI', 'Arial', sans-serif;
-                font-size: 0.8rem;
-                line-height: 1.3;
-                color: #495057;
-                max-height: 120px;
-                overflow-y: auto;
-            }
-            .metric-item {
-                display: flex;
-                align-items: flex-start;
-                margin-bottom: 0.25rem;
-                word-break: break-word;
-                hyphens: auto;
-            }
-            .metric-bullet {
-                color: #6c757d;
-                margin-right: 0.5rem;
-                flex-shrink: 0;
-                line-height: 1.3;
-            }
-            .metric-text {
-                flex: 1;
-                word-wrap: break-word;
-                overflow-wrap: break-word;
-            }
-            .metric-title {
-                font-size: 0.9rem !important;
-                font-weight: 600 !important;
-                margin-bottom: 0.5rem !important;
-            }
-        """)),
+        # Include centralized styling
+        create_data_input_head(),
         ui.div(
             {"class": "container-fluid p-4"},
 
             # Hero Section
             ui.div(
-                {"class": "data-input-hero"},
+                {"class": hero_section_class()},
                 ui.h1([
                     ui.span("📁", {"style": "margin-right: 0.5rem; "
                                            "font-size: 1.6rem;"}),
@@ -187,15 +75,17 @@ def data_input_ui():
 
                     # Data Metrics Grid
                     ui.div(
-                        {"class": "stats-grid"},
+                        {"class": stats_grid_class()},
                         ui.div(
-                            {"class": "card metric-card"},
+                            {"class": metric_card_class()},
                             ui.div(
                                 {"class": "card-body"},
                                 ui.div(
                                     {"class": "d-flex align-items-center mb-2"},
-                                    ui.span("📊", {"class": "me-2", "style": "font-size: 1.2rem;"}),
-                                    ui.h6("Number of Cells", {"class": "mb-0 fw-semibold text-primary"})
+                                    ui.span("📊", {"class": "me-2", 
+                                                   "style": "font-size: 1.2rem;"}),
+                                    ui.h6("Number of Cells", 
+                                          {"class": "mb-0 fw-semibold text-primary"})
                                 ),
                                 ui.div({"class": "metric-output text-center"},
                                     ui.output_text("print_rows")
@@ -225,7 +115,7 @@ def data_input_ui():
                                     ui.span("🏷️", {"class": "me-2", "style": "font-size: 1.2rem;"}),
                                     ui.h6("Annotations", {"class": "mb-0 fw-semibold text-success"})
                                 ),
-                                ui.div({"class": "metric-list"},
+                                ui.div({"class": metric_list_class()},
                                     ui.output_ui("formatted_obs_names")
                                 )
                             )
@@ -279,7 +169,7 @@ def data_input_ui():
                 ui.div(
                     {"class": "col-lg-4 mb-4"},
                     ui.div(
-                        {"class": "card control-card"},
+                        {"class": control_card_class()},
                         ui.div(
                             {"class": "card-header bg-light"},
                             ui.h5("🔧 Data Controls", {"class": "mb-0"})
@@ -295,7 +185,7 @@ def data_input_ui():
                             ui.div({"class": "mb-3"}, id="main-subset_label_dropdown"),
 
                             ui.div(
-                                {"class": "action-buttons"},
+                                {"class": action_buttons_class()},
                                 ui.input_action_button(
                                     "go_subset",
                                     "Apply Subset",
