@@ -31,9 +31,8 @@ def effect_update_server(input, output, session, shared):
         ui.update_select("rhm_anno2", choices=choices)
         ui.update_select("spatial_anno", choices=choices)
         ui.update_select("nn_image_id", choices=["None"] + (choices or []))
-        ui.update_select("rl_anno", choices=choices)
+        # rl_anno removed; no annotation selector needed for Ripley
         ui.update_select("region_select_rl", choices=choices)
-        ui.update_select("slide_select_rl", choices=choices)
         return
 
     @reactive.Effect
@@ -98,44 +97,9 @@ def effect_update_server(input, output, session, shared):
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
         return
 
-    @reactive.Effect
-    def update_rl_selectize():
-        # Update region and slide label selectize controls
-        adata = shared['adata_main'].get()  # Reactive AnnData
-        label_counts = get_annotation_label_counts(adata)
-        anno_name = input.rl_anno()  # Selected annotation column
-        region_name = input.region_select_rl()  # Selected region column
-        slide_name = input.slide_select_rl()  # Selected slide column
-
-        if label_counts is None:
-            return
-
-        if anno_name is not None and anno_name in label_counts:
-            pheno_label_list = list(
-                map(str, label_counts[anno_name].keys())
-            )
-            ui.update_selectize(
-                "rl_label",
-                selected=pheno_label_list[:2],
-                choices=pheno_label_list,
-            )
-
-        if region_name is not None and region_name in label_counts:
-            region_label_list = list(
-                map(str, label_counts[region_name].keys())
-            )
-            ui.update_selectize(
-                "rl_region_labels",
-                selected=region_label_list[0],
-                choices=region_label_list,
-            )
-
-        if slide_name is not None and slide_name in label_counts:
-            slide_label_list = list(
-                map(str, label_counts[slide_name].keys())
-            )
-            ui.update_selectize("rl_slide_labels", choices=slide_label_list)
-        return
+    # The rl_anno-based label population logic was removed because
+    # Ripley L now receives phenotype pairs directly from
+    # adata.uns['ripley_l'] (populated via update_rl_pairs).
 
 
     @reactive.Effect
@@ -176,15 +140,46 @@ def effect_update_server(input, output, session, shared):
         return
 
 
+    @reactive.Effect
+    def update_rl_region_and_slide_labels():
+        """Populate region and slide label selectize controls based on the
+        currently selected region/slide annotation columns.
+        """
+        adata = shared['adata_main'].get()
+        if adata is None:
+            ui.update_selectize("rl_region_labels", choices=[])
+            return
+
+        # Use utility to get label counts per annotation (handles None safely)
+        label_counts = get_annotation_label_counts(adata)
+        region_name = input.region_select_rl()
+
+        if label_counts is None:
+            return
+
+        if region_name is not None and region_name in label_counts:
+            region_label_list = list(
+                map(str, label_counts[region_name].keys())
+            )
+            ui.update_selectize(
+                "rl_region_labels",
+                selected=region_label_list[:1] if region_label_list else [],
+                choices=region_label_list,
+            )
+
+        # Slide stratification removed; no rl_slide_labels population needed
+
+        return
+
+
     
 
     @output
     @render.ui
     def annotation_labels_display():
-        """
-        1) Retrieve ALL annotations (via get_annotation_label_counts).
-        2) Within each annotation, keep only the top 10 labels (sorted by count).
-        3) Display them in a responsive grid of small tables for better space.
+        """Retrieve and display top annotation labels in compact tables.
+
+        Shows the top 10 labels per annotation for space-efficient display.
         """
         adata = shared['adata_main'].get()  # your reactive AnnData
         annotation_counts = get_annotation_label_counts(adata)
@@ -439,9 +434,7 @@ def effect_update_server(input, output, session, shared):
     @reactive.effect
     @reactive.event(input.go_subset, ignore_none=True)
     def track_subset():
-        """
-        Append the current annotation and selected labels to the subset history.
-        """
+        """Append the current annotation and selected labels to history."""
         annotation = input.subset_anno_select()
         labels = input.subset_label_select()
 
@@ -452,7 +445,8 @@ def effect_update_server(input, output, session, shared):
 
             # Update the subset history string by appending the new entry
             current_history = subset_history.get()
-            if current_history:  # If there's already history, append with a separator
+            if current_history:
+                # If there's already history, append with a separator
                 subset_history.set(f"{current_history} -> {new_entry}")
             else:  # Otherwise, just set the first entry
                 subset_history.set(new_entry)
@@ -471,16 +465,18 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.Effect
     def store_master_copy():
-        """
-        Store a master copy of the adata object when it is first loaded into adata_main.
-        """
+        """Store a master copy of the adata object when first loaded."""
         adata = shared['adata_main'].get()
         if adata is not None and adata_master.get() is None:
             # Make a copy of the adata object and store it as the master copy
             adata_master.set(adata.copy())
 
     # Add a button to the UI for restoring the data
-    ui.input_action_button("restore_data", "Restore Original Data", class_="btn-warning")
+    ui.input_action_button(
+        "restore_data",
+        "Restore Original Data",
+        class_="btn-warning",
+    )
 
     @reactive.effect
     @reactive.event(input.restore_data, ignore_none=True)
@@ -490,7 +486,8 @@ def effect_update_server(input, output, session, shared):
         """
         master_data = adata_master.get()
         if master_data is not None:
-            # Set adata_main to a copy of the master data to ensure independence
+            # Set adata_main to a copy of the master data to ensure
+            # independence
             shared['adata_main'].set(master_data.copy())
 
             # Clear the subset history since the data is restored

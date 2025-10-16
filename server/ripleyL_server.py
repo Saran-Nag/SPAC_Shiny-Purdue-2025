@@ -60,23 +60,11 @@ def ripleyL_server(input, output, session, shared):
         else:
             regions_labels = []
 
-        # Simulations
-        plot_simulations = bool(input.sim_check_rl())
+        # Simulations: controlled by 'show_sim_rl' checkbox in the UI
+        plot_simulations = bool(input.show_sim_rl())
 
-        # Optional slide subsetting (keep behavior from previous)
-        if input.slide_check_rl():
-            slide_anno = input.slide_select_rl()
-            slide_label = input.rl_slide_labels()
-            if slide_anno in adata.obs.columns:
-                subset_obs = adata.obs[adata.obs[slide_anno] == slide_label]
-                if input.rl_anno() in adata.obs.columns:
-                    check_subset = subset_obs[input.rl_anno()].unique()
-                else:
-                    check_subset = []
-                if set([center, neighbor]).issubset(set(check_subset)):
-                    adata = adata[adata.obs[slide_anno] == slide_label].copy()
-                else:
-                    return None
+        # No slide stratification: operate on the full AnnData or the
+        # region-subset above. Slide-specific stratification was removed.
 
         # Register adata in memory registry and call run_from_json
         try:
