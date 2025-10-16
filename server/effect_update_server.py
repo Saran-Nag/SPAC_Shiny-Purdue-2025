@@ -44,14 +44,22 @@ def effect_update_server(input, output, session, shared):
         
         if phenotype_choices is not None and len(phenotype_choices) > 0:
             # Update source label dropdown
-            ui.update_select("nn_source_label", choices=phenotype_choices)
-            
+            ui.update_select(
+                "nn_source_label",
+                choices=phenotype_choices,
+            )
+
             # Update target label dropdown
-            ui.update_selectize("nn_target_label", choices=phenotype_choices)
-            
+            ui.update_selectize(
+                "nn_target_label",
+                choices=phenotype_choices,
+            )
+
             # Set default source label to first available
-            ui.update_select("nn_source_label",
-                             selected=phenotype_choices[0])
+            ui.update_select(
+                "nn_source_label",
+                selected=phenotype_choices[0],
+            )
         else:
             # Clear choices if no spatial_distance data available
             ui.update_select("nn_source_label", choices=[])
@@ -77,14 +85,14 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.Effect
     def update_boxplot_selectize():
-        selected_names=shared['var_names'].get()
+        selected_names = shared['var_names'].get()
         if selected_names is not None:
             ui.update_selectize("bp_features", selected=selected_names[:2])
             return
 
     @reactive.Effect
     def update_relational_select():
-        selected_names=shared['obs_names'].get()
+        selected_names = shared['obs_names'].get()
         if selected_names is not None and len(selected_names) > 1:
             ui.update_selectize("rhm_anno1", selected=selected_names[0])
             ui.update_selectize("rhm_anno2", selected=selected_names[1])
@@ -92,27 +100,83 @@ def effect_update_server(input, output, session, shared):
 
     @reactive.Effect
     def update_rl_selectize():
+        # Update region and slide label selectize controls
         adata = shared['adata_main'].get()  # Reactive AnnData
-        label_counts =  get_annotation_label_counts(adata)
-        anno_name = input.rl_anno() # Selected annotation column
-        region_name = input.region_select_rl() # Selected region column
-        slide_name = input.slide_select_rl() # Selected slide column
+        label_counts = get_annotation_label_counts(adata)
+        anno_name = input.rl_anno()  # Selected annotation column
+        region_name = input.region_select_rl()  # Selected region column
+        slide_name = input.slide_select_rl()  # Selected slide column
 
-        if anno_name is None or anno_name not in label_counts:
+        if label_counts is None:
             return
-        if region_name is None or region_name not in label_counts:
-            return
-        if slide_name is None or slide_name not in label_counts:
-            return
-        pheno_label_list = list(map(str, label_counts[anno_name].keys()))
-        region_label_list =list(map(str, label_counts[region_name].keys()))
-        slide_label_list =list(map(str, label_counts[slide_name].keys()))
 
-        if label_counts is not None:
-            ui.update_selectize("rl_label", selected=pheno_label_list[:2], choices=pheno_label_list)
-            ui.update_selectize("rl_region_labels", selected=region_label_list[0], choices=region_label_list)
+        if anno_name is not None and anno_name in label_counts:
+            pheno_label_list = list(
+                map(str, label_counts[anno_name].keys())
+            )
+            ui.update_selectize(
+                "rl_label",
+                selected=pheno_label_list[:2],
+                choices=pheno_label_list,
+            )
+
+        if region_name is not None and region_name in label_counts:
+            region_label_list = list(
+                map(str, label_counts[region_name].keys())
+            )
+            ui.update_selectize(
+                "rl_region_labels",
+                selected=region_label_list[0],
+                choices=region_label_list,
+            )
+
+        if slide_name is not None and slide_name in label_counts:
+            slide_label_list = list(
+                map(str, label_counts[slide_name].keys())
+            )
             ui.update_selectize("rl_slide_labels", choices=slide_label_list)
+        return
+
+
+    @reactive.Effect
+    def update_rl_pairs():
+        """Populate available Ripley phenotype pairs from
+        adata.uns['ripley_l'].
+
+        Choices are formatted as 'CENTER -> NEIGHBOR'.
+        """
+        adata = shared['adata_main'].get()
+        if adata is None:
+            ui.update_selectize("rl_pair", choices=[])
             return
+
+        try:
+            ripley_results = adata.uns.get('ripley_l')
+        except Exception:
+            ripley_results = None
+
+        if ripley_results is None:
+            ui.update_selectize("rl_pair", choices=[])
+            return
+
+        try:
+            unique_df = ripley_results[
+                ["center_phenotype", "neighbor_phenotype"]
+            ].drop_duplicates()
+            choices = [
+                f"{str(row[0])} -> {str(row[1])}"
+                for _, row in unique_df.iterrows()
+            ]
+        except Exception:
+            choices = []
+
+        ui.update_selectize("rl_pair", choices=choices)
+        if choices:
+            ui.update_selectize("rl_pair", selected=choices[0])
+        return
+
+
+    
 
     @output
     @render.ui
@@ -286,10 +350,10 @@ def effect_update_server(input, output, session, shared):
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
 
-    @reactive.effect
+    @reactive.Effect
     def subset_reactivity():
         # Get input values
-        adata = ad.AnnData(obs=shared['obs_data'].get())
+        _ = ad.AnnData(obs=shared['obs_data'].get())
         annotations = shared['obs_names'].get()
         btn = input.subset_select_check()
 
@@ -299,7 +363,9 @@ def effect_update_server(input, output, session, shared):
         if btn and not ui_initialized:
             # Insert annotation dropdown
             anno_dropdown = ui.input_select(
-                "subset_anno_select", "Select Annotation to subset", choices=annotations
+                "subset_anno_select",
+                "Select Annotation to subset",
+                choices=annotations,
             )
             ui.insert_ui(
                 ui.div({"id": "inserted-subset_anno_dropdown"}, anno_dropdown),
@@ -309,7 +375,11 @@ def effect_update_server(input, output, session, shared):
 
             # Insert label dropdown
             label_dropdown = ui.input_selectize(
-                "subset_label_select", "Select a Label", choices=[], selected=[], multiple=True
+                "subset_label_select",
+                "Select a Label",
+                choices=[],
+                selected=[],
+                multiple=True,
             )
             ui.insert_ui(
                 ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
@@ -334,7 +404,7 @@ def effect_update_server(input, output, session, shared):
     @reactive.effect
     def update_subset_labels():
         # This effect depends on both the selected annotation and the trigger
-        trigger = label_update_trigger.get()  # Add trigger dependency
+        _ = label_update_trigger.get()  # Add trigger dependency
         adata = shared['adata_main'].get()
         selected_anno = input.subset_anno_select()
 
@@ -352,7 +422,9 @@ def effect_update_server(input, output, session, shared):
             labels = list(input.subset_label_select())
 
             # Perform the subsetting
-            adata_subset = spac.data_utils.select_values(adata, annotation=annotation, values=labels)
+            adata_subset = spac.data_utils.select_values(
+                adata, annotation=annotation, values=labels
+            )
 
             # Update the main data
             shared['adata_main'].set(adata_subset)

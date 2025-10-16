@@ -19,11 +19,11 @@ def ripleyL_ui():
                             choices=[]
                         ),
                         ui.input_selectize(
-                            "rl_label",
-                            "Select two Phenotypes",
-                            multiple=True,
+                            "rl_pair",
+                            "Select Phenotype Pair (center -> neighbor)",
+                            multiple=False,
                             choices=[],
-                            selected=[]
+                            selected=None,
                         ),
                         ui.input_checkbox(
                             "region_check_rl",

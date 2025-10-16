@@ -1,71 +1,120 @@
 from shiny import ui, render, reactive
 import anndata as ad
-import numpy as np
-import pandas as pd
-import spac.spatial_analysis
-import spac.visualization
+from typing import Tuple, Any
+
+from utils.template_wrapper import (
+    register_memory_object,
+    unregister_memory_object,
+)
+from spac.templates.visualize_ripley_template import run_from_json
 
 
 def ripleyL_server(input, output, session, shared):
+    """
+    Server logic for Ripley L visualization using the NIDAP-derived template.
+
+    This implementation registers the in-memory AnnData object with the
+    memory registry and delegates plotting to
+    `spac.templates.visualize_ripley_template.run_from_json`.
+
+    Parameters
+    ----------
+    input, output, session : shiny bindings
+        Standard Shiny server arguments.
+    shared : dict
+        Shared reactive values (expects 'adata_main' and 'df_ripley').
+    """
+
+    @reactive.calc
+    def get_adata() -> ad.AnnData:
+        """Retrieve the main AnnData from shared state."""
+        return shared['adata_main'].get()
+
     @output
     @render.plot
     @reactive.event(input.go_rl, ignore_none=True)
     def spac_ripley_l_plot():
-        adata = ad.AnnData(
-            X=shared['X_data'].get(),
-            var=pd.DataFrame(shared['var_data'].get()),
-            obsm=shared['obsm_data'].get(),
-            obs=shared['obs_data'].get()
-        )
-        annotation = input.rl_anno()
-        if annotation in adata.obs.columns:
-            adata.obs[annotation] = adata.obs[annotation].astype(str)
-        phenotypes = list(map(str, input.rl_label()))
-        region_anno = None
-        n_simulations = 0
-        seed = None
-        region_labels = None
-        distances = np.linspace(0, 500, 100).tolist()
+        """Render the Ripley L plot by invoking the template.
 
-        if input.region_check_rl():
-            region_anno = input.region_select_rl()
-            if region_anno in adata.obs.columns:
-                adata.obs[region_anno] = adata.obs[region_anno].astype(str)
-            region_labels = input.rl_region_labels()
-        if input.sim_check_rl():
-            n_simulations = input.num_sim_rl()
-            seed = input.seed_rl()
+        Returns
+        -------
+        matplotlib.figure.Figure or None
+        """
+        adata = get_adata()
+        if adata is None:
+            return None
+
+        # Basic inputs: read selected pair in format 'CENTER -> NEIGHBOR'
+        pair = input.rl_pair() or ""
+        if not pair:
+            return None
+        try:
+            center, neighbor = [p.strip() for p in pair.split("->", 1)]
+        except Exception:
+            return None
+
+        # Regions
+        plot_specific_regions = bool(input.region_check_rl())
+        if plot_specific_regions:
+            regions_labels = input.rl_region_labels()
+        else:
+            regions_labels = []
+
+        # Simulations
+        plot_simulations = bool(input.sim_check_rl())
+
+        # Optional slide subsetting (keep behavior from previous)
         if input.slide_check_rl():
             slide_anno = input.slide_select_rl()
             slide_label = input.rl_slide_labels()
-            subset = adata.obs[adata.obs[slide_anno] == slide_label]
-            check_subset = subset[annotation].unique()
-            if set(phenotypes).issubset(set(check_subset)):
-                adata = adata[adata.obs[slide_anno] == slide_label].copy()
-            else:
-                return
+            if slide_anno in adata.obs.columns:
+                subset_obs = adata.obs[adata.obs[slide_anno] == slide_label]
+                if input.rl_anno() in adata.obs.columns:
+                    check_subset = subset_obs[input.rl_anno()].unique()
+                else:
+                    check_subset = []
+                if set([center, neighbor]).issubset(set(check_subset)):
+                    adata = adata[adata.obs[slide_anno] == slide_label].copy()
+                else:
+                    return None
 
-        # Calculate Ripley’s L statistic for spatial data in adata
-        spac.spatial_analysis.ripley_l(
-            adata,
-            annotation=annotation,
-            phenotypes=phenotypes,
-            regions=region_anno,
-            distances=distances,
-            n_simulations=n_simulations,
-            seed=seed,
-        )
+        # Register adata in memory registry and call run_from_json
+        try:
+            virtual_path = register_memory_object(adata)
 
-        # Plot Ripley L Data
-        fig, df = spac.visualization.plot_ripley_l(
-            adata,
-            phenotypes=phenotypes,
-            regions=region_labels,
-            sims=input.sim_check_rl(),
-            return_df=True,
-        )
-        shared['df_ripley'].set(df)
-        return fig
+            params = {
+                "Upstream_Analysis": virtual_path,
+                "Center_Phenotype": center,
+                "Neighbor_Phenotype": neighbor,
+                "Plot_Specific_Regions": plot_specific_regions,
+                "Regions_Labels": regions_labels,
+                "Plot_Simulations": plot_simulations,
+            }
+
+            # Call template to get figure and dataframe in-memory
+            figs_df: Tuple[Any, Any] = run_from_json(
+                json_path=params, save_results=False, show_plot=False
+            )
+            if figs_df is None:
+                return None
+
+            fig, df = figs_df
+            # Store dataframe for download
+            shared['df_ripley'].set(df)
+
+            return fig
+
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            return None
+
+        finally:
+            try:
+                unregister_memory_object(virtual_path)
+            except Exception:
+                # ignore cleanup errors
+                pass
 
     @render.download(filename="ripley_plot_data.csv")
     def download_df_rl():
