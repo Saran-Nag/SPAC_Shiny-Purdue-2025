@@ -42,6 +42,10 @@ def nearest_neighbor_ui():
             .nn-controls-panel h4:first-child {
                 margin-top: 0;
             }
+            .accessible-tooltip:focus {
+                outline: 2px solid #0056b3;
+                background: #e9ecef;
+            }
         """),
         ui.card(
             {"style": "width:100%;"},
@@ -81,7 +85,19 @@ def nearest_neighbor_ui():
                                 ),
                                 ui.input_select(
                                     "nn_image_id",
-                                    "ImageID",
+                                    ui.tags.span(
+                                        "ImageID",
+                                        ui.tags.span(
+                                            "\u24D8",  # Unicode for circled 'i'
+                                            title=(
+                                                "The annotation name used to distinguish different images or samples. "
+                                                "If there's only one image, set to 'None.'"
+                                            ),
+                                            tabindex="0",
+                                            class_="accessible-tooltip",
+                                            style="margin-left:5px; cursor:help; color:#007bff;"
+                                        )
+                                    ),
                                     choices=["None"]
                                 ),
                                 
@@ -133,11 +149,22 @@ def nearest_neighbor_ui():
                                         ),
                                         ui.input_text(
                                             "nn_color_mapping",
-                                            "Defined Color Mapping",
+                                            ui.tags.span(
+                                                "Defined Color Mapping",
+                                                ui.tags.span(
+                                                    "\u24D8",
+                                                    title=(
+                                                        "Name of the color map to use for labels in the plot. "
+                                                        "The color map should be appended through the Append Pin Color Rule template prior to the current visualization. "
+                                                        "The default 'None' will allow the visualization to determine the color of labels automatically."
+                                                    ),
+                                                    tabindex="0",
+                                                    class_="accessible-tooltip",
+                                                    style="margin-left:5px; cursor:help; color:#007bff;"
+                                                )
+                                            ),
                                             value="None",
-                                            placeholder=(
-                                                "Enter color map name or 'None'"
-                                            )
+                                            placeholder="Enter color map name or 'None'"
                                         ),
                                     )
                                 ),
