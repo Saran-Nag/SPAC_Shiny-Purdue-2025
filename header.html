@@ -4,6 +4,40 @@
   <title>TODO:NAME OF APP</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  
+  <!-- jQuery Security Mitigation: Override vulnerable jQuery 3.4.1 with secure version -->
+  <script>
+    // Check if jQuery is loaded and if it's an older vulnerable version
+    if (typeof jQuery === 'undefined' || (jQuery.fn && jQuery.fn.jquery && jQuery.fn.jquery < '3.5.0')) {
+      // Load secure jQuery 3.7.1 from CDN with SRI
+      var script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+      script.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+      script.crossOrigin = 'anonymous';
+      script.async = false;
+      document.head.appendChild(script);
+    }
+  </script>
+  
+  <!-- ipywidgets html-manager version override: Use latest version instead of old 1.0.1 -->
+  <script>
+    // Override the widget manager to use the latest html-manager version
+    window.addEventListener('DOMContentLoaded', function() {
+      if (window.require && window.require.config) {
+        window.require.config({
+          paths: {
+            '@jupyter-widgets/html-manager': 'https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@1.0.14/dist/embed-amd'
+          },
+          map: {
+            '*': {
+              '@jupyter-widgets/html-manager/dist/libembed-amd': '@jupyter-widgets/html-manager'
+            }
+          }
+        });
+      }
+    });
+  </script>
+  
   <style>
 
 
