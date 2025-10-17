@@ -34,6 +34,7 @@ def data_input_ui():
                          href="https://scimap.xyz/tutorials/md/"
                               "demo_data_scimap/",
                          target="_blank",
+                         rel="noopener noreferrer",
                          class_="text-decoration-none"),
                     " that was analyzed using the SPAC ",
                     ui.a("lymph node analysis pipeline",
@@ -41,6 +42,7 @@ def data_input_ui():
                               "blob/address-reviewer-comments/paper/examples/"
                               "lymphnode_analysis.ipynb",
                          target="_blank",
+                         rel="noopener noreferrer",
                          class_="text-decoration-none"),
                     " for demonstration."
                 ], {"class": "text-muted mb-1"}),

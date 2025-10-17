@@ -312,6 +312,7 @@ def getting_started_ui():
                                               "SCSAWorkflow/blob/main/"
                                               "CONTRIBUTING.md#spac-terminology",
                                          target="_blank",
+                                         rel="noopener noreferrer",
                                          class_="text-decoration-none"),
                                     "."
                                 ], {"class": "mb-0"})
