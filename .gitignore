@@ -61,3 +61,8 @@ rsconnect-python/
 
 # Submodules/external repositories
 SCSAWorkflow/
+
+# Security documentation (internal use only)
+SECURITY_DOCUMENTATION.md
+SECURITY_IMPLEMENTATION.md
+SECURITY_FIXES.md
