@@ -38,6 +38,7 @@ from server import (
 # Util imports
 from utils.data_processing import load_data, read_html_file
 from utils.accessibility import accessible_navigation, apply_slider_accessibility_global
+from utils.security import apply_security_enhancements
 
 
 # Read header and footer HTML content
@@ -49,6 +50,9 @@ preloaded_data = load_data(file_path)  # Initialize as None
 
 
 app_ui = ui.page_fluid(
+    # Apply security enhancements
+    apply_security_enhancements(),
+    
     # Include header HTML
     ui.HTML(header_html),
     
