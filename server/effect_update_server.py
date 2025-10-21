@@ -16,19 +16,29 @@ def effect_update_server(input, output, session, shared):
         choices = shared['var_names'].get()
         ui.update_select("h1_feat", choices=choices)
         ui.update_select("umap_feat", choices=choices)
-        ui.update_select("bp_features", choices=choices)
+        if choices is not None:
+            ui.update_select("bp_features",choices=choices)
+            ui.update_selectize("bp_features", selected=choices[:2])
+
 
 
     @reactive.Effect
     def update_select_input_anno():
         choices = shared['obs_names'].get()
         ui.update_select("bp_anno", choices=choices)
+        if choices is not None:
+            new_choices = choices + ["No Annotation"]
+            ui.update_select("bp_anno", choices=new_choices)
         ui.update_select("h2_anno", choices=choices)
         ui.update_select("hm1_anno", choices=choices)
         ui.update_select("sk1_anno1", choices=choices)
         ui.update_select("sk1_anno2", choices=choices)
-        ui.update_select("rhm_anno1", choices=choices)
-        ui.update_select("rhm_anno2", choices=choices)
+
+        if choices is not None and len(choices) > 1:
+            ui.update_select("rhm_anno1", choices=choices)
+            ui.update_selectize("rhm_anno1", selected=choices[0])
+            ui.update_select("rhm_anno2", choices=choices)
+            ui.update_selectize("rhm_anno2", selected=choices[1])
         ui.update_select("spatial_anno", choices=choices)
         ui.update_select("nn_image_id", choices=["None"] + (choices or []))
         # rl_anno removed; no annotation selector needed for Ripley
@@ -40,7 +50,7 @@ def effect_update_server(input, output, session, shared):
         """Update nearest neighbor choices from spatial_distance columns."""
         # Get spatial_distance columns from shared state
         phenotype_choices = shared['spatial_distance_columns'].get()
-        
+
         if phenotype_choices is not None and len(phenotype_choices) > 0:
             # Update source label dropdown
             ui.update_select(
@@ -74,32 +84,6 @@ def effect_update_server(input, output, session, shared):
             ui.update_select("hm1_layer", choices=new_choices)
             ui.update_select("scatter_layer", choices=new_choices)
         return
-
-    @reactive.Effect
-    def update_select_input_anno_bp():
-        if shared['obs_names'].get() is not None:
-            new_choices = shared['obs_names'].get() + ["No Annotation"]
-            ui.update_select("bp_anno", choices=new_choices)
-
-
-    @reactive.Effect
-    def update_boxplot_selectize():
-        selected_names = shared['var_names'].get()
-        if selected_names is not None:
-            ui.update_selectize("bp_features", selected=selected_names[:2])
-            return
-
-    @reactive.Effect
-    def update_relational_select():
-        selected_names = shared['obs_names'].get()
-        if selected_names is not None and len(selected_names) > 1:
-            ui.update_selectize("rhm_anno1", selected=selected_names[0])
-            ui.update_selectize("rhm_anno2", selected=selected_names[1])
-        return
-
-    # The rl_anno-based label population logic was removed because
-    # Ripley L now receives phenotype pairs directly from
-    # adata.uns['ripley_l'] (populated via update_rl_pairs).
 
 
     @reactive.Effect
@@ -171,8 +155,6 @@ def effect_update_server(input, output, session, shared):
 
         return
 
-
-    
 
     @output
     @render.ui
@@ -312,18 +294,6 @@ def effect_update_server(input, output, session, shared):
             """)
         )
 
-    @reactive.effect
-    def update_select_label_nn():
-        """Update source and target label dropdowns for nearest neighbor."""
-        with reactive.isolate():
-            adata = ad.AnnData(obs=shared['obs_data'].get())
-        if input.nn_annotation():
-            selected_anno = input.nn_annotation()
-            if selected_anno in adata.obs.columns:
-                labels = adata.obs[selected_anno].unique().tolist()
-                labels = [str(label) for label in labels]  # Convert to strings
-                ui.update_select("nn_source_label", choices=labels)
-                ui.update_selectize("nn_target_label", choices=labels)
 
     @reactive.Calc
     @render.text
