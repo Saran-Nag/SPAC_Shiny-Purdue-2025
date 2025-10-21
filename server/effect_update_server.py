@@ -17,10 +17,8 @@ def effect_update_server(input, output, session, shared):
         ui.update_select("h1_feat", choices=choices)
         ui.update_select("umap_feat", choices=choices)
         if choices is not None:
-            ui.update_select("bp_features",choices=choices)
+            ui.update_select("bp_features", choices=choices)
             ui.update_selectize("bp_features", selected=choices[:2])
-
-
 
     @reactive.Effect
     def update_select_input_anno():
@@ -85,7 +83,6 @@ def effect_update_server(input, output, session, shared):
             ui.update_select("scatter_layer", choices=new_choices)
         return
 
-
     @reactive.Effect
     def update_rl_pairs():
         """Populate available Ripley phenotype pairs from
@@ -123,7 +120,6 @@ def effect_update_server(input, output, session, shared):
             ui.update_selectize("rl_pair", selected=choices[0])
         return
 
-
     @reactive.Effect
     def update_rl_region_and_slide_labels():
         """Populate region and slide label selectize controls based on the
@@ -155,145 +151,22 @@ def effect_update_server(input, output, session, shared):
 
         return
 
+    from ui.annotation_tables_ui import build_annotation_tables
 
     @output
     @render.ui
     def annotation_labels_display():
         """Retrieve and display top annotation labels in compact tables.
 
-        Shows the top 10 labels per annotation for space-efficient display.
+        Markup delegated to ui.annotation_tables_ui.build_annotation_tables.
         """
-        adata = shared['adata_main'].get()  # your reactive AnnData
+        adata = shared['adata_main'].get()
         annotation_counts = get_annotation_label_counts(adata)
 
-        # If no data, show a simple message
         if not annotation_counts:
             return ui.tags.div("No annotations or data found.")
 
-        # Build a responsive grid of annotation tables
-        container = []
-        for annotation_name, label_counts_dict in annotation_counts.items():
-            # Sort labels by count (descending) and take top 10
-            sorted_label_counts = sorted(
-                label_counts_dict.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:10]
-
-            # Build table rows
-            table_rows = []
-            for label, count in sorted_label_counts:
-                table_rows.append(
-                    ui.tags.tr(
-                        ui.tags.td(label, {"class": "label-name"}),
-                        ui.tags.td(f"{count:,}", {"class": "text-end fw-bold"})
-                    )
-                )
-
-            # Create a compact table for this annotation
-            annotation_table = ui.div(
-                {"class": "col-lg-4 col-md-6 col-sm-12 mb-3"},
-                ui.div(
-                    {"class": "annotation-table-card h-100"},
-                    ui.div(
-                        {"class": "table-header"},
-                        ui.h6(
-                            annotation_name,
-                            {"class": "mb-0 text-primary fw-bold"}
-                        )
-                    ),
-                    ui.div(
-                        {"class": "table-responsive"},
-                        ui.tags.table(
-                            {"class": "table table-sm table-hover mb-0"},
-                            ui.tags.thead(
-                                ui.tags.tr(
-                                    ui.tags.th(
-                                        "Label",
-                                        {"class": "label-header"}
-                                    ),
-                                    ui.tags.th(
-                                        "Cells",
-                                        {"class": "text-end count-header"}
-                                    )
-                                )
-                            ),
-                            ui.tags.tbody(*table_rows)
-                        )
-                    )
-                )
-            )
-            container.append(annotation_table)
-
-        # Return the tables in a responsive row
-        return ui.div(
-            {"class": "row annotation-tables"},
-            *container,
-            ui.tags.style("""
-                .annotation-table-card {
-                    border: 1px solid #e9ecef;
-                    border-radius: 0.5rem;
-                    padding: 0;
-                    background: white;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    transition: box-shadow 0.2s ease;
-                }
-
-                .annotation-table-card:hover {
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-                }
-
-                .table-header {
-                    padding: 0.75rem 1rem;
-                    background: linear-gradient(135deg, #f8f9fa 0%,
-                                                 #e9ecef 100%);
-                    border-bottom: 1px solid #dee2e6;
-                    border-radius: 0.5rem 0.5rem 0 0;
-                }
-
-                .annotation-tables .table {
-                    font-size: 0.85rem;
-                    margin-bottom: 0;
-                }
-
-                .annotation-tables .table th {
-                    background-color: #f8f9fa;
-                    border-bottom: 2px solid #dee2e6;
-                    font-weight: 600;
-                    font-size: 0.8rem;
-                    padding: 0.5rem 0.75rem;
-                }
-
-                .annotation-tables .table td {
-                    padding: 0.4rem 0.75rem;
-                    vertical-align: middle;
-                }
-
-                .label-name {
-                    font-weight: 500;
-                    color: #495057;
-                }
-
-                .annotation-tables .table tbody tr:hover {
-                    background-color: #f1f3f4;
-                }
-
-                .label-header {
-                    color: #6c757d;
-                }
-
-                .count-header {
-                    color: #6c757d;
-                }
-
-                @media (max-width: 768px) {
-                    .annotation-tables .col-lg-4 {
-                        margin-bottom: 1rem;
-                    }
-                }
-            """)
-        )
-
+        return build_annotation_tables(annotation_counts)
 
     @reactive.Calc
     @render.text
@@ -309,8 +182,6 @@ def effect_update_server(input, output, session, shared):
             return "Associated Tables: " + obsm_str
         else:
             return "Empty"
-        return
-
 
     # Initialize a flag to track dropdown creation
     subset_ui_initialized = reactive.Value(False)
@@ -347,7 +218,10 @@ def effect_update_server(input, output, session, shared):
                 multiple=True,
             )
             ui.insert_ui(
-                ui.div({"id": "inserted-subset_label_dropdown"}, label_dropdown),
+                ui.div(
+                    {"id": "inserted-subset_label_dropdown"},
+                    label_dropdown,
+                ),
                 selector="#main-subset_label_dropdown",
                 where="beforeEnd",
             )
@@ -395,8 +269,7 @@ def effect_update_server(input, output, session, shared):
             shared['adata_main'].set(adata_subset)
 
             # Increment the label update trigger to force update
-            label_update_trigger.set(label_update_trigger.get() + 1)
-
+        label_update_trigger.set(label_update_trigger.get() + 1)
 
     # Reactive variable to store subset history as a simple string
     subset_history = reactive.Value("")
