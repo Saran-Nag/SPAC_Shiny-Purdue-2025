@@ -95,26 +95,9 @@ def effect_update_server(input, output, session, shared):
             ui.update_selectize("rl_pair", choices=[])
             return
 
-        try:
-            ripley_results = adata.uns.get('ripley_l')
-        except Exception:
-            ripley_results = None
+        from utils.data_processing import get_rl_pairs
 
-        if ripley_results is None:
-            ui.update_selectize("rl_pair", choices=[])
-            return
-
-        try:
-            unique_df = ripley_results[
-                ["center_phenotype", "neighbor_phenotype"]
-            ].drop_duplicates()
-            choices = [
-                f"{str(row[0])} -> {str(row[1])}"
-                for _, row in unique_df.iterrows()
-            ]
-        except Exception:
-            choices = []
-
+        choices = get_rl_pairs(adata)
         ui.update_selectize("rl_pair", choices=choices)
         if choices:
             ui.update_selectize("rl_pair", selected=choices[0])
@@ -129,7 +112,6 @@ def effect_update_server(input, output, session, shared):
         if adata is None:
             ui.update_selectize("rl_region_labels", choices=[])
             return
-
         # Use utility to get label counts per annotation (handles None safely)
         label_counts = get_annotation_label_counts(adata)
         region_name = input.region_select_rl()
@@ -138,9 +120,11 @@ def effect_update_server(input, output, session, shared):
             return
 
         if region_name is not None and region_name in label_counts:
-            region_label_list = list(
-                map(str, label_counts[region_name].keys())
-            )
+            # Use helper to fetch sorted labels for the region annotation
+            from utils.data_processing import get_annotation_top_labels
+
+            top = get_annotation_top_labels(adata, region_name, top_n=None)
+            region_label_list = [str(x[0]) for x in top]
             ui.update_selectize(
                 "rl_region_labels",
                 selected=region_label_list[:1] if region_label_list else [],

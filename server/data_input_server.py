@@ -90,16 +90,11 @@ def data_input_server(input, output, session, shared):
             else:
                 shared['uns_names'].set(None)
 
-                                    # Extract spatial_distance column names if available
-            if hasattr(adata, 'obsm') and 'spatial_distance' in adata.obsm:
-                distance_df = adata.obsm['spatial_distance']
-                if hasattr(distance_df, 'columns'):
-                    spatial_cols = list(distance_df.columns)
-                    shared['spatial_distance_columns'].set(spatial_cols)
-                else:
-                    shared['spatial_distance_columns'].set(None)
-            else:
-                shared['spatial_distance_columns'].set(None)
+            # Extract spatial_distance column names if available via helper
+            from utils.data_processing import get_spatial_distance_columns
+
+            spatial_cols = get_spatial_distance_columns(adata)
+            shared['spatial_distance_columns'].set(spatial_cols)
         else:
             shared['obs_data'].set(None)
             shared['obsm_data'].set(None)
