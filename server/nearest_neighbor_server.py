@@ -72,6 +72,46 @@ def nearest_neighbor_server(input, output, session, shared):
         return font_size if font_size != 12 else None
 
     @output
+    @render.ui
+    def nn_color_mapping_ui():
+        """
+        Create dynamic color mapping select input from available data.
+
+        Returns
+        -------
+        shiny.ui element
+            Select input with available color mappings or None option
+        """
+        adata = get_adata()
+        choices = {"None": "None (Auto)"}
+        
+        if adata is not None:
+            # Extract available color mappings from uns
+            if hasattr(adata, 'uns') and adata.uns is not None:
+                for key in adata.uns.keys():
+                    if key.endswith('_color_map') or 'color' in key.lower():
+                        choices[key] = key
+        
+        return ui.input_select(
+            "nn_color_mapping",
+            ui.tags.span(
+                "Defined Color Mapping",
+                ui.tags.span(
+                    "\u24D8",
+                    title=(
+                        "Color map from loaded data. "
+                        "Use 'None (Auto)' for automatic coloring."
+                    ),
+                    tabindex="0",
+                    class_="accessible-tooltip",
+                    style="margin-left:5px; cursor:help; color:#007bff;"
+                )
+            ),
+            choices=choices,
+            selected="None"
+        )
+
+    @output
     @render.plot
     @reactive.event(input.go_nn_viz, ignore_none=True)
     def nn_visualization_plot():
