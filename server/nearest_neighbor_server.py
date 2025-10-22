@@ -200,13 +200,6 @@ def nearest_neighbor_server(input, output, session, shared):
             if fig is None:
                 return None
 
-            # Apply figure configuration from UI inputs
-            fig.set_size_inches(
-                input.nn_figure_width(),
-                input.nn_figure_height()
-            )
-            fig.set_dpi(input.nn_figure_dpi())
-
             return fig
 
         except Exception:
