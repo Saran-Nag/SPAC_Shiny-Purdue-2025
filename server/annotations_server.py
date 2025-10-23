@@ -1,6 +1,7 @@
 from shiny import ui, render, reactive
 import numpy as np
 import spac.visualization
+import matplotlib.pyplot as plt
 def annotations_server(input, output, session, shared):
     @output
     @render.plot
@@ -9,6 +10,12 @@ def annotations_server(input, output, session, shared):
         adata = shared['adata_main'].get()
         if adata is None:
             return None
+        # Added...
+        # Note: This assumes your UI file has a slider with the id 'annotations_font_size'.
+        # Please ensure this ID matches the one in your annotations_ui.py file.
+        font_size = input.annotations_font_size()
+        plt.rcParams.update({'font.size': font_size})
+        rotation = input.anno_slider()
         # 1) If "Group By" is UNCHECKED, show a simple annotation histogram
         if not input.h2_group_by_check():
             fig, ax, df = spac.visualization.histogram(
@@ -16,7 +23,7 @@ def annotations_server(input, output, session, shared):
                 annotation=input.h2_anno()
             ).values()
             shared['df_histogram2'].set(df) 
-            ax.tick_params(axis='x', rotation=input.anno_slider(), labelsize=10)
+            ax.tick_params(axis='x', rotation=rotation, labelsize=font_size)
             return fig
 
         # 2) If "Group By" is CHECKED, we must always supply a 
@@ -44,11 +51,13 @@ def annotations_server(input, output, session, shared):
             ).values()
             shared['df_histogram2'].set(df) 
             axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
-            for ax in axes:
-                ax.tick_params(
-                    axis='x', 
-                    rotation=input.anno_slider(), 
-                    labelsize=10
+            # Modified... (renamed loop variable to avoid shadowing)
+            for current_ax in axes:
+                # Modified...
+                current_ax.tick_params(
+                    axis='x',
+                    rotation=rotation,
+                    labelsize=font_size
                 )
             return fig
         return None
@@ -68,7 +77,7 @@ def annotations_server(input, output, session, shared):
 
     @render.download(filename="annotation_histogram_data.csv")
     def download_histogram2_df():
-        df = shared['df_histogram2'].get()
+        df = shared['df_human_histogram2'].get()
         if df is not None:
             csv_string = df.to_csv(index=False)
             csv_bytes = csv_string.encode("utf-8")
