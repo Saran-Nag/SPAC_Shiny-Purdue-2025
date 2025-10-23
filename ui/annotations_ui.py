@@ -28,7 +28,7 @@ def annotations_ui():
                         ui.div(id="main-h2_together_drop"),
                         accessible_slider(
                             "anno_slider",
-                            "Rotate X-axis Labels (degrees)",
+                            "Rotate X-axis Labels (degrees up to 90)",
                             min_val=0,
                             max_val=90,
                             value=0,
@@ -43,6 +43,14 @@ def annotations_ui():
                             {"style": "padding-top: 20px;"},
                             ui.output_ui("download_histogram_button_ui")
                         ),
+                        # ADDED: Font size slider for the plot
+                        ui.input_slider(
+                            "annotations_font_size",
+                            "Axis Label Font Size",
+                            min=3,
+                            max=24,
+                            value=10
+                        )
                     ),
                     ui.column(
                         10,
