@@ -7,7 +7,7 @@ def annotations_ui():
     return ui.nav_panel(
         "Annotations",
         ui.card(
-            {"style": "width:100%;"},
+            {"style": "width:125%;"},
             ui.column(
                 12,
                 ui.row(
@@ -42,6 +42,14 @@ def annotations_ui():
                         ui.div(
                             {"style": "padding-top: 20px;"},
                             ui.output_ui("download_histogram_button_ui")
+                        ),
+                        ui.div(style="height: 20px;"),
+                        ui.input_slider(
+                            "annotations_font_size",
+                            "Axis Label Font Size",
+                            min=3,
+                            max=24,
+                            value=10
                         ),
                     ),
                     ui.column(
