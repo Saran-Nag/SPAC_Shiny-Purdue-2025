@@ -7,7 +7,7 @@ def annotations_ui():
     return ui.nav_panel(
         "Annotations",
         ui.card(
-            {"style": "width:100%;"},
+            {"style": "width:125%;"},
             ui.column(
                 12,
                 ui.row(
@@ -50,7 +50,7 @@ def annotations_ui():
                             min=3,
                             max=24,
                             value=10
-                        )
+                        ),
                     ),
                     ui.column(
                         10,

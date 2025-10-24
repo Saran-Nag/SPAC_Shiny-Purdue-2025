@@ -3,7 +3,7 @@ from shinywidgets import render_widget
 import anndata as ad
 import pandas as pd
 import spac.visualization
-
+import matplotlib.pyplot as plt
 
 def boxplot_server(input, output, session, shared):
    # Helper functions for reusability
@@ -41,7 +41,8 @@ def boxplot_server(input, output, session, shared):
                 layers=shared['layers_data'].get(), 
                 dtype=shared['X_data'].get().dtype
             )
-
+            # Added...
+            font_size = input.bp_font_size()
             # Proceed only if adata is valid
             if adata is not None and adata.var is not None:
 
@@ -60,6 +61,8 @@ def boxplot_server(input, output, session, shared):
 
                 # Return the interactive Plotly figure object
                 shared['df_boxplot'].set(df)
+                # Added...
+                fig.update_layout(font=dict(size=font_size))
                 print(type(fig))
                 return fig
 
@@ -110,7 +113,8 @@ def boxplot_server(input, output, session, shared):
                 layers=shared['layers_data'].get(), 
                 dtype=shared['X_data'].get().dtype
             )
-
+            # Added...
+            font_size = input.bp_font_size()
             # Proceed only if adata is valid
             if adata is not None and adata.var is not None:
                 
@@ -126,7 +130,8 @@ def boxplot_server(input, output, session, shared):
                     figure_width=4.8, 
                     figure_type="static"
                 ).values()
-
+                # Added...
+                fig.update_layout(font=dict(size=font_size))
                 return fig
 
         return None
