@@ -34,6 +34,14 @@ def annotations_ui():
                             value=0,
                             step=1
                         ),
+                        ui.div(style="height: 20px;"),
+                        ui.input_slider(
+                            "annotations_font_size",
+                            "Axis Label Font Size",
+                            min=3,
+                            max=24,
+                            value=10
+                        ),
                         ui.input_action_button(
                             "go_h2",
                             "Render Plot",
@@ -42,14 +50,6 @@ def annotations_ui():
                         ui.div(
                             {"style": "padding-top: 20px;"},
                             ui.output_ui("download_histogram_button_ui")
-                        ),
-                        ui.div(style="height: 20px;"),
-                        ui.input_slider(
-                            "annotations_font_size",
-                            "Axis Label Font Size",
-                            min=3,
-                            max=24,
-                            value=10
                         ),
                     ),
                     ui.column(
