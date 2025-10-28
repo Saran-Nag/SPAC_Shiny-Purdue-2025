@@ -254,7 +254,7 @@ def getting_started_ui():
                             {"class": "card-body"},
                             ui.p(
                                 "SPAC uses simple, everyday terms to make spatial "
-                                "single-cell analysis accessible without technical jargon."
+                                "single-cell analysis accessible without technical jargon. "
                                 "Here's what each term means:",
                                 {"class": "lead mb-4"}
                             ),
