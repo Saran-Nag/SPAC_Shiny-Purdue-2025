@@ -50,6 +50,14 @@ def features_ui():
                             value=0,
                             step=1
                         ),
+                        ui.div(style="height: 20px;"),
+                        ui.input_slider(
+                            "features_font_size",
+                            "Axis Label Font Size",
+                            min=3,
+                            max=24,
+                            value=10
+                        ),
                         ui.input_action_button(
                             "go_h1",
                             "Render Plot",
