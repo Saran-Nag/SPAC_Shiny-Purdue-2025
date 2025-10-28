@@ -77,7 +77,7 @@ def getting_started_ui():
                 ui.div(
                     {"class": "container"},
                     ui.h1("Welcome to SPAC", {"class": "gentle-title mb-3"}),
-                    ui.h2("Analyis of Spatial Single Cell Datasets", {"class": "gentle-subtitle mb-4"}),
+                    ui.h2("Analysis of Spatial Single Cell Datasets", {"class": "gentle-subtitle mb-4"}),
                     ui.p("An interactive dashboard for spatial single-cell analysis with 10x performance improvements",
                          {"class": "lead mb-4"}),
                     ui.div(
