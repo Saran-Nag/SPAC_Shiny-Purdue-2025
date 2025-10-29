@@ -147,25 +147,7 @@ def nearest_neighbor_ui():
                                             "Facet Plot",
                                             value=False
                                         ),
-                                        ui.input_text(
-                                            "nn_color_mapping",
-                                            ui.tags.span(
-                                                "Defined Color Mapping",
-                                                ui.tags.span(
-                                                    "\u24D8",
-                                                    title=(
-                                                        "Name of the color map to use for labels in the plot. "
-                                                        "The color map should be appended through the Append Pin Color Rule template prior to the current visualization. "
-                                                        "The default 'None' will allow the visualization to determine the color of labels automatically."
-                                                    ),
-                                                    tabindex="0",
-                                                    class_="accessible-tooltip",
-                                                    style="margin-left:5px; cursor:help; color:#007bff;"
-                                                )
-                                            ),
-                                            value="None",
-                                            placeholder="Enter color map name or 'None'"
-                                        ),
+                                        ui.output_ui("nn_color_mapping_ui"),
                                     )
                                 ),
                                 
