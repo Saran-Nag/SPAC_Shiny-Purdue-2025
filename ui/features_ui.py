@@ -1,4 +1,6 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
+
 
 def features_ui():
     # 3. FEATURES PANEL (Histogram) --------------------------
@@ -40,12 +42,13 @@ def features_ui():
                         ui.div(id="main-h1_dropdown"),
                         ui.div(id="main-h1_check"),
                         ui.div(id="main-h1_together_drop"),
-                        ui.input_slider(
+                        accessible_slider(
                             "feat_slider",
-                            "Rotate Axis",
-                            min=0,
-                            max=90,
-                            value=0
+                            "Rotate X-axis Labels (degrees)",
+                            min_val=0,
+                            max_val=90,
+                            value=0,
+                            step=1
                         ),
                         ui.input_action_button(
                             "go_h1",

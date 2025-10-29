@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>SPAC</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <!-- jQuery Security Mitigation: Override vulnerable jQuery 3.4.1 with secure version -->
+  <script>
+    // Check if jQuery is loaded and if it's an older vulnerable version
+    if (typeof jQuery === 'undefined' || (jQuery.fn && jQuery.fn.jquery && jQuery.fn.jquery < '3.5.0')) {
+      // Load secure jQuery 3.7.1 from CDN with SRI
+      var script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.7.1.min.js';
+      script.integrity = 'sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=';
+      script.crossOrigin = 'anonymous';
+      script.async = false;
+      document.head.appendChild(script);
+    }
+  </script>
+
+  <!-- ipywidgets html-manager version override: Use latest version instead of old 1.0.1 -->
+  <script>
+    // Override the widget manager to use the latest html-manager version
+    window.addEventListener('DOMContentLoaded', function() {
+      if (window.require && window.require.config) {
+        window.require.config({
+          paths: {
+            '@jupyter-widgets/html-manager': 'https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@1.0.14/dist/embed-amd'
+          },
+          map: {
+            '*': {
+              '@jupyter-widgets/html-manager/dist/libembed-amd': '@jupyter-widgets/html-manager'
+            }
+          }
+        });
+      }
+    });
+  </script>
+
+  <style>
+
+
+
+body { padding: 0; }
+
+.flag-text {
+  display: flex;
+  align-items: center;
+  font-size: .96rem;
+  font-weight: 300;
+  line-height: 1.2em;
+  margin: 0 .75rem 0 0;
+  width: 100%;
+  padding: 20px 0 20px 0;
+}
+
+.flag-text img {
+  height: 14px;
+  width: 21px;
+  margin-right: .75rem;
+}
+
+.flag-header {
+  position: relative;
+  color: #1c1c1c;
+  background-color: #f0f0f0;
+  margin: 0 0 30px 0;
+  line-height: 60px;
+  display: block;
+}
+
+.header-logo {
+  margin: 0px 0px 20px 0px;
+  width: 40%;
+}
+
+.row {
+  margin: 0px 0px 0px 15px;
+}
+
+.page-footer {
+  margin: 30px 0px 0px 0px;
+}
+
+.bg-theme-blue {
+  background-color: #1d406c;
+}
+
+.bg-theme-white {
+  color: #fff;
+}
+
+.big-text {
+  font-size: 50px;
+  color: #fff;
+}
+
+.content-title {
+  display: flex;
+  font-size: 1.2em;
+  margin: 20px 0 20px 0;
+  width: 100%;
+  padding: 10px 0 10px 0;
+  position: relative;
+  color: #fff;
+  background-color: #003266;
+}
+
+hr {
+  border-bottom: 20px solid #173053;
+}
+
+.footer {
+  margin: 0;
+}
+
+/* Footer */
+
+.col-md-4, .col-md-8 {
+  margin-top: 20px;
+}
+
+.eventsreg-footer {
+  position: relative;
+  color: #fff;
+  background-color: #173053;
+}
+
+.eventsreg-footer .container {
+  position: relative;
+  padding: 0px;
+}
+
+.nci-large {
+    font-size: 1.6rem;
+}
+
+.eventsreg-footer .social li {
+    display: inline-block;
+}
+
+.eventsreg-footer .social li a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+    background: #facd02;
+    border-radius: 25px;
+    text-decoration: none;
+    color: #03314b;
+    margin: 5px 10px 0 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.eventsreg-footer .social li a:hover {
+    background: #e6b800;
+}
+
+.eventsreg-footer .links li a {
+  color: #fff;
+  padding-right: 10px;
+  font-size: .9rem;
+}
+
+.eventsreg-footer .links li a:hover {
+  color: #fff;
+}
+
+  .eventsreg-footer .copyright, .copyright a {
+  text-align: center;
+  color: #fff;
+  font-size: 1rem
+}
+
+/* Footer Media Query */
+
+@media only screen and (max-width: 600px) {
+.eventsreg-footer .links li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+  display: block;
+}
+
+.eventsreg-footer {
+  text-align: center;
+}
+}
+
+/* Tab styling improvements */
+.nav-tabs .nav-link {
+  font-size: 1.1rem !important;
+  padding: 12px 20px !important;
+  font-weight: 500 !important;
+}
+
+.nav-tabs {
+  border-bottom: 2px solid #dee2e6 !important;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600 !important;
+  border-bottom: 3px solid #0d6efd !important;
+}
+</style>
+
+</head>
+<body>
+
+
+
+
+<!-- Flag Header -->
+<div class="flag-header">
+  <div class="container">
+    <div class="flag-text">
+      <img src="images/flag.png" alt="United States flag" />
+      An official website of the United States government
+    </div>
+  </div>
+</div>
+<!-- End Flag Header -->
+
+<!-- TODO: LOGO OF APP -->
+<div class="container">
+<img src="images/cbiit.jpg" class="header-logo" alt="TODO: NAME OF APP">
+</div>
+<!-- End NCI Logo -->
+
+
+
+<!-- Main Content THIS MUST BE LEFT HERE TO KEEP THE LAYOUT WORKING CORRECTLY-->
+<div class="container-fluid">
+
+
+
+
+

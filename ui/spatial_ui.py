@@ -1,9 +1,11 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
 from shinywidgets import output_widget
 
 # TODO: Stratify by region + slide at same time breaks
-# TODO: Also, straitfy by slide annotation not same as current annotation breaks
 # TODO: Also, selecting feature then trying to stratify breaks
+
+
 def spatial_ui():
     # 7. SPATIAL PANEL ---------------------------------------
     return ui.nav_panel(
@@ -23,12 +25,13 @@ def spatial_ui():
                         ui.div(id="main-spatial_dropdown_anno"),
                         ui.div(id="main-spatial_dropdown_feat"),
                         ui.div(id="main-spatial_table_dropdown_feat"),
-                        ui.input_slider(
+                        accessible_slider(
                             "spatial_slider",
                             "Point Size",
-                            min=2,
-                            max=10,
-                            value=3
+                            min_val=2,
+                            max_val=10,
+                            value=3,
+                            step=1
                         ),
                         ui.input_checkbox(
                             "slide_select_check",

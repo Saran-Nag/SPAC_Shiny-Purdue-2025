@@ -1,4 +1,6 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
+
 
 def annotations_ui():
     # 2. ANNOTATIONS PANEL (Histogram of annotations) --------
@@ -24,12 +26,13 @@ def annotations_ui():
                         ui.div(id="main-h2_dropdown"),
                         ui.div(id="main-h2_check"),
                         ui.div(id="main-h2_together_drop"),
-                        ui.input_slider(
+                        accessible_slider(
                             "anno_slider",
-                            "Rotate Axis",
-                            min=0,
-                            max=90,
-                            value=0
+                            "Rotate X-axis Labels (degrees)",
+                            min_val=0,
+                            max_val=90,
+                            value=0,
+                            step=1
                         ),
                         ui.input_action_button(
                             "go_h2",
