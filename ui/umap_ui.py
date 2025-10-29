@@ -1,4 +1,6 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
+
 
 def umap_ui():
     # 8. UMAP PANEL ------------------------------------------
@@ -22,12 +24,13 @@ def umap_ui():
                         ui.div(id="main-ump_rb_dropdown_anno"),
                         ui.div(id="main-ump_rb_dropdown_feat"),
                         ui.div(id="main-ump_table_dropdown_feat"),
-                        ui.input_slider(
-                            "umap_slider_1", 
-                            "Point Size", 
-                            min=.5, 
-                            max=10, 
-                            value=3
+                        accessible_slider(
+                            "umap_slider_1",
+                            "Point Size",
+                            min_val=0.5,
+                            max_val=10,
+                            value=3,
+                            step=0.1
                         ),
                         ui.input_action_button(
                             "go_umap1", 
@@ -55,12 +58,13 @@ def umap_ui():
                         ui.div(id="main-ump_rb_dropdown_anno2"),
                         ui.div(id="main-ump_rb_dropdown_feat2"),
                         ui.div(id="main-ump_table_dropdown_feat2"),
-                        ui.input_slider(
-                            "umap_slider_2", 
-                            "Point Size", 
-                            min=.5, 
-                            max=10,
-                            value=3
+                        accessible_slider(
+                            "umap_slider_2",
+                            "Point Size",
+                            min_val=0.5,
+                            max_val=10,
+                            value=3,
+                            step=0.1
                         ),
                         ui.input_action_button(
                             "go_umap2", 

@@ -1,4 +1,5 @@
 from shiny import ui
+from utils.accessibility import accessible_slider
 
 
 def feat_vs_anno_ui():
@@ -29,12 +30,13 @@ def feat_vs_anno_ui():
                                 "PiYG", "PRGn"
                             ]
                         ),  # Dropdown for color maps
-                        ui.input_slider(
-                            "hm_x_label_rotation", 
-                            "Rotate X Axis Labels", 
-                            min=0, 
-                            max=90, 
-                            value=25
+                        accessible_slider(
+                            "hm_x_label_rotation",
+                            "Rotate X Axis Labels (degrees)",
+                            min_val=0,
+                            max_val=90,
+                            value=50,
+                            step=1
                         ),
                         ui.input_checkbox(
                             "dendogram", 

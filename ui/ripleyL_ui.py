@@ -1,5 +1,6 @@
 from shiny import ui
 
+
 def ripleyL_ui():
     # 11. Ripley L PANEL (Plot Ripley’s L statistic) --------
     return ui.nav_panel(
@@ -11,17 +12,13 @@ def ripleyL_ui():
                 ui.row(
                     ui.column(
                         2,
-                        ui.input_select(
-                            "rl_anno",
-                            "Select an Annotation",
-                            choices=[]
-                        ),
+                        
                         ui.input_selectize(
-                            "rl_label",
-                            "Select two Phenotypes",
-                            multiple=True,
+                            "rl_pair",
+                            "Select Phenotype Pair (center -> neighbor)",
+                            multiple=False,
                             choices=[],
-                            selected=[]
+                            selected=None,
                         ),
                         ui.input_checkbox(
                             "region_check_rl",
@@ -43,46 +40,11 @@ def ripleyL_ui():
                                 selected=[]
                             ),
                         ),
+                        
                         ui.input_checkbox(
-                            "slide_check_rl",
-                            "Stratify by Slides?",
-                            False
-                        ),
-                        ui.panel_conditional(
-                            "input.slide_check_rl === true",
-                            ui.input_select(
-                                "slide_select_rl",
-                                "Select Slide Annotation",
-                                choices=[]
-                            ),
-                            ui.input_select(
-                                "rl_slide_labels",
-                                "Select Slides",
-                                choices=[],
-                                selected=[]
-                            ),
-                        ),
-                        ui.input_checkbox(
-                            "sim_check_rl",
-                            "Simulations",
-                            False
-                        ),
-                        ui.panel_conditional(
-                            "input.sim_check_rl === true",
-                            ui.input_slider(
-                                "num_sim_rl",
-                                "Number of simulations",
-                                min=1,
-                                max=100,
-                                value=1
-                            ),
-                            ui.input_slider(
-                                "seed_rl",
-                                "Seed for Simulation Reproducibility",
-                                min=0,
-                                max=100,
-                                value=42
-                            )
+                            "show_sim_rl",
+                            "Show Simulations",
+                            False,
                         ),
                         ui.input_action_button(
                             "go_rl",

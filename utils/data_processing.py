@@ -6,6 +6,138 @@ This module contains functions for loading and processing data for the SPAC Shin
 import anndata as ad
 import pandas as pd
 
+
+def read_html_file(filepath):
+    """Read HTML file content"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        return ""
+
+
+def read_markdown_file(filepath):
+    """Read Markdown file content and convert to HTML"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            content = file.read()
+            
+            def process_inline_formatting(text):
+                """Process bold, italic, and code formatting"""
+                # Handle bold text **text**
+                import re
+                text = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', text)
+                # Handle italic text *text*
+                text = re.sub(r'\*(.*?)\*', r'<em>\1</em>', text)
+                # Handle inline code `code`
+                text = re.sub(r'`(.*?)`', r'<code>\1</code>', text)
+                return text
+            
+            lines = content.split('\n')
+            html_lines = []
+            in_ordered_list = False
+            in_unordered_list = False
+            
+            for line in lines:
+                original_line = line
+                line = line.strip()
+                
+                # Handle headers
+                if line.startswith('#### '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[5:])
+                    html_lines.append(f'<h4>{header_text}</h4>')
+                elif line.startswith('### '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[4:])
+                    html_lines.append(f'<h3>{header_text}</h3>')
+                elif line.startswith('## '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[3:])
+                    html_lines.append(f'<h2>{header_text}</h2>')
+                elif line.startswith('# '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    header_text = process_inline_formatting(line[2:])
+                    html_lines.append(f'<h1>{header_text}</h1>')
+                
+                # Handle numbered lists (1. 2. 3. etc.)
+                elif line and line[0].isdigit() and '. ' in line:
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    if not in_ordered_list:
+                        html_lines.append('<ol>')
+                        in_ordered_list = True
+                    list_text = line.split('. ', 1)[1]
+                    formatted_text = process_inline_formatting(list_text)
+                    html_lines.append(f'<li>{formatted_text}</li>')
+                
+                # Handle bullet lists (- or *)
+                elif line.startswith('- ') or line.startswith('* '):
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if not in_unordered_list:
+                        html_lines.append('<ul>')
+                        in_unordered_list = True
+                    list_text = line[2:]
+                    formatted_text = process_inline_formatting(list_text)
+                    html_lines.append(f'<li>{formatted_text}</li>')
+                
+                # Handle empty lines
+                elif not line:
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    html_lines.append('<br>')
+                
+                # Handle regular paragraphs
+                else:
+                    if in_ordered_list:
+                        html_lines.append('</ol>')
+                        in_ordered_list = False
+                    if in_unordered_list:
+                        html_lines.append('</ul>')
+                        in_unordered_list = False
+                    formatted_text = process_inline_formatting(line)
+                    html_lines.append(f'<p>{formatted_text}</p>')
+            
+            # Close any remaining lists
+            if in_ordered_list:
+                html_lines.append('</ol>')
+            if in_unordered_list:
+                html_lines.append('</ul>')
+            
+            return '\n'.join(html_lines)
+            
+    except FileNotFoundError:
+        return "<div class='alert alert-warning'>Content not found.</div>"
+    except Exception as e:
+        return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
+
 def load_data(file_path):
     """
     Load data from a specified file path. Supports .h5ad and .pickle formats.
@@ -71,3 +203,126 @@ def get_annotation_label_counts(adata: ad.AnnData):
         annotation_counts[col] = vc.to_dict()
 
     return annotation_counts
+
+
+def get_annotation_top_labels(
+    adata: ad.AnnData, annotation: str, top_n: int = 10
+):
+    """
+    Return the top labels and their counts for a specific annotation column.
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Annotated data matrix.
+    annotation : str
+        Column name in ``adata.obs`` to extract labels from.
+    top_n : int or None, optional
+        Number of top labels to return. If None, return all labels.
+        Default is 10.
+
+    Returns
+    -------
+    list of (label, count)
+        A list of tuples sorted by count descending. Returns an empty list
+        if the annotation is not present or no data available.
+    """
+    if adata is None or not hasattr(adata, "obs"):
+        return []
+
+    if annotation not in adata.obs.columns:
+        return []
+
+    vc = adata.obs[annotation].value_counts(dropna=False)
+    items = list(vc.items()) if hasattr(vc, 'items') else list(vc.iteritems())
+    # items is list of (label, count)
+    # sort descending by count (value_counts is already sorted but ensure it)
+    items_sorted = sorted(items, key=lambda x: x[1], reverse=True)
+
+    if top_n is None:
+        return items_sorted
+    return items_sorted[:top_n]
+
+
+def get_rl_pairs(adata: ad.AnnData):
+    """
+    Extract Ripley phenotype pairs from ``adata.uns['ripley_l']``.
+
+    The function expects ``adata.uns['ripley_l']`` to be a DataFrame-like
+    structure with columns ``center_phenotype`` and ``neighbor_phenotype``.
+    It returns a list of strings formatted as "CENTER -> NEIGHBOR".
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Annotated data matrix.
+
+    Returns
+    -------
+    list[str]
+        List of unique pair strings. Empty list if nothing found.
+    """
+    if adata is None or not hasattr(adata, "uns"):
+        return []
+
+    ripley_results = None
+    try:
+        ripley_results = adata.uns.get('ripley_l')
+    except Exception:
+        ripley_results = None
+
+    if ripley_results is None:
+        return []
+
+    try:
+        unique_df = (
+            ripley_results[["center_phenotype", "neighbor_phenotype"]]
+            .drop_duplicates()
+        )
+        choices = [
+            f"{str(row[0])} -> {str(row[1])}"
+            for _, row in unique_df.iterrows()
+        ]
+    except Exception:
+        choices = []
+
+    return choices
+
+
+def get_spatial_distance_columns(adata: ad.AnnData):
+    """
+    Return the column names for a spatial distance matrix stored in the
+    AnnData object. Checks both ``adata.obsm['spatial_distance']`` and
+    ``adata.uns['spatial_distance']``.
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        Annotated data matrix.
+
+    Returns
+    -------
+    list[str] or None
+        List of column names if available, otherwise None.
+    """
+    if adata is None:
+        return None
+
+    # Prefer obsm
+    try:
+        if hasattr(adata, 'obsm') and 'spatial_distance' in adata.obsm:
+            distance_df = adata.obsm['spatial_distance']
+            if hasattr(distance_df, 'columns'):
+                return list(distance_df.columns)
+    except Exception:
+        pass
+
+    try:
+        if hasattr(adata, 'uns') and 'spatial_distance' in adata.uns:
+            distance_df = adata.uns['spatial_distance']
+            if hasattr(distance_df, 'columns'):
+                return list(distance_df.columns)
+    except Exception:
+        pass
+
+    return None
