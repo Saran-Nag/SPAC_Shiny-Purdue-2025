@@ -1,7 +1,7 @@
 # SPAC Shiny Docker Commands
 # Usage: make <command>
 
-.PHONY: help build run run-dev stop clean logs shell restart deploy status
+.PHONY: help build run run-dev stop clean logs shell restart deploy deploy-dev deploy-prod status
 
 # Default target
 help:
@@ -18,14 +18,17 @@ help:
 	@echo "  logs      - Show container logs"
 	@echo "  shell     - Open a shell inside the container"
 	@echo "  clean     - Remove container and image"
-	@echo "  deploy    - Deploy to Posit Connect (appshare-dev)"
-	@echo "  status    - Show container status"
+	@echo "  deploy-dev  - Deploy to Posit Connect (appshare-dev)"
+	@echo "  deploy-prod - Deploy to Posit Connect (appshare)"
+	@echo "  deploy      - Deploy to Posit Connect (appshare-dev) [default]"
+	@echo "  status      - Show container status"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make run        # Build and run the container"
 	@echo "  make logs       # View logs"
 	@echo "  make stop       # Stop when done"
-	@echo "  make deploy     # Deploy to Posit Connect"
+	@echo "  make deploy-dev # Deploy to development (appshare-dev)"
+	@echo "  make deploy-prod# Deploy to production (appshare)"
 	@echo ""
 	@echo "App will be available at: http://localhost:8001"
 
@@ -74,18 +77,33 @@ clean: stop
 	-docker rmi spac-shiny
 	-docker system prune -f
 
-# Deploy to Posit Connect
-deploy:
-	@echo "Deploying SPAC Shiny to Posit Connect..."
+# Deploy to Posit Connect (Development)
+deploy-dev:
+	@echo "Deploying SPAC Shiny to Posit Connect (Development)..."
 	@echo "Getting current commit hash for version tracking..."
 	$(eval COMMIT_HASH := $(shell git rev-parse --short HEAD))
 	@echo "Deploying version: $(COMMIT_HASH)"
 	@echo "Sourcing bash profile and activating conda environment..."
 	bash -c "source ~/.bash_profile && cd $(PWD) && conda activate spac-shiny-3-9-16 && rsconnect deploy shiny -n appshare-dev -t 'SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))' -v -a 4d6cc93f-3829-4935-8987-8c169549dbff ."
 	@echo ""
-	@echo "Deployment completed! Access your app at:"
+	@echo "Development deployment completed! Access your app at:"
 	@echo "Dashboard: https://appshare-dev.cancer.gov/connect/#/apps/4d6cc93f-3829-4935-8987-8c169549dbff/access"
 	@echo "Direct URL: https://appshare-dev.cancer.gov/content/4d6cc93f-3829-4935-8987-8c169549dbff/"
+
+# Deploy to Posit Connect (Production)
+deploy-prod:
+	@echo "Deploying SPAC Shiny to Posit Connect (Production)..."
+	@echo "Getting current commit hash for version tracking..."
+	$(eval COMMIT_HASH := $(shell git rev-parse --short HEAD))
+	@echo "Deploying version: $(COMMIT_HASH)"
+	@echo "Sourcing bash profile and activating conda environment..."
+	bash -c "source ~/.bash_profile && cd $(PWD) && conda activate spac-shiny-3-9-16 && rsconnect deploy shiny -n appshare -t 'SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))' -v ."
+	@echo ""
+	@echo "Production deployment completed! Access your app at:"
+	@echo "Production URL: https://appshare.cancer.gov/"
+
+# Deploy to Posit Connect (Default: Development)
+deploy: deploy-dev
 
 # Check if container is running
 status:

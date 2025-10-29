@@ -29,10 +29,13 @@ def effect_update_server(input, output, session, shared):
             ui.update_select("bp_anno", choices=new_choices)
         ui.update_select("h2_anno", choices=choices)
         ui.update_select("hm1_anno", choices=choices)
-        ui.update_select("sk1_anno1", choices=choices)
-        ui.update_select("sk1_anno2", choices=choices)
 
         if choices is not None and len(choices) > 1:
+
+            ui.update_select("sk1_anno1", choices=choices)
+            ui.update_selectize("sk1_anno1", selected=choices[0])
+            ui.update_select("sk1_anno2", choices=choices)
+            ui.update_selectize("sk1_anno2", selected=choices[1])
             ui.update_select("rhm_anno1", choices=choices)
             ui.update_selectize("rhm_anno1", selected=choices[0])
             ui.update_select("rhm_anno2", choices=choices)
