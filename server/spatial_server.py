@@ -3,7 +3,7 @@ from shinywidgets import output_widget, render_widget
 import anndata as ad
 import pandas as pd
 import spac.visualization
-
+import matplotlib.pyplot as plt
 
 def spatial_server(input, output, session, shared):
     slide_ui_initialized = reactive.Value(False)
@@ -109,6 +109,12 @@ def spatial_server(input, output, session, shared):
         )
         slide_check = input.slide_select_check()
         region_check = input.region_select_check()
+        # Added...
+        font_size = input.spatial_font_size()
+
+        # Added...
+        plt.rcParams.update({'font.size': font_size})
+
         if adata is not None:
             if slide_check is False and region_check is False:
                 adata_subset = adata
@@ -174,6 +180,7 @@ def spatial_server(input, output, session, shared):
                 tickwidth=2, 
                 ticklen=10
             )
+            out[0]['image_object'].update_layout(font=dict(size=font_size))
             return out[0]['image_object']
 
         return None

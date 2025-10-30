@@ -3,7 +3,7 @@ import anndata as ad
 import numpy as np
 import pandas as pd
 import spac.visualization
-
+import matplotlib.pyplot as plt
 
 def features_server(input, output, session, shared):
     def on_layer_check():
@@ -26,6 +26,7 @@ def features_server(input, output, session, shared):
             return None
 
         feature = input.h1_feat()
+        font_size = input.features_font_size()
         rotation = input.feat_slider()
         btn_log_x = input.h1_log_x()
         btn_log_y = input.h1_log_y()
@@ -49,7 +50,7 @@ def features_server(input, output, session, shared):
 
         axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
         for a in axes:
-            a.tick_params(axis='x', rotation=rotation, labelsize=10)
+            a.tick_params(axis='x', rotation=rotation, labelsize=font_size)
 
         shared['df_histogram1'].set(df)
         return fig1
