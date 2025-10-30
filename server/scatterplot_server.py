@@ -129,36 +129,35 @@ def scatterplot_server(input, output, session, shared):
         title = f"Scatterplot: {x_label} vs {y_label}"
         font_size = input.scatter_font_size()
         with sns.plotting_context(rc={"font.size": font_size,
-                                      "axes.labelsize": font_size,
-                                      "xtick.labelsize": font_size,
-                                      "ytick.labelsize": font_size,
-                                      "legend.fontsize": font_size,
+                                    "axes.labelsize": font_size,
+                                    "xtick.labelsize": font_size,
+                                    "ytick.labelsize": font_size,
+                                    "legend.fontsize": font_size,
                                       "axes.titlesize": font_size * 1.2
         }):
-
-        if heatmap_mode:
-            color = get_color_values() if color_enabled else None
-            img = scatter_heatmap(x, y, color)
-            fig, ax = plt.subplots(figsize=(8, 6))
-            ax.imshow(img, aspect='auto')
-            ax.set_title(title, fontsize=14)
-            ax.set_xlabel(x_label)
-            ax.set_ylabel(y_label)
-            ax.axis('on')  # Show axes
-            return fig
-        else:
-            if color_enabled:
-                fig, ax = spac.visualization.visualize_2D_scatter(
-                    x, y, labels=get_color_values()
-                )
-                for a in fig.axes:
-                    if hasattr(a, "get_ylabel") and a != ax:
-                        a.set_ylabel(f"Colored by: {input.scatter_color()}")
+            if heatmap_mode:
+                color = get_color_values() if color_enabled else None
+                img = scatter_heatmap(x, y, color)
+                fig, ax = plt.subplots(figsize=(8, 6))
+                ax.imshow(img, aspect='auto')
+                ax.set_title(title, fontsize=14)
+                ax.set_xlabel(x_label)
+                ax.set_ylabel(y_label)
+                ax.axis('on')  # Show axes
+                return fig
             else:
-                fig, ax = spac.visualization.visualize_2D_scatter(x, y)
+                if color_enabled:
+                    fig, ax = spac.visualization.visualize_2D_scatter(
+                        x, y, labels=get_color_values()
+                    )
+                    for a in fig.axes:
+                        if hasattr(a, "get_ylabel") and a != ax:
+                            a.set_ylabel(f"Colored by: {input.scatter_color()}")
+                else:
+                    fig, ax = spac.visualization.visualize_2D_scatter(x, y)
 
-            ax.set_title(title, fontsize=font_size * 1.2)
-            ax.set_xlabel(x_label, fontsize=font_size)
-            ax.set_ylabel(y_label, fontsize=font_size)
+                ax.set_title(title, fontsize=font_size * 1.2)
+                ax.set_xlabel(x_label, fontsize=font_size)
+                ax.set_ylabel(y_label, fontsize=font_size)
 
             return ax
