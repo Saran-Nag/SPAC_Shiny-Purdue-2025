@@ -54,11 +54,11 @@ Make sure Docker is connected to your GitHub account. This is done during setup,
 **For ```make```:**  
 (Apple: ```xcode-select --install``` / Windows: ```choco install make```). ```make``` should be available on Linux. Open your terminal as Administrator on Windows when installing ```make```.  
 
-Run ```git fetch``` and ```git pull``` to ensure you have the latest changes.  
+Run ```git fetch origin``` and ```git pull origin``` to ensure you have the latest changes.  
 
-Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```
+Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```. ```fetch ``` and ```pull``` again to be safe.
 
-Then, simply enter ```make run``` in your terminal to run the Shiny app.
+Then, simply enter ```make run``` in your terminal to run the Shiny app at http://localhost:8001/.
 
 If you have any issues and need to troubleshoot, refer to the [Docker Documentation](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/).
 
