@@ -39,6 +39,30 @@ To enhance the analytical capabilities of SPAC, we integrated new clustering alg
 *   **K-Nearest Neighbors**
 *   **K-Means**
 
+## How to Run
+
+First, [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) or [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) the repository locally.
+
+Then, use your terminal to navigate to the directory where the repository is.  
+i.e. ```cd location/to/repo```
+
+Ensure [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ```make``` are installed.  
+
+**For Docker:**   
+Make sure Docker is connected to your GitHub account. This is done during setup, but if you already have Docker but it isn't connected, navigate to your account settings > connected accounts.  
+
+**For ```make```:**  
+(Apple: ```xcode-select --install``` / Windows: ```choco install make```). ```make``` should be available on Linux. Open your terminal as Administrator on Windows when installing ```make```.  
+
+Run ```git fetch origin``` and ```git pull origin``` to ensure you have the latest changes.  
+
+Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```. ```fetch``` and ```pull``` again to be safe.
+
+Then, simply enter ```make run``` in your terminal to run the Shiny app at http://localhost:8001/.
+
+If you have any issues and need to troubleshoot, refer to the [Docker Documentation](https://docs.docker.com/desktop/troubleshoot-and-support/troubleshoot/).
+
+
 ## Acknowledgements and Credits
 
 This project was a success thanks to the invaluable collaboration and support from several key institutions and individuals:
