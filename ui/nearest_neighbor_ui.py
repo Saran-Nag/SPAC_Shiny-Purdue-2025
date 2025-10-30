@@ -11,7 +11,7 @@ from shiny import ui
 def nearest_neighbor_ui():
     """
     Create the nearest neighbor visualization UI.
-    
+
     Returns
     -------
     shiny.ui.NavPanel
@@ -66,7 +66,7 @@ def nearest_neighbor_ui():
                             ui.div(
                                 ui.h4("Core Parameters",
                                       class_="accessible-heading"),
-                                
+
                                 # Core functionality parameters
                                 ui.input_select(
                                     "nn_source_label",
@@ -100,9 +100,9 @@ def nearest_neighbor_ui():
                                     ),
                                     choices=["None"]
                                 ),
-                                
+
                                 ui.hr(),
-                                
+
                                 # Plot configuration in expandable section
                                 ui.div(
                                     ui.input_checkbox(
@@ -168,9 +168,9 @@ def nearest_neighbor_ui():
                                         ),
                                     )
                                 ),
-                                
+
                                 ui.hr(),
-                                
+
                                 # Figure configuration in expandable section
                                 ui.div(
                                     ui.input_checkbox(
@@ -204,17 +204,14 @@ def nearest_neighbor_ui():
                                                 ),
                                             )
                                         ),
+                                        ui.input_slider(
+                                            "nn_font_size",
+                                            "Font Size",
+                                            min=5,
+                                            max=30,
+                                            value=12
+                                        ),
                                         ui.row(
-                                            ui.column(
-                                                6,
-                                                ui.input_numeric(
-                                                    "nn_font_size",
-                                                    "Font Size",
-                                                    value=11,
-                                                    min=8,
-                                                    max=20
-                                                ),
-                                            ),
                                             ui.column(
                                                 6,
                                                 ui.input_numeric(
@@ -229,7 +226,7 @@ def nearest_neighbor_ui():
                                         ),
                                     )
                                 ),
-                                
+
                                 # Axis settings in expandable section
                                 ui.div(
                                     ui.input_checkbox(
@@ -260,7 +257,7 @@ def nearest_neighbor_ui():
                                         ),
                                     )
                                 ),
-                                
+
                                 ui.br(),
                                 ui.input_action_button(
                                     "go_nn_viz",
@@ -295,4 +292,3 @@ def nearest_neighbor_ui():
             ),
         )
     )
-
