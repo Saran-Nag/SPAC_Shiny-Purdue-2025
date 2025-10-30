@@ -2,10 +2,10 @@ from shiny import ui, render, reactive
 import anndata as ad
 import pandas as pd
 import spac.visualization
-
+import seaborn as sns
 
 def scatterplot_server(input, output, session, shared):
-    @reactive.Calc
+    @reactive.calc
     def get_scatterplot_names():
         obsm_list = shared['obsm_names'].get()
         var_list = shared['var_names'].get()
@@ -123,19 +123,27 @@ def scatterplot_server(input, output, session, shared):
         x_label = input.scatter_x()
         y_label = input.scatter_y()
         title = f"Scatterplot: {x_label} vs {y_label}"
+        font_size = input.scatter_font_size()
+        with sns.plotting_context(rc={"font.size": font_size,
+                                      "axes.labelsize": font_size,
+                                      "xtick.labelsize": font_size,
+                                      "ytick.labelsize": font_size,
+                                      "legend.fontsize": font_size,
+                                      "axes.titlesize": font_size * 1.2
+        }):
 
-        if color_enabled:
-            fig, ax = spac.visualization.visualize_2D_scatter(
-                x, y, labels=get_color_values()
-            )
-            for a in fig.axes:
-                if hasattr(a, "get_ylabel") and a != ax:
-                    a.set_ylabel(f"Colored by: {input.scatter_color()}")
-        else:
-            fig, ax = spac.visualization.visualize_2D_scatter(x, y)
+            if color_enabled:
+                fig, ax = spac.visualization.visualize_2D_scatter(
+                    x, y, labels=get_color_values()
+                )
+                for a in fig.axes:
+                    if hasattr(a, "get_ylabel") and a != ax:
+                        a.set_ylabel(f"Colored by: {input.scatter_color()}")
+            else:
+                fig, ax = spac.visualization.visualize_2D_scatter(x, y)
 
-        ax.set_title(title, fontsize=14)
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label)
+            ax.set_title(title, fontsize=font_size * 1.2)
+            ax.set_xlabel(x_label, fontsize=font_size)
+            ax.set_ylabel(y_label, fontsize=font_size)
 
-        return ax
+            return ax
