@@ -32,6 +32,13 @@ def umap_ui():
                             value=3,
                             step=0.1
                         ),
+                        ui.input_slider(
+                            "umap_font_size_1",
+                            "Font Size",
+                            min=5,
+                            max=30,
+                            value=12
+                        ),
                         ui.input_action_button(
                             "go_umap1", 
                             "Render Plot", 
@@ -65,6 +72,13 @@ def umap_ui():
                             max_val=10,
                             value=3,
                             step=0.1
+                        ),
+                        ui.input_slider(
+                            "umap_font_size_2",
+                            "Font Size",
+                            min=5,
+                            max=30,
+                            value=12
                         ),
                         ui.input_action_button(
                             "go_umap2", 
