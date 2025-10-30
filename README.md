@@ -46,10 +46,15 @@ First, [clone](https://docs.github.com/en/repositories/creating-and-managing-rep
 Then, use your terminal to navigate to the directory where the repository is.  
 i.e. ```cd location/to/repo```
 
-Ensure [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ```make``` are installed. 
+Ensure [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ```make``` are installed.  
+
+**For Docker:**   
+Make sure Docker is connected to your GitHub account. This is done during setup, but if you already have Docker but it isn't connected, navigate to your account settings > connected accounts.  
 
 **For ```make```:**  
-(Apple: ```xcode-select --install``` / Windows: ```choco install make```). ```make``` should be available on Linux. Open your terminal as Administrator on Windows when installing ```make```.
+(Apple: ```xcode-select --install``` / Windows: ```choco install make```). ```make``` should be available on Linux. Open your terminal as Administrator on Windows when installing ```make```.  
+
+Run ```git fetch``` and ```git pull``` to ensure you have the latest changes.  
 
 Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```
 
