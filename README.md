@@ -56,7 +56,7 @@ Make sure Docker is connected to your GitHub account. This is done during setup,
 
 Run ```git fetch origin``` and ```git pull origin``` to ensure you have the latest changes.  
 
-Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```. ```fetch ``` and ```pull``` again to be safe.
+Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```. ```fetch``` and ```pull``` again to be safe.
 
 Then, simply enter ```make run``` in your terminal to run the Shiny app at http://localhost:8001/.
 
