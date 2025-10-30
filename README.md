@@ -43,12 +43,12 @@ To enhance the analytical capabilities of SPAC, we integrated new clustering alg
 
 First, [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) or [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) the repository locally.
 
-Then, navigate to the directory where the repository is.
+Then, use your terminal to navigate to the directory where the repository is.
 i.e. ```cd location/to/repo```
 
 Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed.
 
-Open Docker Desktop, and use ```git branch -a``` to make sure you're on the right branch. If not, do ```git checkout <branch>```
+Open Docker Desktop, and use ```git branch -a``` in your terminal to make sure you're on the right branch. If not, do ```git checkout <branch>```
 
 Then, simply enter ```make run``` in your terminal to run the Shiny app.
 
