@@ -6,7 +6,7 @@ neighbor distances using the visualize_nearest_neighbor_template functionality.
 """
 
 from shiny import ui, render, reactive
-
+import seaborn as sns
 
 def nearest_neighbor_server(input, output, session, shared):
     """
@@ -28,7 +28,6 @@ def nearest_neighbor_server(input, output, session, shared):
     def get_adata():
         """Get the main AnnData object from shared state."""
         return shared['adata_main'].get()
-
     @reactive.calc
     def process_target_labels():
         """
@@ -65,11 +64,6 @@ def nearest_neighbor_server(input, output, session, shared):
         color_mapping = input.nn_color_mapping()
         return None if color_mapping == "None" else color_mapping
 
-    @reactive.calc
-    def get_font_size():
-        """Process font size, returning None if using default."""
-        font_size = input.nn_x_title_fontsize()
-        return font_size if font_size != 12 else None
 
     @output
     @render.plot
@@ -164,26 +158,28 @@ def nearest_neighbor_server(input, output, session, shared):
                 "Facet_Plot": input.nn_facet_plot(),
                 "X_Axis_Label_Rotation": input.nn_x_axis_rotation(),
                 "Shared_X_Axis_Title_": input.nn_shared_x_title(),
-                "X_Axis_Title_Font_Size": (input.nn_x_title_fontsize()
-                                           if input.nn_x_title_fontsize()
-                                           else "None"),
                 "Defined_Color_Mapping": get_color_mapping() or "None",
                 "Figure_Width": input.nn_figure_width(),
                 "Figure_Height": input.nn_figure_height(),
                 "Figure_DPI": input.nn_figure_dpi(),
-                "Font_Size": input.nn_font_size()
             }
+            font_size = input.nn_font_size()
+            with sns.plotting_context(rc={"font.size": font_size,
+                                          "axes.labelsize": font_size,
+                                          "xtick.labelsize": font_size,
+                                          "ytick.labelsize": font_size,
+                                          "legend.fontsize": font_size,
+                                          "axes.titlesize": font_size * 1.2}):
 
-            try:
-                # Call run_from_json with virtual path
-                figs, df_data = run_from_json(
-                    json_path=params,
-                    save_results=False,  # Return figures directly
-                    show_plot=False
-                )
-            finally:
-                # Clean up the memory registry
-                unregister_memory_object(virtual_path)
+                try:
+                    figs, df_data = run_from_json(
+                        json_path=params,
+                        save_results=False,  # Return figures directly
+                        show_plot=False
+                    )
+                finally:
+                    # Clean up the memory registry
+                    unregister_memory_object(virtual_path)
 
             # Store the data for download
             shared['df_nn'].set(df_data)
