@@ -43,7 +43,7 @@ To enhance the analytical capabilities of SPAC, we integrated new clustering alg
 
 First, [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) or [fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) the repository locally.
 
-Then, use your terminal to navigate to the directory where the repository is.
+Then, use your terminal to navigate to the directory where the repository is.  
 i.e. ```cd location/to/repo```
 
 Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) and ```make``` are installed (```xcode-select --install```/```choco install make```) Open your terminal as Administrator on Windows when installing ```make```.
