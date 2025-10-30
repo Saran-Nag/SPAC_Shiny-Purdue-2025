@@ -5,7 +5,7 @@ This module handles the server-side logic for visualizing precomputed nearest
 neighbor distances using the visualize_nearest_neighbor_template functionality.
 """
 
-from shiny import ui, render, reactive
+from shiny import ui, render, reactive, req
 
 
 def nearest_neighbor_server(input, output, session, shared):
@@ -62,8 +62,12 @@ def nearest_neighbor_server(input, output, session, shared):
     @reactive.calc
     def get_color_mapping():
         """Process color mapping selection."""
-        color_mapping = input.nn_color_mapping()
-        return None if color_mapping == "None" else color_mapping
+        try:
+            color_mapping = input.nn_color_mapping()
+            return None if color_mapping == "None" else color_mapping
+        except Exception:
+            # Return None if input not available yet (dynamic UI not rendered)
+            return None
 
     @reactive.calc
     def get_font_size():
