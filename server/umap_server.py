@@ -2,6 +2,7 @@ from shiny import ui, render, reactive
 import anndata as ad
 import pandas as pd
 import spac.visualization
+import matplotlib.pyplot as plt
 
 
 def umap_server(input, output, session, shared):
@@ -23,7 +24,11 @@ def umap_server(input, output, session, shared):
 
         method = input.plottype()
         point_size = input.umap_slider_1()
+        font_size = input.umap_font_size_1()
         mode = input.umap_rb()
+
+        # Added: This sets the font size for the entire plot
+        plt.rcParams.update({'font.size': font_size})
 
         if mode == "Feature":
             feature = input.umap_rb_feat()
@@ -31,13 +36,13 @@ def umap_server(input, output, session, shared):
             fig, ax = spac.visualization.dimensionality_reduction_plot(
                 adata, method=method, feature=feature, layer=layer, point_size=point_size
             )
-            ax.set_title(f"{method.upper()}: {feature}", fontsize=14)
+            ax.set_title(f"{method.upper()}: {feature}")
             ax.set_xlabel(f"{method.upper()} 1")
             ax.set_ylabel(f"{method.upper()} 2")
 
             for extra_ax in fig.axes:
                 if hasattr(extra_ax, "get_ylabel") and extra_ax != ax:
-                    extra_ax.set_ylabel(f"Colored by: {feature.upper()}", fontsize=12)
+                    extra_ax.set_ylabel(f"Colored by: {feature.upper()}")
 
             return fig
 
@@ -46,7 +51,7 @@ def umap_server(input, output, session, shared):
             fig, ax = spac.visualization.dimensionality_reduction_plot(
                 adata, method=method, annotation=annotation, point_size=point_size
             )
-            ax.set_title(f"{method.upper()}: {annotation}", fontsize=14)
+            ax.set_title(f"{method.upper()}: {annotation}")
             ax.set_xlabel(f"{method.upper()} 1")
             ax.set_ylabel(f"{method.upper()} 2")
 
@@ -150,19 +155,27 @@ def umap_server(input, output, session, shared):
         point_size = input.umap_slider_2()
         mode = input.umap_rb2()
 
+        # Added: This was the line causing the error. It reads the font
+        # size from the second slider.
+        font_size = input.umap_font_size_2()
+
+        # Added: This sets the font size for the entire plot
+        plt.rcParams.update({'font.size': font_size})
+
+
         if mode == "Feature":
             feature = input.umap_rb_feat2()
             layer = None if input.umap_layer2() == "Original" else input.umap_layer2()
             fig, ax = spac.visualization.dimensionality_reduction_plot(
                 adata, method=method, feature=feature, layer=layer, point_size=point_size
             )
-            ax.set_title(f"{method.upper()}: {feature}", fontsize=14)
+            ax.set_title(f"{method.upper()}: {feature}")
             ax.set_xlabel(f"{method.upper()} 1")
             ax.set_ylabel(f"{method.upper()} 2")
 
             for extra_ax in fig.axes:
                 if hasattr(extra_ax, "get_ylabel") and extra_ax != ax:
-                    extra_ax.set_ylabel(f"Colored by: {feature}", fontsize=12)
+                    extra_ax.set_ylabel(f"Colored by: {feature}")
 
             return fig
 
@@ -171,7 +184,7 @@ def umap_server(input, output, session, shared):
             fig, ax = spac.visualization.dimensionality_reduction_plot(
                 adata, method=method, annotation=annotation, point_size=point_size
             )
-            ax.set_title(f"{method.upper()}: {annotation}", fontsize=14)
+            ax.set_title(f"{method.upper()}: {annotation}")
             ax.set_xlabel(f"{method.upper()} 1")
             ax.set_ylabel(f"{method.upper()} 2")
 
