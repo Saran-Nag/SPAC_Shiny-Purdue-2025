@@ -38,6 +38,7 @@ def scatterplot_ui():
                             value=False
                         ),
                         ui.div(id="main-scatter_dropdown"),
+                        # Added...
                         ui.input_slider(
                             "scatter_font_size",
                             "Font Size",
@@ -63,4 +64,3 @@ def scatterplot_ui():
             )
         )
     )
-
