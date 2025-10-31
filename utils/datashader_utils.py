@@ -3,6 +3,7 @@ import datashader as ds
 import datashader.transfer_functions as tf
 from colorcet import fire
 
+# TODO: Recheck its logic.
 def scatter_heatmap(x, y, color=None, width=800, height=600):
     df = pd.DataFrame({'x': x, 'y': y})
     cvs = ds.Canvas(plot_width=width, plot_height=height)
