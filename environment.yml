@@ -1,3 +1,5 @@
+# This file may be outdated. Use requirements.txt to create environment instead.
+
 name: shiny
 channels:
   - ohsu-comp-bio

@@ -24,7 +24,7 @@ def anno_vs_anno_server(input, output, session, shared):
             )
             
             font_size = input.sankey_font_size()
-
+            
             # Modified... 
             # Applying font size directly to the Sankey trace for node and 
             # label text, as the global layout font can sometimes be ignored.

@@ -1,7 +1,9 @@
 from shiny import ui, render, reactive
 import numpy as np
 import spac.visualization
+# Added...
 import matplotlib.pyplot as plt
+
 def annotations_server(input, output, session, shared):
     @output
     @render.plot
@@ -10,36 +12,39 @@ def annotations_server(input, output, session, shared):
         adata = shared['adata_main'].get()
         if adata is None:
             return None
+
         # Added...
         # Note: This assumes your UI file has a slider with the id 'annotations_font_size'.
         # Please ensure this ID matches the one in your annotations_ui.py file.
         font_size = input.annotations_font_size()
         plt.rcParams.update({'font.size': font_size})
         rotation = input.anno_slider()
+
         # 1) If "Group By" is UNCHECKED, show a simple annotation histogram
         if not input.h2_group_by_check():
             fig, ax, df = spac.visualization.histogram(
                 adata,
                 annotation=input.h2_anno()
             ).values()
-            shared['df_histogram2'].set(df) 
+            shared['df_histogram2'].set(df)
+            # Modified...
             ax.tick_params(axis='x', rotation=rotation, labelsize=font_size)
             return fig
 
-        # 2) If "Group By" is CHECKED, we must always supply a 
+        # 2) If "Group By" is CHECKED, we must always supply a
         #    valid multiple parameter
         else:
-            # If user also checked "Plot Together", use their selected 
+            # If user also checked "Plot Together", use their selected
             # stack type
             if input.h2_together_check():
                 # e.g. 'stack', 'dodge', etc.
-                multiple_param = input.h2_together_drop()  
+                multiple_param = input.h2_together_drop()
 
                 together_flag = True
             else:
                 # If grouping by but not "plot together", pick a default layout
                 # or 'dodge' or any valid string
-                multiple_param = "layer"  
+                multiple_param = "layer"
                 together_flag = False
 
             fig, ax, df = spac.visualization.histogram(
@@ -49,7 +54,7 @@ def annotations_server(input, output, session, shared):
                 together=together_flag,
                 multiple=multiple_param
             ).values()
-            shared['df_histogram2'].set(df) 
+            shared['df_histogram2'].set(df)
             axes = ax if isinstance(ax, (list, np.ndarray)) else [ax]
             # Modified... (renamed loop variable to avoid shadowing)
             for current_ax in axes:
@@ -68,8 +73,8 @@ def annotations_server(input, output, session, shared):
     def download_histogram_button_ui():
         if shared['df_histogram2'].get() is not None:
             return ui.download_button(
-                "download_histogram2_df", 
-                "Download Data", 
+                "download_histogram2_df",
+                "Download Data",
                 class_="btn-warning"
             )
         return None
@@ -93,8 +98,8 @@ def annotations_server(input, output, session, shared):
 
         if btn and not ui_initialized:
             dropdown = ui.input_select(
-                "h2_anno_1", 
-                "Select an Annotation", 
+                "h2_anno_1",
+                "Select an Annotation",
                 choices=shared['obs_names'].get()
             )
             ui.insert_ui(
@@ -104,8 +109,8 @@ def annotations_server(input, output, session, shared):
             )
 
             together_check = ui.input_checkbox(
-                "h2_together_check", 
-                "Plot Together", 
+                "h2_together_check",
+                "Plot Together",
                 value=True
             )
             ui.insert_ui(
@@ -127,18 +132,18 @@ def annotations_server(input, output, session, shared):
     def update_stack_type_dropdown():
         if input.h2_together_check():
             dropdown_together = ui.input_select(
-                "h2_together_drop", 
-                "Select Stack Type", 
-                choices=['stack', 'layer', 'dodge', 'fill'], 
+                "h2_together_drop",
+                "Select Stack Type",
+                choices=['stack', 'layer', 'dodge', 'fill'],
                 selected='stack'
             )
             ui.insert_ui(
                 ui.div({
-                    "id": "inserted-dropdown_together-1"}, 
+                    "id": "inserted-dropdown_together-1"},
                     dropdown_together
                 ),
                 selector="#main-h2_together_drop",
                 where="beforeEnd"
-            )      
+            )
         else:
             ui.remove_ui("#inserted-dropdown_together-1")
