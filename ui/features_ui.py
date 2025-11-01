@@ -50,6 +50,7 @@ def features_ui():
                             value=0,
                             step=1
                         ),
+                        # Added...
                         ui.div(style="height: 20px;"),
                         ui.input_slider(
                             "features_font_size",

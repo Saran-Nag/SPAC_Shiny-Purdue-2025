@@ -46,6 +46,8 @@ def feat_vs_anno_server(input, output, session, shared):
             layers=shared['layers_data'].get(),
             dtype=shared['X_data'].get().dtype
         )
+        
+        # Refactor
         if adata is None:
             return None
 
@@ -79,12 +81,15 @@ def feat_vs_anno_server(input, output, session, shared):
 
         shared['df_heatmap'].set(df)
 
-        #Rotate X and Y axis labels
+        # Rotate x-axis labels
         fig.ax_heatmap.set_xticklabels(
             fig.ax_heatmap.get_xticklabels(),
             rotation=input.hm_x_label_rotation(),
             horizontalalignment='right'
         )
+
+        # Added...
+        # Rotate y-axis labels
         fig.ax_heatmap.set_yticklabels(
             fig.ax_heatmap.get_yticklabels(),
             rotation=input.hm_y_label_rotation(),
@@ -102,6 +107,7 @@ def feat_vs_anno_server(input, output, session, shared):
             abbreviated_yticks = abbreviate_labels(fig.ax_heatmap.get_yticklabels(), limit)
             fig.ax_heatmap.set_yticklabels(abbreviated_yticks, rotation=input.hm_y_label_rotation())
 
+        # Set axis font size and type
         for label in fig.ax_heatmap.get_xticklabels():
             label.set_fontsize(fontsize)
             label.set_fontfamily("DejaVu Sans")
@@ -109,6 +115,7 @@ def feat_vs_anno_server(input, output, session, shared):
             label.set_fontsize(fontsize)
             label.set_fontfamily("DejaVu Sans")
 
+        # fig is a seaborn.matrix.ClusterGrid
         fig.fig.subplots_adjust(bottom=0.4, left=0.1)
         return fig
 
@@ -203,6 +210,7 @@ def feat_vs_anno_server(input, output, session, shared):
             where="beforeEnd",
         )
 
+    # Set character limit slider
     @reactive.effect
     @reactive.event(input.enable_abbreviation)
     def toggle_label_char_limit_slider():

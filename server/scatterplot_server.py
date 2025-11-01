@@ -135,6 +135,7 @@ def scatterplot_server(input, output, session, shared):
                                     "legend.fontsize": font_size,
                                       "axes.titlesize": font_size * 1.2
         }):
+            # Added: Heatmap mode
             if heatmap_mode:
                 color = get_color_values() if color_enabled else None
                 img = scatter_heatmap(x, y, color)
@@ -145,6 +146,7 @@ def scatterplot_server(input, output, session, shared):
                 ax.set_ylabel(y_label)
                 ax.axis('on')  # Show axes
                 return fig
+            
             else:
                 if color_enabled:
                     fig, ax = spac.visualization.visualize_2D_scatter(
@@ -159,5 +161,4 @@ def scatterplot_server(input, output, session, shared):
                 ax.set_title(title, fontsize=font_size * 1.2)
                 ax.set_xlabel(x_label, fontsize=font_size)
                 ax.set_ylabel(y_label, fontsize=font_size)
-
-            return ax
+                return ax

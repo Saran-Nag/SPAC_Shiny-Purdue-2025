@@ -32,6 +32,7 @@ def scatterplot_ui():
                             "Color by Feature",
                             value=False
                         ),
+                        # Added: heatmap mode checkbox
                         ui.input_checkbox(
                             "scatter_heatmap_mode",
                             "Show as Heatmap",

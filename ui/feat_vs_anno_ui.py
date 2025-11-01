@@ -38,6 +38,9 @@ def feat_vs_anno_ui():
                             value=50,
                             step=1
                         ),
+
+                        # Added...
+                        # Y-axis label rotater
                         ui.input_slider(
                             "hm_y_label_rotation", 
                             "Rotate Y Axis Labels", 
@@ -46,6 +49,7 @@ def feat_vs_anno_ui():
                             value=25
                         ),
 
+                        # Font slider
                         ui.input_slider(
                             "axis_label_fontsize",
                             "Axis Label Font Size",
@@ -54,13 +58,13 @@ def feat_vs_anno_ui():
                             value=10
                         ),
                         
-                        
+                        # Abbreviate toggle 
                         ui.input_checkbox(
                             "enable_abbreviation",
                             "Abbreviate Axis Labels",
                             value=False
                         ),
-                        
+                        # place-holder for a dropdown character limit slider
                         ui.div(id="main-hm1_check"), 
 
                         ui.input_checkbox(
@@ -79,8 +83,6 @@ def feat_vs_anno_ui():
                             "Render Plot",
                             class_="btn-success"
                         ),
-                            
-
                         
                         ui.div(
                             {"style": "padding-top: 20px;"},
