@@ -131,7 +131,6 @@ def scatterplot_server(input, output, session, shared):
                                       "legend.fontsize": font_size,
                                       "axes.titlesize": font_size * 1.2
         }):
-
             if color_enabled:
                 fig, ax = spac.visualization.visualize_2D_scatter(
                     x, y, labels=get_color_values()

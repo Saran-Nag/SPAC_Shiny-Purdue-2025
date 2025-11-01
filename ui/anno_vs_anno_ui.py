@@ -144,13 +144,13 @@ def anno_vs_anno_ui():
                         selected=[]
                     ),
                     # Added...
-                        ui.input_slider(
-                            "heatmap_font_size",
-                            "Font Size",
-                            min=5,
-                            max=30,
-                            value=12
-                        ),
+                    ui.input_slider(
+                        "heatmap_font_size",
+                        "Font Size",
+                        min=5,
+                        max=30,
+                        value=12
+                    ),
                     ui.input_action_button(
                         "go_rhm1",
                         "Generate Heatmap",
