@@ -78,11 +78,13 @@ These tools are integral to the "scverse" ecosystem, ensuring compatibility with
     *   Noah Lee
     *   Heaven Golladay-Watkins
     *   Arjun Chhabra
+    *   Nila Kumar
 
 *   **Teaching Assistants from Purdue's Data Mine:**
     *   Alex Liu
     *   Omar Eldaghar
     *   Thomas Sheeley
+    *   Ramya Rajaram
 
 *   **Additional Support:**
     *   Fang Liu and Rui He
