@@ -18,10 +18,12 @@ dependencies:
   - squidpy=1.2.2
   - scikit-image=0.19.3
   - scipy=1.10.1
+  # Added: packages for heatmap mode in scatterplot
+  - colorcet
+  - datashader==0.16.3
+  - dask==2024.2.1    # Need older version of 'dask' to be compatible with panda 1.5.3
   - pip
   - pip:
-      - colorcet
-      - git+https://github.com/holoviz/datashader.git
       - ipykernel==6.29.5
       - ipython==8.18.0
       - ipython-genutils==0.2.0
