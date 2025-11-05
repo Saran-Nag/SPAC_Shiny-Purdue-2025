@@ -33,13 +33,6 @@ def spatial_ui():
                             value=3,
                             step=1
                         ),
-                        ui.input_slider(
-                            "spatial_font_size",
-                            "Font Size",
-                            min=5,
-                            max=30,
-                            value=12
-                        ),
                         # Added...
                         ui.input_slider(
                             "spatial_font_size",
