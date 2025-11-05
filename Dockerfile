@@ -1,9 +1,5 @@
 # Use official Python image as base
-# Fix: python version conflicts (Issue #15 in Purdue-2025 fork)
-# Error message when building docker:
-# Package 'datashader' requires a different Python: 3.9.19 not in '>=3.10'
-# FROM python:3.9.19-slim-bookworm
-FROM python:3.10-slim-bookworm
+FROM python:3.9.19-slim-bookworm
 
 # Set working directory
 WORKDIR /app
