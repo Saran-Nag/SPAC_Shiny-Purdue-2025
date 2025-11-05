@@ -194,6 +194,16 @@ def nearest_neighbor_ui():
                                             value=12
                                         ),
                                         ui.row(
+                                            # ui.column(
+                                            #     6,
+                                            #     ui.input_numeric(
+                                            #         "nn_font_size",
+                                            #         "Font Size",
+                                            #         value=11,
+                                            #         min=8,
+                                            #         max=20
+                                            #     ),
+                                            # ),
                                             ui.column(
                                                 6,
                                                 ui.input_numeric(
