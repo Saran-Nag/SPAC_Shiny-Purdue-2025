@@ -25,7 +25,7 @@ channels:
   - leej3
   - https://fnlcr-dmap.github.io/scimap/
 dependencies:
-  - python=3.10.19  # To support datashader, need python>=3.10
+  - python=3.9.19   # To be consistent with requirement.txt
   - numpy=1.26.4
   - pandas=1.5.3
   - anndata=0.10.9
@@ -38,6 +38,10 @@ dependencies:
   - squidpy=1.2.2
   - scikit-image=0.19.3
   - scipy=1.10.1
+  # Added: packages for heatmap mode in scatterplot
+  - colorcet
+  - datashader==0.16.3
+  - dask==2024.2.1    # Needed older version of 'dask' to be compatible with panda 1.5.3
   # For macOS (MacArm64) users, uncomment the following three lines
   # - tables>=3.8.0
   # - c-blosc2
@@ -86,9 +90,6 @@ dependencies:
       - tifffile
       - shapely==2.0.7  # To be consistent with requirement.txt
       - sag-py-execution-time-decorator @ git+https://github.com/SamhammerAG/sag_py_execution_time_decorator.git@976c9683d561aadc0166495117c42cc1762633d7
-      # Added: packages for heatmap mode in scatterplot
-      - colorcet
-      - git+https://github.com/holoviz/datashader.git
       # SPAC package pinned to specific commit for template compatibility (dev branch as of 2025-10-15)
       - spac @ git+https://github.com/FNLCR-DMAP/SCSAWorkflow.git@c2a248826b91880c62308e85e60cae9361c275d0#egg=spac
 
