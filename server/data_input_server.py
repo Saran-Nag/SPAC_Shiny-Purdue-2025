@@ -1,6 +1,300 @@
+"""
+Data input server module for SPAC Shiny application.
+
+This module handles file uploads and data loading with caching support
+for improved performance across all analysis modules.
+"""
+
 from shiny import render, reactive
+from utils.data_processing import cached_load_data
 import pickle
 import anndata as ad
+
+
+def data_input_server(input, output, session, shared):
+    """
+    Server logic for data input and loading.
+    
+    Parameters
+    ----------
+    input : shiny.session.Inputs
+        Shiny input object
+    output : shiny.session.Outputs
+        Shiny output object
+    session : shiny.session.Session
+        Shiny session object
+    shared : dict
+        Shared reactive values across modules
+    """
+    
+    @reactive.Effect
+    def adata_filter():
+        """
+        Load and cache AnnData from file upload or preloaded data.
+        
+        Uses cached loading to avoid repeated file I/O, providing
+        performance benefits across all analysis modules.
+        """
+        print("Calling Data")
+        file_info = input.input_file()
+        
+        if not file_info:
+            # Only set preloaded data if it exists
+            if shared['preloaded_data'] is not None:
+                shared['adata_main'].set(shared['preloaded_data'])
+                shared['data_loaded'].set(True)
+            else:
+                shared['data_loaded'].set(False)
+        else:
+            file_path = file_info[0]['datapath']
+            # Use cached loader for performance - data shared across all modules
+            shared['adata_main'].set(cached_load_data(file_path))
+            shared['data_loaded'].set(True)
+
+    @reactive.Effect
+    def update_parts():
+        """
+        Extract and update shared data components from loaded AnnData.
+        
+        Parses the main AnnData object and populates shared reactive
+        values for use across all modules (spatial, violin, etc.).
+        """
+        print("Updating Parts")
+        adata = shared['adata_main'].get()
+        
+        if adata is not None:
+            # Extract all AnnData components
+            if hasattr(adata, 'X'):
+                shared['X_data'].set(adata.X)
+            else:
+                shared['X_data'].set(None)
+
+            if hasattr(adata, 'obs'):
+                shared['obs_data'].set(adata.obs)
+            else:
+                shared['obs_data'].set(None)
+
+            if hasattr(adata, 'obsm'):
+                shared['obsm_data'].set(adata.obsm)
+            else:
+                shared['obsm_data'].set(None)
+
+            if hasattr(adata, 'layers'):
+                shared['layers_data'].set(adata.layers)
+            else:
+                shared['layers_data'].set(None)
+
+            if hasattr(adata, 'var'):
+                shared['var_data'].set(adata.var)
+            else:
+                shared['var_data'].set(None)
+
+            if hasattr(adata, 'uns'):
+                shared['uns_data'].set(adata.uns)
+            else:
+                shared['uns_data'].set(None)
+
+            shared['shape_data'].set(adata.shape)
+
+            if hasattr(adata, 'obs'):
+                shared['obs_names'].set(list(adata.obs.keys()))
+            else:
+                shared['obs_names'].set(None)
+
+            if hasattr(adata, 'obsm'):
+                shared['obsm_names'].set(list(adata.obsm.keys()))
+            else:
+                shared['obsm_names'].set(None)
+
+            if hasattr(adata, 'layers'):
+                shared['layers_names'].set(list(adata.layers.keys()))
+            else:
+                shared['layers_names'].set(None)
+
+            if hasattr(adata, 'var'):
+                shared['var_names'].set(list(adata.var.index.tolist()))
+            else:
+                shared['var_names'].set(None)
+
+            if hasattr(adata, 'uns'):
+                shared['uns_names'].set(list(adata.uns.keys()))
+            else:
+                shared['uns_names'].set(None)
+
+            # Extract spatial distance columns
+            from utils.data_processing import get_spatial_distance_columns
+            spatial_cols = get_spatial_distance_columns(adata)
+            shared['spatial_distance_columns'].set(spatial_cols)
+        else:
+            # Clear all shared data if no AnnData loaded
+            shared['obs_data'].set(None)
+            shared['obsm_data'].set(None)
+            shared['layers_data'].set(None)
+            shared['var_data'].set(None)
+            shared['uns_data'].set(None)
+            shared['shape_data'].set(None)
+            shared['obs_names'].set(None)
+            shared['obsm_names'].set(None)
+            shared['layers_names'].set(None)
+            shared['var_names'].set(None)
+            shared['uns_names'].set(None)
+            shared['spatial_distance_columns'].set(None)
+
+    # ...existing render functions (print_obs_names, formatted_obs_names, etc.)...
+    # Keep all your existing @reactive.Calc and @render.text/ui functions
+    
+    @reactive.Calc
+    @render.text
+    def print_obs_names():
+        obs = shared['obs_names'].get()
+        if not obs:
+            return "Annotations: None"
+        if obs is not None:
+            if len(obs) > 1:
+                obs_str = ", ".join(obs)
+            else:
+                obs_str = obs[0] if obs else ""
+            return "Annotations: " + obs_str
+        else:
+            return "Empty"
+
+    @reactive.Calc
+    @render.text
+    def print_obsm_names():
+        obsm = shared['obsm_names'].get()
+        if not obsm:
+            return "Associated Tables: None"
+        if obsm is not None:
+            if len(obsm) > 1:
+                obsm_str = ", ".join(obsm)
+            else:
+                obsm_str = obsm[0] if obsm else ""
+            return "Associated Tables: " + obsm_str
+        else:
+            return "Empty"
+
+    @reactive.Calc
+    @render.text
+    def print_layers_names():
+        layers = shared['layers_names'].get()
+        if not layers:
+            return "Tables: None"
+        if len(layers) > 1:
+            layers_str = ", ".join(layers)
+        else:
+            layers_str = layers[0]
+        return "Tables: " + layers_str
+
+    @reactive.Calc
+    @render.text
+    def print_uns_names():
+        uns = shared['uns_names'].get()
+        if not uns:
+            return "Unstructured Data: None"
+        if uns is not None:
+            if len(uns) > 1:
+                uns_str = ", ".join(uns)
+            else:
+                uns_str = uns[0] if uns else ""
+            return "Unstructured Data: " + uns_str
+
+    @reactive.Calc
+    @render.text
+    def print_rows():
+        shape = shared['shape_data'].get()
+        if not shape:
+            return "None"
+        if shape is not None:
+            return str(shape[0])
+        else:
+            return "Empty"
+
+    @reactive.Calc
+    @render.text
+    def print_columns():
+        shape = shared['shape_data'].get()
+        if not shape:
+            return "None"
+        if shape is not None:
+            return str(shape[1])
+        else:
+            return "Empty"
+
+    @reactive.Calc
+    @render.ui
+    def formatted_obs_names():
+        from shiny import ui
+        obs = shared['obs_names'].get()
+        if not obs:
+            return ui.div("No annotations available", class_="text-muted")
+        if obs is not None and len(obs) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in obs
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_obsm_names():
+        from shiny import ui
+        obsm = shared['obsm_names'].get()
+        if not obsm:
+            return ui.div("No associated tables available", class_="text-muted")
+        if obsm is not None and len(obsm) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in obsm
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_layers_names():
+        from shiny import ui
+        layers = shared['layers_names'].get()
+        if not layers:
+            return ui.div("No tables available", class_="text-muted")
+        if layers is not None and len(layers) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in layers
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
+
+    @reactive.Calc
+    @render.ui
+    def formatted_uns_names():
+        from shiny import ui
+        uns = shared['uns_names'].get()
+        if not uns:
+            return ui.div("No unstructured data available", class_="text-muted")
+        if uns is not None and len(uns) > 0:
+            items = [
+                ui.div(
+                    ui.span("•", class_="metric-bullet"),
+                    ui.span(name, class_="metric-text"),
+                    class_="metric-item"
+                ) for name in uns
+            ]
+            return ui.div(*items)
+        else:
+            return ui.div("No data loaded", class_="text-muted")
 
 
 def data_input_server(input, output, session, shared):
