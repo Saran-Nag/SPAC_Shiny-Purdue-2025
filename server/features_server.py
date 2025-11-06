@@ -60,7 +60,7 @@ def features_server(input, output, session, shared):
     @render.download(filename="features_histogram_data.csv")
     def download_histogram1_df():
         df = shared['df_histogram1'].get()
-        if df is not None:
+        if df:
             csv_string = df.to_csv(index=False)
             csv_bytes = csv_string.encode("utf-8")
             return csv_bytes, "text/csv"

@@ -34,7 +34,7 @@ def feat_vs_anno_server(input, output, session, shared):
             layers=shared['layers_data'].get(), 
             dtype=shared['X_data'].get().dtype
         )
-        if adata is not None:
+        if adata:
             vmin = input.min_select()
             vmax = input.max_select()  
             cmap = input.hm1_cmap()  # Get the selected color map from the dropdown 
