@@ -59,23 +59,24 @@ def annotations_server(input, output, session, shared):
     @render.ui
     @reactive.event(input.go_h2, ignore_none=True)
     def download_histogram_button_ui():
-        if shared['df_histogram2'].get() is not None:
-            return ui.download_button(
-                "download_histogram2_df", 
-                "Download Data", 
-                class_="btn-warning"
-            )
-        return None
+        if shared['df_histogram2'].get() is None:
+            return None
+        return ui.download_button(
+            "download_histogram2_df",
+            "Download Data",
+            class_="btn-warning"
+        )
+
 
 
     @render.download(filename="annotation_histogram_data.csv")
     def download_histogram2_df():
         df = shared['df_histogram2'].get()
-        if df is not None:
-            csv_string = df.to_csv(index=False)
-            csv_bytes = csv_string.encode("utf-8")
-            return csv_bytes, "text/csv"
-        return None
+        if df is None:
+            return None
+        csv_string = df.to_csv(index=False)
+        csv_bytes = csv_string.encode("utf-8")
+        return csv_bytes, "text/csv"
 
     histogram2_ui_initialized = reactive.Value(False)
 

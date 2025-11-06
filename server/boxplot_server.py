@@ -43,49 +43,49 @@ def boxplot_server(input, output, session, shared):
             )
 
             # Proceed only if adata is valid
-            if adata is not None and adata.var is not None:
+            if adata is None and adata.var is None:
+                return None
 
-                fig, df = spac.visualization.boxplot_interactive(
-                    adata, 
-                    annotation=on_anno_check(), 
-                    layer=on_layer_check(), 
-                    features=list(input.bp_features()),
-                    showfliers=on_outlier_check(),
-                    log_scale=input.bp_log_scale(),
-                    orient=on_orient_check(),
-                    figure_height=3, 
-                    figure_width=4.8, 
-                    figure_type="interactive"
-                ).values()
+            fig, df = spac.visualization.boxplot_interactive(
+                adata,
+                annotation=on_anno_check(),
+                layer=on_layer_check(),
+                features=list(input.bp_features()),
+                showfliers=on_outlier_check(),
+                log_scale=input.bp_log_scale(),
+                orient=on_orient_check(),
+                figure_height=3,
+                figure_width=4.8,
+                figure_type="interactive"
+            ).values()
 
-                # Return the interactive Plotly figure object
-                shared['df_boxplot'].set(df)
-                print(type(fig))
-                return fig
+            # Return the interactive Plotly figure object
+            shared['df_boxplot'].set(df)
+            print(type(fig))
+            return fig
 
-        return None
 
 
     @render.download(filename="boxplot_data.csv")
     def download_boxplot():
         df = shared['df_boxplot'].get()
-        if df is not None:
-            csv_string = df.to_csv(index=False)
-            csv_bytes = csv_string.encode("utf-8")
-            return csv_bytes, "text/csv"
-        return None
+        if df is None:
+            return None
+        csv_string = df.to_csv(index=False)
+        csv_bytes = csv_string.encode("utf-8")
+        return csv_bytes, "text/csv"
 
 
     @render.ui
     @reactive.event(input.go_bp, ignore_none=True)
     def download_button_ui1():
-        if shared['df_boxplot'].get() is not None:
-            return ui.download_button(
-                "download_boxplot", 
-                "Download Data", 
-                class_="btn-warning"
-            )
-        return None
+        if shared['df_boxplot'].get() is None:
+            return None
+        return ui.download_button(
+            "download_boxplot",
+            "Download Data",
+            class_="btn-warning"
+        )
 
 
     @output
@@ -112,22 +112,22 @@ def boxplot_server(input, output, session, shared):
             )
 
             # Proceed only if adata is valid
-            if adata is not None and adata.var is not None:
+            if adata is None and adata.var is None:
+                return None
                 
-                fig, df = spac.visualization.boxplot_interactive(
-                    adata, 
-                    annotation=on_anno_check(), 
-                    layer=on_layer_check(), 
-                    features=list(input.bp_features()),
-                    showfliers=on_outlier_check(),
-                    log_scale=input.bp_log_scale(),
-                    orient=on_orient_check(),
-                    figure_height=3, 
-                    figure_width=4.8, 
-                    figure_type="static"
-                ).values()
+            fig, df = spac.visualization.boxplot_interactive(
+                adata,
+                annotation=on_anno_check(),
+                layer=on_layer_check(),
+                features=list(input.bp_features()),
+                showfliers=on_outlier_check(),
+                log_scale=input.bp_log_scale(),
+                orient=on_orient_check(),
+                figure_height=3,
+                figure_width=4.8,
+                figure_type="static"
+            ).values()
 
-                return fig
+            return fig
 
-        return None
 
