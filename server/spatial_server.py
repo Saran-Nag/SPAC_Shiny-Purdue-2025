@@ -109,7 +109,7 @@ def spatial_server(input, output, session, shared):
         )
         slide_check = input.slide_select_check()
         region_check = input.region_select_check()
-        if adata is not None:
+        if adata:
             if slide_check is False and region_check is False:
                 adata_subset = adata
             elif slide_check is True and region_check is False:
@@ -185,7 +185,7 @@ def spatial_server(input, output, session, shared):
     @reactive.effect
     def spatial_reactivity():
         flipper = shared['data_loaded'].get()
-        if flipper is not False:
+        if flipper:
             btn = input.spatial_rb()
 
             if btn == "Annotation":

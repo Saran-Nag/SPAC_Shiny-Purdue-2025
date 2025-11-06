@@ -61,7 +61,7 @@ def umap_server(input, output, session, shared):
     @reactive.effect
     def umap_reactivity():
         flipper = shared['data_loaded'].get()
-        if flipper is not False:
+        if flipper:
             btn = input.umap_rb()
 
             if btn == "Annotation":
@@ -186,7 +186,7 @@ def umap_server(input, output, session, shared):
     @reactive.effect
     def umap_reactivity2():
         flipper = shared['data_loaded'].get()
-        if flipper is not False:
+        if flipper:
             btn = input.umap_rb2()
 
             if btn == "Annotation":
