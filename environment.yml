@@ -38,10 +38,6 @@ dependencies:
   - squidpy=1.2.2
   - scikit-image=0.19.3
   - scipy=1.10.1
-  # Added: packages for heatmap mode in scatterplot
-  - colorcet
-  - datashader==0.16.3
-  - dask==2024.2.1    # Need older version of 'dask' to be compatible with panda 1.5.3
   # For macOS (MacArm64) users, uncomment the following three lines
   # - tables>=3.8.0
   # - c-blosc2
