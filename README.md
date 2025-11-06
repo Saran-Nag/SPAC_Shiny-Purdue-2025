@@ -1,70 +1,85 @@
-# SPAC_Shiny
+# SPAC Interactive Visualization
 
-SPAC_Shiny is the The Shiny Interactive Realtime Dashboard for SPAC, designed to empower researchers with intuitive, dynamic, and customizable visualization tools for spatial single-cell datasets derived from cancerous tumors. Built using the Shiny platform, SPAC_SHINY streamlines the exploration and analysis of complex biological data through a user-friendly dashboard interface.
+**Real-time dashboard for spatial single-cell data exploration**
 
-## Project Overview and Contributions
+An interactive Shiny for Python dashboard that transforms complex spatial
+single-cell datasets into dynamic, explorable visualizations. Just upload your
+analyzed data and start discovering biological insights through intuitive point-and-click analysis.
 
-This project involved a collaborative effort between the Frederick National Laboratory for Cancer Research (FNL), Purdue University, and The Data Mine project. Our team worked closely with FNL throughout the project, coordinating efforts to significantly enhance the functionality and performance of the SPAC library.
+## Why Use This Dashboard?
 
-## User Experience
+Spatial single-cell datasets are complex and difficult to explore. This interactive dashboard solves that by providing:
 
-A look at the redesigned SPAC_SHINY dashboard, highlighting new features and enhanced interactivity:
-![SPAC_SHINY New UI](https://github.com/user-attachments/assets/e5b42da3-0af6-4439-bd27-4a0bba71d04d)
+- **Live exploration** - Click, filter, and zoom through your spatial data in real-time
+- **No coding required** - Intuitive interface for biologists
+- **Multiple view types** - Spatial maps, dimensionality reduction plots, heatmaps, and statistics
+- **Hypothesis testing** - Quickly subset data and compare cell populations interactively
 
-## Key Features & Enhancements
+![SPAC Interactive Dashboard](spac-screen.png)
 
-### Front-End Interface Expansion
-We dramatically expanded the functionality of the front-end interface, adding nearly **50 new UI features**. These enhancements include:
-*   **Customization of parameter options:** Allowing users to fine-tune visualization settings.
-*   **UI elements for adjusting styling:** Providing control over the aesthetic elements of generated plots.
-*   **Novel features for flexible subsetting and data wrangling:** Enabling more dynamic data exploration and display within the UI.
+## Interactive Features
 
-### Optimization of SPAC Visualizations
-A major focus was on characterizing and optimizing the run times of SPAC visualizations. By refactoring existing functions to utilize optimal computational methods, we achieved substantial performance gains:
-*   **Characterizing Visualization Run Times:** Thorough analysis was conducted to pinpoint performance bottlenecks.
-*   **Refactoring for Efficiency:** Existing visualization functions were re-engineered for improved speed.
+### �️ **Spatial Visualization**
+- **Interactive tissue maps** - Color cells by any feature, zoom into regions of interest
+- **Real-time filtering** - Subset cells based on expression, location, or annotations
+- **Customizable styling** - Adjust colors, point sizes, and transparency on-the-fly
 
-**Optimization Results:**
-We observed significant improvements in the performance of key visualization functions:
+### 📊 **Statistical Exploration**
+- **Dynamic plots** - UMAP, t-SNE, heatmaps, boxplots that update as you filter data
+- **Comparative analysis** - Side-by-side visualization of different conditions or cell types
+- **Export ready figures** - Generate and download publication-quality plots directly from the interface
 
-| Visualization         | Dataset Size           | Original Implementation | New Implementation | Efficiency Increase |
-| :-------------------- | :--------------------- | :---------------------- | :----------------- | :------------------ |
-| Boxplot               | 10 Million cells with annotations | 20.91 seconds           | 2.28 seconds       | **917%**            |
-| Histogram             | 10 Million cells with annotations | 1.21 seconds            | 0.17 seconds       | **712%**            |
+## Quick Start
 
-These optimizations resulted in a nearly **10x speedup** for existing boxplot and histogram visualization functions.
+### 🚀 Try the Live Demo
+**No installation needed!** Explore SPAC with sample data:
 
-### Implementation of Clustering Algorithms
-To enhance the analytical capabilities of SPAC, we integrated new clustering algorithms into the Python package:
-*   **K-Nearest Neighbors**
-*   **K-Means**
+👉 **[Launch Interactive Demo](https://appshare.cancer.gov/spac-interactive-visualization/)**
 
-## Acknowledgements and Credits
+### 💻 Run Locally with Docker
+```bash
+git clone https://github.com/FNLCR-DMAP/SPAC_Shiny.git
+cd SPAC_Shiny
+make run
+```
 
-This project was a success thanks to the invaluable collaboration and support from several key institutions and individuals:
+Open your browser to `http://localhost:8001` to start exploring!
 
-*   **Frederick National Laboratory for Cancer Research (FNL):** For their guidance, expertise, and close coordination throughout the project. Special thanks to our FNL mentor, George Zaki.
-*   **Purdue University:** For facilitating this research and development effort.
-*   **The Data Mine Project at Purdue University:** For providing the framework and resources for this collaborative student-led initiative.
-*   **Purdue Institute for Cancer Research:** For facilitating collaboration between Purdue University and the Frederick National Laboratory for Cancer Research
-*   **Project Team Members:**
-    *   Aileen Chow
-    *   Ahmad Abdallah
-    *   Arshnoor Randhawa
-    *   Ella Delvecchio
-    *   Jiazhen Li
-    *   Liza Shchehlik
-    *   Megan Lawson
-    *   Mustapha Braimoh
-    *   Ruhi Sharmin
-    *   Sam Ying
-    *   Shamita Yediapalli
-    *   Anthony Cusimano
-    *   Suriya Selvarajan
-    *   Qianyue Wang
-    *   Andree Kolliegbo
-*   **Teaching Assistants (TAs) from Purdue's Data Mine:**
-    *   Alex Liu
-    *   Omar Eldaghar
-    *   Thomas Sheeley
-*   **Additional Support:** Kang Liu and Rui He, and the entire Data Mine staff.
+#### Other Useful Commands
+```bash
+make help      # Show all available commands
+make logs      # View application logs
+make stop      # Stop the container
+make clean     # Remove container and image
+```
+
+### Load Your Data
+Supports common spatial single-cell formats:
+- **AnnData (.h5ad or pickle files)** - Standard format with spatial coordinates and features
+
+## What You Can Explore
+
+Perfect for analyzing:
+- **Multiplex imaging data** (IMC, MIBI, MxIF, CyCIF, CODEX)
+- **Spatial transcriptomics** (Visium, Xenium, MERFISH)
+- **Tumor microenvironments** and tissue architecture
+- **Cell-cell interactions** and spatial patterns
+
+## Documentation & Support
+
+- **[Getting Started Guide](getting_started.md)** - Step-by-step usage instructions
+- **[Technical Details](TECHNICAL_DETAILS.md)** - Full project documentation and benchmarks
+- **Issues**: [GitHub Issues](https://github.com/FNLCR-DMAP/SPAC_Shiny/issues)
+- **Contact**: george.zaki@nih.gov
+
+## Citation
+
+```
+Liu, F., He, R., Sheeley, T., et al. SPAC: A Scalable and Integrated Enterprise
+Platform for Single-Cell Spatial Analysis. [under review] (2025)
+```
+
+---
+
+Developed by Frederick National Laboratory for Cancer Research and Purdue Data
+Mine
