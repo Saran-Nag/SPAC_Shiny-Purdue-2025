@@ -2,6 +2,6 @@
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given.
 
-Please refer to this copilot-based instructions for SPAC Shiny development: https://github.com/FNLCR-DMAP/SPAC_Shiny/blob/main/.github/copilot-instructions.md
+Please refer to this [contributing guide](https://github.com/FNLCR-DMAP/SCSAWorkflow/blob/main/CONTRIBUTING.md) in the SPAC Package project for general contributing information.
 
-Also refer to this contributing guide in the SPAC Package project for more information: https://github.com/FNLCR-DMAP/SCSAWorkflow/blob/main/CONTRIBUTING.md
+Also this [Copilot Instructions for SPAC Shiny for Python Development](.github/copilot-instructions.md) is helpful.
