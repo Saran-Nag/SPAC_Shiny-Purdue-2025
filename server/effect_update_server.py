@@ -160,7 +160,7 @@ def effect_update_server(input, output, session, shared):
         obsm = shared['obsm_names'].get()
         if not obsm:
             return "Associated Tables: None"
-        if obsm is not None:
+        if obsm:
             if len(obsm) > 1:
                 obsm_str = ", ".join(obsm)
             else:

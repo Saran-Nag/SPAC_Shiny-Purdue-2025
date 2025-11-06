@@ -11,9 +11,9 @@ def anno_vs_anno_server(input, output, session, shared):
     @reactive.event(input.go_sk1, ignore_none=True)
     def spac_Sankey():
         adata = ad.AnnData(
-            X=shared['X_data'].get(), 
-            obs=pd.DataFrame(shared['obs_data'].get()), 
-            layers=shared['layers_data'].get(), 
+            X=shared['X_data'].get(),
+            obs=pd.DataFrame(shared['obs_data'].get()),
+            layers=shared['layers_data'].get(),
             dtype=shared['X_data'].get().dtype
         )
         if adata is None:
@@ -30,7 +30,7 @@ def anno_vs_anno_server(input, output, session, shared):
     @reactive.event(input.go_rhm1, ignore_none=True)
     def spac_Relational():
         adata = ad.AnnData(
-            X=shared['X_data'].get(), 
+            X=shared['X_data'].get(),
             obs=pd.DataFrame(shared['obs_data'].get())
         )
         if adata is None:

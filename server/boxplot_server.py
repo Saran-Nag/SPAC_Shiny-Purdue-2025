@@ -6,7 +6,7 @@ import spac.visualization
 
 
 def boxplot_server(input, output, session, shared):
-   # Helper functions for reusability
+# Helper functions for reusability
     def on_outlier_check():
         selected_choice = input.bp_outlier_check()
         return None if selected_choice == "none" else selected_choice
@@ -32,13 +32,12 @@ def boxplot_server(input, output, session, shared):
 
         if not input.bp_output_type():
             return None
-        else: 
-
+        else:
             adata = ad.AnnData(
-                X=shared['X_data'].get(), 
-                obs=pd.DataFrame(shared['obs_data'].get()), 
-                var=pd.DataFrame(shared['var_data'].get()), 
-                layers=shared['layers_data'].get(), 
+                X=shared['X_data'].get(),
+                obs=pd.DataFrame(shared['obs_data'].get()),
+                var=pd.DataFrame(shared['var_data'].get()),
+                layers=shared['layers_data'].get(),
                 dtype=shared['X_data'].get().dtype
             )
 
@@ -96,25 +95,24 @@ def boxplot_server(input, output, session, shared):
         This function produces a static (Plotly) boxplot image.
         """
 
-         # Only run this function if both conditions are met
+        # Only run this function if both conditions are met
 
         if input.bp_output_type():
             return None
 
-        else: 
-
+        else:
             adata = ad.AnnData(
-                X=shared['X_data'].get(), 
-                obs=pd.DataFrame(shared['obs_data'].get()), 
-                var=pd.DataFrame(shared['var_data'].get()), 
-                layers=shared['layers_data'].get(), 
+                X=shared['X_data'].get(),
+                obs=pd.DataFrame(shared['obs_data'].get()),
+                var=pd.DataFrame(shared['var_data'].get()),
+                layers=shared['layers_data'].get(),
                 dtype=shared['X_data'].get().dtype
             )
 
             # Proceed only if adata is valid
             if adata is None and adata.var is None:
                 return None
-                
+
             fig, df = spac.visualization.boxplot_interactive(
                 adata,
                 annotation=on_anno_check(),
