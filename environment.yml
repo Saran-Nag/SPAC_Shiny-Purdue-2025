@@ -1,16 +1,14 @@
 # Warning: 
-# This file may be outdated. Check with requirements.txt to get the latest environmental requirements.
-# This is a file for conda users to create an environment. 
+# This file may be outdated. See requirements.txt to get the latest dependencies.
 
-# Quick Guide:
-# 1. Make sure you are in the repository's directory and 'conda' is installed.
-# 2. Run 'conda env create -f environment.yml' to create the conda environment.
-# 3. Run 'conda activate shiny' to activate this environment.
-# 4. Run 'shiny run --reload app.py' to run the app.
+# Quick Start:
+# This is a file for conda users. For general users, you may use docker instead.
+# 1. Create and activate the conda environment with this file in the usual way.
+# 2. Run 'shiny run --reload app.py' in the terminal. 
 # The app will be available at http://127.0.0.1:8000.
 
-# Special Reminder:
-# For macOS (MacArm64) users, make these edits to the environment.yml file:
+# Special Reminder for macOS (MacArm64) users:
+# Make these edits before you create the conda environment:
 # Under dependencies, add these lines:
 # - tables>=3.8.0
 # - c-blosc2
