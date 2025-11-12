@@ -43,3 +43,16 @@ Thumbs.db
 # Documentation
 *.md
 LICENSE
+
+# Docker files (ADDED - don't copy Dockerfiles into the image)
+Dockerfile
+base.Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose*.yml
+
+# Build artifacts (ADDED)
+dist/
+build/
+*.egg-info/
+*.egg
