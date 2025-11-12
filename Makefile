@@ -1,96 +1,64 @@
-# SPAC Shiny Docker Commands
-# Usage: make <command>
+# Configuration
+IMAGE_NAME = spac-shiny
+BASE_IMAGE_NAME = spac-shiny-base
+VERSION = latest
+PORT = 8000
 
-.PHONY: help build run run-dev stop clean logs shell restart deploy status
+# Build the base image (run once or when requirements.txt changes)
+build-base:
+	@echo "🔨 Building base image with all dependencies..."
+	@echo "This will take 5-10 minutes on first run..."
+	DOCKER_BUILDKIT=1 docker build -f base.Dockerfile -t $(BASE_IMAGE_NAME):$(VERSION) .
+	@echo "✅ Base image built successfully!"
 
-# Default target
-help:
-	@echo "SPAC Shiny Docker Management"
-	@echo "============================"
-	@echo ""
-	@echo "Available commands:"
-	@echo "  help      - Show this help message"
-	@echo "  build     - Build the Docker image"
-	@echo "  run       - Run the container (builds if needed)"
-	@echo "  run-dev   - Run with volume mount for development"
-	@echo "  stop      - Stop the running container"
-	@echo "  restart   - Restart the container"
-	@echo "  logs      - Show container logs"
-	@echo "  shell     - Open a shell inside the container"
-	@echo "  clean     - Remove container and image"
-	@echo "  deploy    - Deploy to Posit Connect (appshare-dev)"
-	@echo "  status    - Show container status"
-	@echo ""
-	@echo "Quick start:"
-	@echo "  make run        # Build and run the container"
-	@echo "  make logs       # View logs"
-	@echo "  make stop       # Stop when done"
-	@echo "  make deploy     # Deploy to Posit Connect"
-	@echo ""
-	@echo "App will be available at: http://localhost:8001"
-
-# Build the Docker image
+# Build the application image (fast - only copies your code)
 build:
-	@echo "Building SPAC Shiny Docker image..."
-	docker build -t spac-shiny .
+	@echo "🔨 Building application image..."
+	DOCKER_BUILDKIT=1 docker build -t $(IMAGE_NAME):$(VERSION) .
+	@echo "✅ Application image built successfully!"
 
-# Run the container (background)
+# Run the application
 run: build
-	@echo "Starting SPAC Shiny container..."
-	@echo "App will be available at: http://localhost:8001"
-	docker run -d --name spac-shiny-app -p 8001:8000 spac-shiny
+	@echo "🚀 Starting application on port $(PORT)..."
+	docker run -p $(PORT):$(PORT) $(IMAGE_NAME):$(VERSION)
 
-# Run with development volume mount
-run-dev: build
-	@echo "Starting SPAC Shiny container in development mode..."
-	@echo "App will be available at: http://localhost:8001"
-	docker run -d --name spac-shiny-app -p 8001:8000 -v $(PWD):/app spac-shiny
+# Complete rebuild (when requirements.txt changes)
+rebuild: build-base build
+	@echo "✅ Complete rebuild finished!"
 
+# First-time setup
+setup: build-base build
+	@echo "✅ Setup complete!"
+	@echo "Run 'make run' to start the application"
 
+# Clean up application image only (keeps base)
+clean:
+	@echo "🧹 Cleaning up application image..."
+	docker rmi $(IMAGE_NAME):$(VERSION) 2>/dev/null || true
+	@echo "✅ Done! Base image preserved."
 
-# Stop the container
-stop:
-	@echo "Stopping SPAC Shiny container..."
-	-docker stop spac-shiny-app
-	-docker rm spac-shiny-app
+# Deep clean (removes everything including base image)
+clean-all:
+	@echo "🧹 Cleaning up all images..."
+	docker rmi $(IMAGE_NAME):$(VERSION) 2>/dev/null || true
+	docker rmi $(BASE_IMAGE_NAME):$(VERSION) 2>/dev/null || true
+	@echo "✅ All images removed."
 
-# Restart the container
-restart: stop run
+# Show image information
+info:
+	@echo "📊 Docker images:"
+	@docker images | grep -E "$(BASE_IMAGE_NAME)|$(IMAGE_NAME)|REPOSITORY" || echo "No images found"
 
-# Show container logs
-logs:
-	@echo "Showing SPAC Shiny logs..."
-	@echo "Press Ctrl+C to exit log view"
-	docker logs -f spac-shiny-app
+# Help command
+help:
+	@echo "Available commands:"
+	@echo "  make setup       - First-time setup (builds base + app)"
+	@echo "  make build-base  - Build base image with dependencies"
+	@echo "  make build       - Build application image"
+	@echo "  make run         - Build and run the application"
+	@echo "  make rebuild     - Rebuild everything (when requirements change)"
+	@echo "  make clean       - Remove app image (keep base)"
+	@echo "  make clean-all   - Remove all images"
+	@echo "  make info        - Show image information"
 
-# Open a shell inside the running container
-shell:
-	@echo "Opening shell in SPAC Shiny container..."
-	docker exec -it spac-shiny-app /bin/bash
-
-# Clean up everything
-clean: stop
-	@echo "Cleaning up SPAC Shiny Docker resources..."
-	-docker rmi spac-shiny
-	-docker system prune -f
-
-# Deploy to Posit Connect
-deploy:
-	@echo "Deploying SPAC Shiny to Posit Connect..."
-	@echo "Getting current commit hash for version tracking..."
-	$(eval COMMIT_HASH := $(shell git rev-parse --short HEAD))
-	@echo "Deploying version: $(COMMIT_HASH)"
-	@echo "Sourcing bash profile and activating conda environment..."
-	bash -c "source ~/.bash_profile && cd $(PWD) && conda activate spac-shiny-3-9-16 && rsconnect deploy shiny -n appshare-dev -t 'SPAC - Spatial Analysis Dashboard ($(COMMIT_HASH))' -v -a 4d6cc93f-3829-4935-8987-8c169549dbff ."
-	@echo ""
-	@echo "Deployment completed! Access your app at:"
-	@echo "Dashboard: https://appshare-dev.cancer.gov/connect/#/apps/4d6cc93f-3829-4935-8987-8c169549dbff/access"
-	@echo "Direct URL: https://appshare-dev.cancer.gov/content/4d6cc93f-3829-4935-8987-8c169549dbff/"
-
-# Check if container is running
-status:
-	@echo "SPAC Shiny Container Status:"
-	@echo "=========================="
-	@docker ps | grep spac-shiny || echo "No SPAC Shiny containers running"
-	@echo ""
-	@docker images | grep spac-shiny || echo "No SPAC Shiny images found"
+.PHONY: build-base build run rebuild setup clean clean-all info help
