@@ -108,8 +108,9 @@ def feat_vs_anno_server(input, output, session, shared):
         for label in fig.ax_heatmap.get_yticklabels():
             label.set_fontsize(fontsize)
             label.set_fontfamily("DejaVu Sans")
-
-        fig.fig.subplots_adjust(bottom=0.4, left=0.1)
+        
+        fig.fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.98])  # Prevent the label to exceed the right border
+        fig.fig.subplots_adjust(bottom=0.15, left=0)
         return fig
 
     heatmap_ui_initialized = reactive.Value(False)

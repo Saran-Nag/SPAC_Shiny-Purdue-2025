@@ -168,7 +168,7 @@ def feat_vs_anno_ui():
                             ui.output_plot(
                                 "spac_Heatmap", 
                                 width="100%", 
-                                height="700px"
+                                height="500px"
                             )
                         )
                     )
