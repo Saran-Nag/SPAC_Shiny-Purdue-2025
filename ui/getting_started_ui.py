@@ -386,16 +386,6 @@ def getting_started_ui():
                     )
                 )
             ),
-
             # Footer
-        ),
-        ui.input_action_button(
-            "my_fixed_btn",
-            "💬",
-            #alt = ui.tags.img(
-                #src="path/to/your/image.png",
-                src="💬",
-            #),
-            class_="fixed-button btn btn-primary",
         )
     )
