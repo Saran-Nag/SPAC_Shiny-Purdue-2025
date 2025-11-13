@@ -1,27 +1,56 @@
+"""
+Data input server module for SPAC Shiny application.
+
+This module handles file uploads and data loading with caching support
+for improved performance across all analysis modules.
+"""
+
 from shiny import render, reactive
-import pickle
-import anndata as ad
+from utils.data_processing import cached_load_data
 import os
 import re
 
 
+def sanitize_filename(filename):
+    """Extract base filename and sanitize it for use in download names."""
+    # Remove path and extension
+    base_name = os.path.splitext(os.path.basename(filename))[0]
+    # Replace spaces and special characters with underscores
+    sanitized = re.sub(r'[^a-zA-Z0-9_-]', '_', base_name)
+    # Remove multiple consecutive underscores
+    sanitized = re.sub(r'_+', '_', sanitized)
+    # Remove leading/trailing underscores
+    sanitized = sanitized.strip('_')
+    return sanitized
+
+
 def data_input_server(input, output, session, shared):
-    def sanitize_filename(filename):
-        """Extract base filename and sanitize it for use in download names."""
-        # Remove path and extension
-        base_name = os.path.splitext(os.path.basename(filename))[0]
-        # Replace spaces and special characters with underscores
-        sanitized = re.sub(r'[^a-zA-Z0-9_-]', '_', base_name)
-        # Remove multiple consecutive underscores
-        sanitized = re.sub(r'_+', '_', sanitized)
-        # Remove leading/trailing underscores
-        sanitized = sanitized.strip('_')
-        return sanitized
+    """
+    Server logic for data input and loading.
+    
+    Parameters
+    ----------
+    input : shiny.session.Inputs
+        Shiny input object
+    output : shiny.session.Outputs
+        Shiny output object
+    session : shiny.session.Session
+        Shiny session object
+    shared : dict
+        Shared reactive values across modules
+    """
     
     @reactive.Effect
     def adata_filter():
+        """
+        Load and cache AnnData from file upload or preloaded data.
+        
+        Uses cached loading to avoid repeated file I/O, providing
+        performance benefits across all analysis modules.
+        """
         print("Calling Data")
         file_info = input.input_file()
+        
         if not file_info:
             # Only set preloaded data if it exists
             if shared['preloaded_data'] is not None:
@@ -40,22 +69,24 @@ def data_input_server(input, output, session, shared):
             filename = sanitize_filename(file_path)
             shared['input_filename'].set(filename)
             
-            with open(file_path, 'rb') as file:
-                if file_path.endswith('.pickle'):
-                    shared['adata_main'].set(pickle.load(file))
-                elif file_path.endswith('.h5ad'):
-                    shared['adata_main'].set(ad.read_h5ad(file_path))
-                else:
-                    shared['adata_main'].set(ad.read(file_path))
+            # Use cached loader for performance - data shared across all modules
+            shared['adata_main'].set(cached_load_data(file_path))
             # Set to True if a file is successfully uploaded
             shared['data_loaded'].set(True)
 
     @reactive.Effect
     def update_parts():
+        """
+        Extract and update shared data components from loaded AnnData.
+        
+        Parses the main AnnData object and populates shared reactive
+        values for use across all modules (spatial, violin, etc.).
+        """
         print("Updating Parts")
         adata = shared['adata_main'].get()
+        
         if adata is not None:
-
+            # Extract all AnnData components
             if hasattr(adata, 'X'):
                 shared['X_data'].set(adata.X)
             else:
@@ -113,12 +144,12 @@ def data_input_server(input, output, session, shared):
             else:
                 shared['uns_names'].set(None)
 
-            # Extract spatial_distance column names if available via helper
+            # Extract spatial distance columns
             from utils.data_processing import get_spatial_distance_columns
-
             spatial_cols = get_spatial_distance_columns(adata)
             shared['spatial_distance_columns'].set(spatial_cols)
         else:
+            # Clear all shared data if no AnnData loaded
             shared['obs_data'].set(None)
             shared['obsm_data'].set(None)
             shared['layers_data'].set(None)
@@ -132,7 +163,9 @@ def data_input_server(input, output, session, shared):
             shared['uns_names'].set(None)
             shared['spatial_distance_columns'].set(None)
 
-
+    # ...existing render functions (print_obs_names, formatted_obs_names, etc.)...
+    # Keep all your existing @reactive.Calc and @render.text/ui functions
+    
     @reactive.Calc
     @render.text
     def print_obs_names():
@@ -147,7 +180,6 @@ def data_input_server(input, output, session, shared):
             return "Annotations: " + obs_str
         else:
             return "Empty"
-        return
 
     @reactive.Calc
     @render.text
@@ -163,19 +195,15 @@ def data_input_server(input, output, session, shared):
             return "Associated Tables: " + obsm_str
         else:
             return "Empty"
-        return
 
     @reactive.Calc
     @render.text
     def print_layers_names():
         layers = shared['layers_names'].get()
-        # If there are no layers at all, just say "None"
         if not layers:
             return "Tables: None"
-        # If there's more than one layer
         if len(layers) > 1:
             layers_str = ", ".join(layers)
-        # If there's exactly one layer
         else:
             layers_str = layers[0]
         return "Tables: " + layers_str
@@ -192,7 +220,6 @@ def data_input_server(input, output, session, shared):
             else:
                 uns_str = uns[0] if uns else ""
             return "Unstructured Data: " + uns_str
-        return
 
     @reactive.Calc
     @render.text
@@ -204,7 +231,6 @@ def data_input_server(input, output, session, shared):
             return str(shape[0])
         else:
             return "Empty"
-        return
 
     @reactive.Calc
     @render.text
@@ -213,12 +239,10 @@ def data_input_server(input, output, session, shared):
         if not shape:
             return "None"
         if shape is not None:
-            return  str(shape[1])
+            return str(shape[1])
         else:
             return "Empty"
-        return
 
-    # Formatted UI outputs for better display
     @reactive.Calc
     @render.ui
     def formatted_obs_names():
