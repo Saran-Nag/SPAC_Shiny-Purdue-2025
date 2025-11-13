@@ -20,7 +20,7 @@ build:
 # Run the application
 run: build
 	@echo "Starting application on port $(PORT)..."
-	docker run -p $(PORT):$(PORT) $(IMAGE_NAME):$(VERSION)
+	docker run --rm -it -p $(PORT):$(PORT) $(IMAGE_NAME):$(VERSION)
 
 # Complete rebuild (when requirements.txt changes)
 rebuild: build-base build
