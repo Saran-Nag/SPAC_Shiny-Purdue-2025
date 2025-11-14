@@ -16,7 +16,7 @@ from ui import (
     scatterplot_ui,
     nearest_neighbor_ui,
     ripleyL_ui
-)   
+)
 
 # Server imports
 from server import (
@@ -52,16 +52,16 @@ preloaded_data = load_data(file_path)  # Initialize as None
 app_ui = ui.page_fluid(
     # Apply security enhancements
     apply_security_enhancements(),
-    
+
     # Include header HTML
     ui.HTML(header_html),
-    
+
     # Add navigation accessibility fixes
     accessible_navigation(),
-    
+
     # Add global slider accessibility fixes
     apply_slider_accessibility_global(),
-    
+
     # Main application content
     ui.navset_card_tab(
         getting_started_ui(),
@@ -77,15 +77,49 @@ app_ui = ui.page_fluid(
         nearest_neighbor_ui(),
         ripleyL_ui(),
     ),
+    # Fixed chat button
     ui.input_action_button(
         "my_fixed_btn",
         "💬",
-        #alt = ui.tags.img(
-            #src="path/to/your/image.png",
-            src="💬",
-        #),
         class_="fixed-button btn btn-primary",
+        onclick="toggleChatPanel()"  # Direct JavaScript call
     ),
+    # Floating chat panel
+    ui.div(
+        ui.div(
+            ui.h3("Chat with SPAC!", style="margin-top: 0;"),
+            ui.tags.button(
+                "×",
+                onclick="document.getElementById('chat_panel').style.display='none'",
+                class_="close-chat-btn",
+                type="button"
+            ),
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;"
+        ),
+        ui.input_text_area(
+            "user_input",
+            "Type your message here:",
+            placeholder="Enter text...",
+            rows=8,
+            width="100%"
+        ),
+        ui.input_action_button("submit_input", "Submit", class_="btn-primary", style="width: 100%; margin-top: 10px;"),
+        id="chat_panel",
+        class_="chat-panel",
+        style="display: none;"  # Hidden by default
+    ),
+    # JavaScript for toggling
+    ui.tags.script("""
+        function toggleChatPanel() {
+            var panel = document.getElementById('chat_panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+    """),
+    # Styles
     ui.tags.style("""
         .fixed-button {
             position: fixed;
@@ -95,69 +129,83 @@ app_ui = ui.page_fluid(
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            min-width: 60px;
+            min-height: 60px;
+            max-width: 60px;
+            max-height: 60px;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            padding: 0;
             background: linear-gradient(45deg, #17a2b8, #20c997);
             transition: all 0.3s ease;
             border: none;
             outline: none;
+            box-sizing: border-box;
         }
         .fixed-button:hover {
-            transform: scale(1.3);
+            transform: scale(1.2);
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .fixed-button:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        .chat-panel {
+            position: fixed;
+            bottom: 90px;
+            right: 15px;
+            width: 350px;
+            max-width: 90vw;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 999;
+        }
+        .close-chat-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            color: #666666;
+        }
+        .close-chat-btn:hover {
+            color: #000000;
+            transform: scale(1.2);
         }
     """),
     # Include footer HTML
     ui.HTML(footer_html)
 )
 
-
 def server(input, output, session):
-    # Handle the fixed button click
-    @reactive.effect
-    @reactive.event(input.my_fixed_btn)
-    def show_input_modal():
-        # Show a modal dialog when button is clicked
-        m = ui.modal(
-            ui.h3("Chat with SPAC!"),
-            ui.input_text_area(
-                "user_input",
-                "Type your message here:",
-                placeholder="Enter text...",
-                rows=8,
-                width="100%"
-            ),
-            easy_close=True,
-            footer=ui.div(
-                ui.input_action_button("submit_input", "Submit", class_="btn-primary"),
-                ui.modal_button("Cancel")
-            )
-        )
-        ui.modal_show(m)
-
-    # Handle the submit button in the modal
+    # Handle the submit button
     @reactive.effect
     @reactive.event(input.submit_input)
     def handle_submission():
         user_text = input.user_input()
         print(f"Submitted: {user_text}")
 
-        # Close the modal
-        ui.modal_remove()
-        # Show a confirmation notification
-        if user_text is not "":
+        # Show notification
+        if user_text != "":
             ui.notification_show(
                 f"Submitted: {user_text}",
                 type="message",
                 duration=3
             )
+            # Clear the input after submission
+            ui.update_text_area("user_input", value="")
         else:
             ui.notification_show(
-                f"No Input",
-                type="message",
+                "No Input",
+                type="warning",
                 duration=3
             )
+
     # Define a reactive variable to track if data is loaded
     data_loaded = reactive.Value(False)
 
@@ -200,7 +248,7 @@ def server(input, output, session):
 
     # Individual server components
     getting_started_server(input, output, session, shared)
-    
+
     data_input_server(input, output, session, shared)
 
     effect_update_server(input, output, session, shared)
