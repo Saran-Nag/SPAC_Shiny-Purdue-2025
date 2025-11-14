@@ -6,18 +6,6 @@ import spac.visualization
 
 
 def feat_vs_anno_server(input, output, session, shared):
-    rendering_state = reactive.Value(False)
-
-    @reactive.effect
-    @reactive.event(input.go_hm1)
-    def handle_render_start():
-        rendering_state.set(True)
-
-    @reactive.effect
-    @reactive.event(input.cancel_hm1)
-    def handle_cancel_click():
-        rendering_state.set(False)
-
     def on_layer_check():
         return input.hm1_layer() if input.hm1_layer() != "Original" else None
 
@@ -35,24 +23,26 @@ def feat_vs_anno_server(input, output, session, shared):
             else (None, None)
         )
 
-    @output
-    @render.plot
-    @reactive.event(input.go_hm1, ignore_none=True)
-    def spac_Heatmap():
-        adata = ad.AnnData(
+    @reactive.calc
+    def get_adata():
+        return ad.AnnData(
             X=shared['X_data'].get(),
             obs=pd.DataFrame(shared['obs_data'].get()),
             var=pd.DataFrame(shared['var_data'].get()),
             layers=shared['layers_data'].get(),
             dtype=shared['X_data'].get().dtype
         )
+    
+    @output
+    @render.plot
+    @reactive.event(input.go_hm1, ignore_none=True)
+    def spac_Heatmap():
+        adata = get_adata()
         if adata is None:
             return None
 
         vmin = input.min_select()
         vmax = input.max_select()
-        cmap = input.hm1_cmap()
-        fontsize = input.axis_label_fontsize()
         kwargs = {"vmin": vmin, "vmax": vmax}
         cluster_annotations, cluster_features = on_dendro_check()
 
@@ -74,12 +64,13 @@ def feat_vs_anno_server(input, output, session, shared):
             print("Invalid figure structure.")
             return None
 
+        cmap = input.hm1_cmap()
         if cmap != "viridis":
             fig.ax_heatmap.collections[0].set_cmap(cmap)
 
         shared['df_heatmap'].set(df)
 
-        #Rotate X and Y axis labels
+        # Rotate X and Y axis labels
         fig.ax_heatmap.set_xticklabels(
             fig.ax_heatmap.get_xticklabels(),
             rotation=input.hm_x_label_rotation(),
@@ -102,11 +93,13 @@ def feat_vs_anno_server(input, output, session, shared):
             abbreviated_yticks = abbreviate_labels(fig.ax_heatmap.get_yticklabels(), limit)
             fig.ax_heatmap.set_yticklabels(abbreviated_yticks, rotation=input.hm_y_label_rotation())
 
+        # Set font size for axis labels
+        axis_fontsize = input.axis_label_fontsize()
         for label in fig.ax_heatmap.get_xticklabels():
-            label.set_fontsize(fontsize)
+            label.set_fontsize(axis_fontsize)
             label.set_fontfamily("DejaVu Sans")
         for label in fig.ax_heatmap.get_yticklabels():
-            label.set_fontsize(fontsize)
+            label.set_fontsize(axis_fontsize)
             label.set_fontfamily("DejaVu Sans")
         
         fig.fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.98])  # Prevent the label to exceed the right border
