@@ -30,7 +30,7 @@ def feat_vs_anno_server(input, output, session, shared):
             return (None, None) to indicate that no dendrogram is available.
         '''
         return (
-            (input.h2_anno_dendro(), input.h2_feat_dendro())
+            (input.fva_anno_dendro(), input.fva_feat_dendro())
             if input.dendogram()
             else (None, None)
         )
@@ -96,7 +96,7 @@ def feat_vs_anno_server(input, output, session, shared):
             return [label.get_text()[:limit] if label.get_text() else "" for label in labels]
 
         if input.enable_abbreviation():
-            limit = input.label_char_limit()
+            limit = input.fva_label_char_limit()
             abbreviated_xticks = abbreviate_labels(fig.ax_heatmap.get_xticklabels(), limit)
             fig.ax_heatmap.set_xticklabels(abbreviated_xticks, rotation=input.hm_x_label_rotation())
             abbreviated_yticks = abbreviate_labels(fig.ax_heatmap.get_yticklabels(), limit)
@@ -112,34 +112,6 @@ def feat_vs_anno_server(input, output, session, shared):
         fig.fig.tight_layout(rect=[0.02, 0.02, 0.98, 0.98])  # Prevent the label to exceed the right border
         fig.fig.subplots_adjust(bottom=0.15, left=0)
         return fig
-
-    heatmap_ui_initialized = reactive.Value(False)
-
-    @reactive.effect
-    def heatmap_reactivity():
-        btn = input.dendogram()
-        ui_initialized = heatmap_ui_initialized.get()
-
-        if btn and not ui_initialized:
-            # Insert feature cluster first
-            feat_check = ui.input_checkbox("h2_feat_dendro", "Feature Cluster", value=False)
-            ui.insert_ui(
-                ui.div({"id": "inserted-check1"}, feat_check),
-                selector="#main-hm2_check",
-                where="beforeEnd",
-            )
-            # Insert annotation cluster below
-            annotation_check = ui.input_checkbox("h2_anno_dendro", "Annotation Cluster", value=False)
-            ui.insert_ui(
-                ui.div({"id": "inserted-check"}, annotation_check),
-                selector="#main-hm2_check",
-                where="beforeEnd",
-            )
-            heatmap_ui_initialized.set(True)
-        elif not btn and ui_initialized:
-            ui.remove_ui("#inserted-check")
-            ui.remove_ui("#inserted-check1")
-            heatmap_ui_initialized.set(False)
 
     @render.download(filename="heatmap_data.csv")
     def download_df():
@@ -203,22 +175,3 @@ def feat_vs_anno_server(input, output, session, shared):
             selector="#main-max_num",
             where="beforeEnd",
         )
-
-    @reactive.effect
-    @reactive.event(input.enable_abbreviation)
-    def toggle_label_char_limit_slider():
-        if input.enable_abbreviation():
-            slider = ui.input_slider(
-                "label_char_limit",
-                "Max Characters per Label",
-                min=2,
-                max=20,
-                value=6
-            )
-            ui.insert_ui(
-                ui.div({"id": "inserted-label-char-limit"}, slider),
-                selector="#main-hm1_check",  # Or another appropriate container
-                where="beforeEnd",
-            )
-        else:
-            ui.remove_ui("#inserted-label-char-limit")

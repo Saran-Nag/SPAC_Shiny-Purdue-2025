@@ -91,7 +91,19 @@ def feat_vs_anno_ui():
                                         "Include Dendrogram", 
                                         False
                                     ),
-                                    ui.div(id="main-hm2_check"),    # Place-holder for dendogram
+                                    ui.panel_conditional(
+                                        "input.dendogram",
+                                        ui.input_checkbox(
+                                            "fva_feat_dendro",
+                                            "Feature Cluster",
+                                            value=False
+                                        ),
+                                        ui.input_checkbox(
+                                            "fva_anno_dendro",
+                                            "Annotation Cluster",
+                                            value=False
+                                        ),
+                                    ),
                                     ui.div(id="main-min_num"),
                                     ui.div(id="main-max_num"),
                                 ),
@@ -138,7 +150,16 @@ def feat_vs_anno_ui():
                                         "Abbreviate Axis Labels",
                                         value=False
                                     ),
-                                    ui.div(id="main-hm1_check"), 
+                                    ui.panel_conditional(
+                                        "input.enable_abbreviation",
+                                        ui.input_slider(
+                                            "fva_label_char_limit",
+                                            "Axis Label Character Limit",
+                                            min=3,
+                                            max=20,
+                                            value=6,
+                                        ),
+                                    ),
                                 ),
                             ),
 
