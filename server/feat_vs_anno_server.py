@@ -18,8 +18,8 @@ def feat_vs_anno_server(input, output, session, shared):
             return (None, None) to indicate that no dendrogram is available.
         '''
         return (
-            (input.fva_anno_dendro(), input.fva_feat_dendro())
-            if input.dendogram()
+            (input.hm1_anno_dendro(), input.hm1_feat_dendro())
+            if input.hm1_dendogram()
             else (None, None)
         )
 
@@ -41,8 +41,8 @@ def feat_vs_anno_server(input, output, session, shared):
         if adata is None:
             return None
 
-        vmin = input.min_select()
-        vmax = input.max_select()
+        vmin = input.hm1_min_select()
+        vmax = input.hm1_max_select()
         kwargs = {"vmin": vmin, "vmax": vmax}
         cluster_annotations, cluster_features = on_dendro_check()
 
@@ -73,12 +73,12 @@ def feat_vs_anno_server(input, output, session, shared):
         # Rotate X and Y axis labels
         fig.ax_heatmap.set_xticklabels(
             fig.ax_heatmap.get_xticklabels(),
-            rotation=input.hm_x_label_rotation(),
+            rotation=input.hm1_x_label_rotation(),
             horizontalalignment='right'
         )
         fig.ax_heatmap.set_yticklabels(
             fig.ax_heatmap.get_yticklabels(),
-            rotation=input.hm_y_label_rotation(),
+            rotation=input.hm1_y_label_rotation(),
             verticalalignment='center'
         )
         
@@ -86,15 +86,15 @@ def feat_vs_anno_server(input, output, session, shared):
         def abbreviate_labels(labels, limit):
             return [label.get_text()[:limit] if label.get_text() else "" for label in labels]
 
-        if input.enable_abbreviation():
-            limit = input.fva_label_char_limit()
+        if input.hm1_enable_abbreviation():
+            limit = input.hm1_label_char_limit()
             abbreviated_xticks = abbreviate_labels(fig.ax_heatmap.get_xticklabels(), limit)
-            fig.ax_heatmap.set_xticklabels(abbreviated_xticks, rotation=input.hm_x_label_rotation())
+            fig.ax_heatmap.set_xticklabels(abbreviated_xticks, rotation=input.hm1_x_label_rotation())
             abbreviated_yticks = abbreviate_labels(fig.ax_heatmap.get_yticklabels(), limit)
-            fig.ax_heatmap.set_yticklabels(abbreviated_yticks, rotation=input.hm_y_label_rotation())
+            fig.ax_heatmap.set_yticklabels(abbreviated_yticks, rotation=input.hm1_y_label_rotation())
 
         # Set font size for axis labels
-        axis_fontsize = input.axis_label_fontsize()
+        axis_fontsize = input.hm1_axis_label_fontsize()
         for label in fig.ax_heatmap.get_xticklabels():
             label.set_fontsize(axis_fontsize)
             label.set_fontfamily("DejaVu Sans")
@@ -107,7 +107,7 @@ def feat_vs_anno_server(input, output, session, shared):
         return fig
 
     @render.download(filename="heatmap_data.csv")
-    def download_df():
+    def download_df_hm1():
         df = shared['df_heatmap'].get()
         if df is not None:
             csv_string = df.to_csv(index=False)
@@ -117,9 +117,9 @@ def feat_vs_anno_server(input, output, session, shared):
 
     @render.ui
     @reactive.event(input.go_hm1, ignore_none=True)
-    def download_button_ui():
+    def download_button_ui_hm1():
         if shared['df_heatmap'].get() is not None:
-            return ui.download_button("download_df", "Download Data", class_="btn-warning")
+            return ui.download_button("download_df_hm1", "Download Data", class_="btn-warning")
         return None
 
     @reactive.effect
@@ -140,31 +140,31 @@ def feat_vs_anno_server(input, output, session, shared):
         min_val = round(float(np.min(layer_data)), 2)
         max_val = round(float(np.max(layer_data)), 2)
 
-        ui.remove_ui("#inserted-min_num")
-        ui.remove_ui("#inserted-max_num")
+        ui.remove_ui("#inserted-hm1_min_num")
+        ui.remove_ui("#inserted-hm1_max_num")
 
         min_num = ui.input_numeric(
-            "min_select", 
+            "hm1_min_select", 
             "Minimum", 
             min_val, 
             min=min_val, 
             max=max_val
         )
         ui.insert_ui(
-            ui.div({"id": "inserted-min_num"}, min_num),
-            selector="#main-min_num",
+            ui.div({"id": "inserted-hm1_min_num"}, min_num),
+            selector="#main-hm1_min_num",
             where="beforeEnd",
         )
         
         max_num = ui.input_numeric(
-            "max_select", 
+            "hm1_max_select", 
             "Maximum", 
             max_val, 
             min=min_val, 
             max=max_val
         )
         ui.insert_ui(
-            ui.div({"id": "inserted-max_num"}, max_num),
-            selector="#main-max_num",
+            ui.div({"id": "inserted-hm1_max_num"}, max_num),
+            selector="#main-hm1_max_num",
             where="beforeEnd",
         )

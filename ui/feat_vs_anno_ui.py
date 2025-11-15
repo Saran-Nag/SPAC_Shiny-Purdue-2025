@@ -8,25 +8,25 @@ def feat_vs_anno_ui():
         "Feat. Vs Anno.",
         # Custom CSS for improved layout
         ui.tags.style("""
-            .fva-controls-panel {
+            .hm1-controls-panel {
                 background-color: #f8f9fa;
                 border-radius: 8px;
                 padding: 10px;
             }
-            .fva-plot-container {
+            .hm1-plot-container {
                 background-color: white;
                 border-radius: 8px;
                 border: 1px solid #dee2e6;
                 padding: 10px;
             }
-            .fva-controls-panel .form-group {
+            .hm1-controls-panel .form-group {
                 margin-bottom: 12px;
             }
-            .fva-controls-panel h4, .fva-controls-panel h5 {
+            .hm1-controls-panel h4, .hm1-controls-panel h5 {
                 margin-bottom: 10px;
                 margin-top: 15px;
             }
-            .fva-controls-panel h4:first-child {
+            .hm1-controls-panel h4:first-child {
                 margin-top: 0;
             }
             .accessible-tooltip:focus {
@@ -43,7 +43,7 @@ def feat_vs_anno_ui():
                         3,
                         ui.div(
                             {
-                                "class": "fva-controls-panel",
+                                "class": "hm1-controls-panel",
                                 "style": (
                                     "height: 85vh; overflow-y: auto; "
                                     "padding-right: 10px; "
@@ -70,12 +70,12 @@ def feat_vs_anno_ui():
                             # Plot configuration in expandable section
                             ui.div(
                                 ui.input_checkbox(
-                                    "fva_show_plot_config",
+                                    "hm1_show_plot_config",
                                     "Show Plot Configuration",
                                     value=False
                                 ),
                                 ui.panel_conditional(
-                                    "input.fva_show_plot_config",
+                                    "input.hm1_show_plot_config",
                                     ui.input_select(
                                         "hm1_cmap", 
                                         "Select Color Map", 
@@ -87,25 +87,25 @@ def feat_vs_anno_ui():
                                         selected="viridis"
                                     ),  # Dropdown for color maps
                                     ui.input_checkbox(
-                                        "dendogram", 
+                                        "hm1_dendogram", 
                                         "Include Dendrogram", 
                                         False
                                     ),
                                     ui.panel_conditional(
-                                        "input.dendogram",
+                                        "input.hm1_dendogram",
                                         ui.input_checkbox(
-                                            "fva_feat_dendro",
+                                            "hm1_feat_dendro",
                                             "Feature Cluster",
                                             value=False
                                         ),
                                         ui.input_checkbox(
-                                            "fva_anno_dendro",
+                                            "hm1_anno_dendro",
                                             "Annotation Cluster",
                                             value=False
                                         ),
                                     ),
-                                    ui.div(id="main-min_num"),
-                                    ui.div(id="main-max_num"),
+                                    ui.div(id="main-hm1_min_num"),
+                                    ui.div(id="main-hm1_max_num"),
                                 ),
                             ),
                             
@@ -116,15 +116,15 @@ def feat_vs_anno_ui():
                             # Axis settings in expandable section
                             ui.div(
                                 ui.input_checkbox(
-                                    "fva_show_axis_settings",
+                                    "hm1_show_axis_settings",
                                     "Show Axis Settings",
                                     value=False
                                 ),
                                 ui.panel_conditional(
-                                    "input.fva_show_axis_settings",
+                                    "input.hm1_show_axis_settings",
                                     # TODO: Decide whether to refactor it to input_numeric as in nn
                                     accessible_slider(
-                                        "hm_x_label_rotation",
+                                        "hm1_x_label_rotation",
                                         "Rotate X Axis Labels (degrees)",
                                         min_val=0,
                                         max_val=90,
@@ -132,28 +132,28 @@ def feat_vs_anno_ui():
                                         step=1
                                     ),
                                     ui.input_slider(
-                                        "hm_y_label_rotation", 
+                                        "hm1_y_label_rotation", 
                                         "Rotate Y Axis Labels", 
                                         min=0, 
                                         max=90, 
                                         value=25
                                     ),
                                     ui.input_slider(
-                                        "axis_label_fontsize",
+                                        "hm1_axis_label_fontsize",
                                         "Axis Label Font Size",
                                         min=3,
                                         max=24,
                                         value=10
                                     ),     
                                     ui.input_checkbox(
-                                        "enable_abbreviation",
+                                        "hm1_enable_abbreviation",
                                         "Abbreviate Axis Labels",
                                         value=False
                                     ),
                                     ui.panel_conditional(
-                                        "input.enable_abbreviation",
+                                        "input.hm1_enable_abbreviation",
                                         ui.input_slider(
-                                            "fva_label_char_limit",
+                                            "hm1_label_char_limit",
                                             "Axis Label Character Limit",
                                             min=3,
                                             max=20,
@@ -171,7 +171,7 @@ def feat_vs_anno_ui():
                             ),
                             ui.div(
                                 {"style": "padding-top: 20px;"},
-                                ui.output_ui("download_button_ui")
+                                ui.output_ui("download_button_ui_hm1")
                             ),
                         ),
                     ),
@@ -179,7 +179,7 @@ def feat_vs_anno_ui():
                         9,
                         ui.div(
                             {
-                                "class": "fva-plot-container",
+                                "class": "hm1-plot-container",
                                 "style": (
                                     "height: 85vh; overflow: auto; "
                                     "padding-left: 15px;"
