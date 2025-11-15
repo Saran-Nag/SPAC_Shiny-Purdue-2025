@@ -25,6 +25,7 @@ def feat_vs_anno_server(input, output, session, shared):
 
     @reactive.calc
     def get_adata():
+        """Get the main AnnData object from shared state."""
         return ad.AnnData(
             X=shared['X_data'].get(),
             obs=pd.DataFrame(shared['obs_data'].get()),
@@ -125,12 +126,7 @@ def feat_vs_anno_server(input, output, session, shared):
     @reactive.effect
     @reactive.event(input.hm1_layer)
     def update_min_max():
-        adata = ad.AnnData(
-            X=shared['X_data'].get(), 
-            obs=pd.DataFrame(shared['obs_data'].get()), 
-            var=pd.DataFrame(shared['var_data'].get()), 
-            layers=shared['layers_data'].get()
-        )
+        adata = get_adata()
         if input.hm1_layer() == "Original":
             layer_data = adata.X
         else:
