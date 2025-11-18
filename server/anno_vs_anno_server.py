@@ -25,7 +25,6 @@ def anno_vs_anno_server(input, output, session, shared):
             
             font_size = input.sankey_font_size()
 
-            # Modified... 
             # Applying font size directly to the Sankey trace for node and 
             # label text, as the global layout font can sometimes be ignored.
             fig.update_layout(font=dict(size=font_size))
@@ -52,7 +51,6 @@ def anno_vs_anno_server(input, output, session, shared):
 
             font_size = input.heatmap_font_size()
 
-            # Modified...
             # Applying font size directly to the heatmap axes and color bar,
             # as these elements often have their own font settings.
             result['figure'].update_layout(
